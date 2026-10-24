@@ -45,13 +45,26 @@ Em uma máquina Linux independente para **compilação**, obtenha ISO oficial do
 bash boot_gui/build/compose_iso.sh /caminho/systemrescue-13.02-amd64.iso /saida/RedeTI-Recovery-OS-alpha.iso
 ```
 
-O script recusa sobrescrever a ISO de origem ou o destino já existente. A receita está em `boot_gui/recipe/` e integra todo o aplicativo em `/opt/redeti-recovery/` da mídia, iniciando sua interface gráfica com Firefox. O build **não foi executado neste repositório**: a ISO oficial de origem e as dependências de compilação precisam estar disponíveis no computador de build.
+O script recusa sobrescrever a ISO de origem ou o destino já existente. A receita está em `boot_gui/recipe/` e integra todo o aplicativo em `/opt/redeti-recovery/` da mídia, iniciando sua interface gráfica com Firefox. A primeira ISO **foi gerada pelo GitHub Actions** com a base oficial 13.02 e o SHA-256 original validado. A inicialização gráfica no QEMU está em teste separado; a criação do arquivo ISO não representa homologação de boot.
 
 Depois de construída, teste a ISO em QEMU/VM com disco virtual descartável e, somente se homologada, copie a ISO para a partição de dados do seu Ventoy e inicialize. Não formate nem altere a instalação atual do Ventoy.
 
+
+## Primeira ISO experimental gerada (24/10/2026)
+
+Build bem-sucedido: https://github.com/paulodepaula/SO_SYSTEM_RECOVERY/actions/runs/40135166088
+
+- Artefato: `RedeTI-Recovery-OS-alpha-ISO`, que contém `RedeTI-Recovery-OS-alpha.iso` e `RedeTI-Recovery-OS-alpha.iso.sha256`.
+- O ZIP de artefato expirará em 27/10/2026 (21:39 UTC). Para reproduzir, use **Actions → Build RedeTI Recovery OS ISO (alpha) → Run workflow**.
+- O ZIP tem cerca de 1,38 GB e é obtido na seção Artifacts da execução do workflow.
+- A compilação, os testes de lógica, a verificação de checksum da ISO original e a verificação estrutural do ISO personalizado concluíram com sucesso.
+- **Não foi comprovado boot gráfico em QEMU ainda.** Teste de boot isolado: https://github.com/paulodepaula/SO_SYSTEM_RECOVERY/actions/workflows/smoke-recovery-iso.yml
+
+**Procedimento de laboratório após o boot gráfico ser validado:** extraia a ISO do ZIP, confira `sha256sum -c RedeTI-Recovery-OS-alpha.iso.sha256`, copie `RedeTI-Recovery-OS-alpha.iso` à partição de dados do Ventoy e selecione-a no menu. Não grave a ISO diretamente sobre o Ventoy e não use em disco de cliente nesta fase.
+
 ## Plano de evolução
 
-1. **v0.4-alpha:** painel, reconhecimento e cartões de diagnósticos (código disponibilizado; boot da ISO pendente de homologação).
+1. **v0.4-alpha:** painel, reconhecimento e cartões de diagnósticos implementados, ISO criada no GitHub Actions; teste de boot em QEMU pendente.
 2. v0.5: escolher automaticamente candidato quando inequívoco; solicitar seleção quando houver ambiguidade; diagnóstico offline do boot em somente leitura.
 3. v0.6: análise BCD e trilha de evidências, sem reparos.
 4. v0.7: reparos supervisionados exclusivamente em discos virtuais e imagens descartáveis.
