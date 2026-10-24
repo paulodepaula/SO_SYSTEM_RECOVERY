@@ -1,0 +1,63 @@
+name: Build RedeTI Recovery OS ISO (alpha)
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'boot_gui/**'
+      - 'assets/logo-paulo.svg'
+      - '.github/workflows/build-recovery-iso.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Install ISO build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends xorriso squashfs-tools curl ca-certificates
+      - name: Check boot interface unit tests
+        run: python3 -m unittest discover -s boot_gui/tests -v
+      - name: Download SystemRescue 13.02 and verify official SHA256
+        env:
+          ISO_URL: https://fastly-cdn.system-rescue.org/releases/13.02/systemrescue-13.02-amd64.iso
+          EXPECTED_SHA256: ad4d670b72859d887c7960142a9a9d36a3e50446694a035e254442f65d6e7572
+        run: |
+          mkdir -p dist
+          curl --fail --location --retry 4 --retry-delay 10 --output dist/systemrescue-13.02-amd64.iso "$ISO_URL"
+          echo "$EXPECTED_SHA256  dist/systemrescue-13.02-amd64.iso" | sha256sum --check --status
+          echo "Official SystemRescue ISO checksum verified."
+      - name: Download official customize script
+        run: |
+          curl --fail --location --retry 4 --retry-delay 5 \
+            "https://gitlab.com/systemrescue/systemrescue-sources/-/raw/main/airootfs/usr/share/sysrescue/bin/sysrescue-customize?inline=false" \
+            --output dist/sysrescue-customize
+          test -s dist/sysrescue-customize
+          head -n 1 dist/sysrescue-customize | grep -q bash
+          chmod +x dist/sysrescue-customize
+          sudo install -m 0755 dist/sysrescue-customize /usr/local/bin/sysrescue-customize
+      - name: Build personalized ISO from recipe
+        run: |
+          bash boot_gui/build/compose_iso.sh \
+            dist/systemrescue-13.02-amd64.iso \
+            dist/RedeTI-Recovery-OS-alpha.iso
+          test -s dist/RedeTI-Recovery-OS-alpha.iso
+      - name: Verify ISO filesystem structure
+        run: |
+          xorriso -indev dist/RedeTI-Recovery-OS-alpha.iso -find /sysresccd -type f -print 2>&1 | head -70 || true
+          xorriso -indev dist/RedeTI-Recovery-OS-alpha.iso -ls /sysrescue.d 2>&1
+          sha256sum dist/RedeTI-Recovery-OS-alpha.iso | tee dist/RedeTI-Recovery-OS-alpha.iso.sha256
+      - name: Upload bootable ISO for Ventoy lab validation
+        uses: actions/upload-artifact@v4
+        with:
+          name: RedeTI-Recovery-OS-alpha-ISO
+          path: |
+            dist/RedeTI-Recovery-OS-alpha.iso
+            dist/RedeTI-Recovery-OS-alpha.iso.sha256
+          retention-days: 3
+          if-no-files-found: error
+          compression-level: 0
