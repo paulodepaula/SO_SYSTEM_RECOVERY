@@ -90,6 +90,7 @@ Salvaguardas implementadas:
 - Monta temporariamente NTFS com `ro,norecover,nodev,nosuid,noexec` e ESP FAT com `ro,nodev,nosuid,noexec`.
 - Valida a montagem `ro` com findmnt antes de ler ate 4096 bytes dos arquivos de boot e do Windows; desmonta quando termina.
 - Recusa disco com tipo de transporte nao reconhecido, para evitar atingir dispositivos inesperados.
+- Se detectar mais de um disco interno, nao monta nenhum; exige avaliacao humana do ambiente para evitar atingir outro disco do cliente.
 - So cria diretorios temporarios sob `/run` se ele for tmpfs; gera JSON no terminal.
 - Nunca executa formatacao, reparos, SFC, CHKDSK, BCDBoot ou outros comandos de escrita.
 
