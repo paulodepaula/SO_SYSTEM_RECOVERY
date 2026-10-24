@@ -1,0 +1,10 @@
+---
+global:
+  dostartx: true
+  loadsrm: true
+  nofirewall: false
+  dovnc: false
+gui_autostart:
+  100:
+    exec: "/usr/bin/bash /opt/redeti-recovery/build/launch.sh"
+    terminal: false
