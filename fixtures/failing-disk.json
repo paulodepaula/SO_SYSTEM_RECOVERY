@@ -1,0 +1,6 @@
+{
+  "kind": "redeti_lab_fixture",
+  "case": "Falha fisica e corrupcao logica (simulado)",
+  "disks": [{"id":"DISK-LAB-002","model":"Virtual SATA","serial":"LAB-NOT-REAL","smart_health":"critical","read_errors":18}],
+  "windows_installations": [{"name":"Windows 10 Pro","boot_mode":"uefi","efi_present":true,"bcd_valid":false,"bitlocker":"off","offline_system_integrity":"corrupt"}]
+}
