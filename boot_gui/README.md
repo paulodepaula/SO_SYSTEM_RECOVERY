@@ -116,3 +116,25 @@ Este projeto não exige o uso do SSD de cliente durante desenvolvimento.
 ## Acesso remoto por VPN e SSH (v0.5 planejada)
 
 A arquitetura de conexao automatica na inicializacao, identidades efemeras, Tailscale SSH, controles de acesso e ausencia de credenciais embutidas na ISO esta em [docs/VPN_SSH_BOOT.md](../docs/VPN_SSH_BOOT.md). **A ISO alpha atual nao inclui VPN/SSH**.
+
+
+## Erro QEMU: kernel x86-64 detecta CPU i686
+
+Esse erro aparece quando o emulador apresenta um processador de 32 bits ao SystemRescue 13.02. **Nao indica ISO corrompida.** Escolha `qemu-system-x86_64` e um modelo de CPU 64-bit, em vez de `qemu-system-i386` ou `-cpu qemu32`.
+
+No Hermes, para testar a ISO local sem ligar discos de clientes a maquina virtual:
+
+```bash
+sudo apt install -y qemu-system-x86
+bash boot_gui/build/test-qemu-x64.sh ~/RecoveryOS/out/RedeTI-Recovery-OS-alpha-AAAAMMDDTHHMMSSZ.iso
+```
+
+Substitua o nome pelo arquivo ISO realmente gerado. Se o Hermes nao tiver interface grafica, o teste disponibiliza VNC apenas em `127.0.0.1:5900`. No Windows, abra um tunel SSH para o Hermes (`ssh -L 5900:127.0.0.1:5900 paulo@hermes-server`) e use seu visualizador VNC em `localhost:5900`. O teste nao adiciona HDD/SSD nem adaptador de rede a VM.
+
+Em Windows, a alternativa e executar diretamente a versao 64-bit do QEMU, por exemplo:
+
+```powershell
+& "C:\Program Files\qemu\qemu-system-x86_64.exe" -machine q35 -accel tcg -cpu max -m 3072 -smp 2 -boot order=d -cdrom "D:\ISOs\RedeTI-Recovery-OS-alpha.iso" -nic none
+```
+
+Ajuste o caminho da ISO. Evite utilitarios que iniciem a imagem com QEMU de 32 bits por padrao.
