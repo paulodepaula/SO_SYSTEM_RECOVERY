@@ -31,7 +31,7 @@ jobs:
           gh run download "$BUILD_RUN" --repo "$GITHUB_REPOSITORY" \
             --name RedeTI-Recovery-OS-alpha-ISO --dir dist
           test -s dist/RedeTI-Recovery-OS-alpha.iso
-          (cd dist && sha256sum -c RedeTI-Recovery-OS-alpha.iso.sha256)
+          sha256sum -c dist/RedeTI-Recovery-OS-alpha.iso.sha256
       - name: Boot ISO in QEMU with no hard disks and no network
         shell: bash
         run: |
