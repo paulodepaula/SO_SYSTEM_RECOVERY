@@ -19,3 +19,5 @@ jobs:
         run: python -m pip install pytest
       - name: Run isolated tests (no real devices)
         run: python -m pytest -q
+      - name: Test graphical Recovery OS backend (simulated inventory)
+        run: python -m unittest discover -s boot_gui/tests -v
