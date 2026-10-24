@@ -1,0 +1,6 @@
+{
+  "kind": "redeti_lab_fixture",
+  "case": "Windows criptografado (simulado)",
+  "disks": [{"id":"DISK-LAB-003","model":"Virtual NVMe","serial":"LAB-NOT-REAL","smart_health":"passed","read_errors":0}],
+  "windows_installations": [{"name":"Windows 11 Pro","boot_mode":"uefi","efi_present":true,"bcd_valid":null,"bitlocker":"locked","offline_system_integrity":"unknown"}]
+}
