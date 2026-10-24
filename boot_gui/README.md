@@ -31,6 +31,47 @@ Testes isolados:
 python3 -m unittest discover -s boot_gui/tests -v
 ```
 
+
+## Compilacao local no Hermes-server (recomendada)
+
+O Hermes pode gerar e atualizar a ISO localmente. **Nao ha necessidade de baixar o artefato grande do GitHub Actions em cada alteracao.** Reutilize a imagem original `systemrescue-13.02-amd64.iso` obtida uma vez, inclusive copiando-a da particao de dados do Ventoy (sem alterar o pendrive). O script atual exige exatamente esta versao e valida seu SHA-256 oficial.
+
+Primeira preparacao, no Ubuntu 24.04 do Hermes:
+
+```bash
+sudo apt update
+sudo apt install -y git curl ca-certificates xorriso squashfs-tools
+sudo curl -fL "https://gitlab.com/systemrescue/systemrescue-sources/-/raw/main/airootfs/usr/share/sysrescue/bin/sysrescue-customize?inline=false" -o /usr/local/bin/sysrescue-customize
+sudo chmod 755 /usr/local/bin/sysrescue-customize
+mkdir -p "$HOME/RecoveryOS/base" "$HOME/RecoveryOS/out"
+git clone https://github.com/paulodepaula/SO_SYSTEM_RECOVERY.git "$HOME/RecoveryOS/SO_SYSTEM_RECOVERY"
+```
+
+Copie a ISO-base **uma unica vez** do seu Ventoy (usando um gerenciador de arquivos na sua maquina ou transferencia local segura) para:
+
+```text
+~/RecoveryOS/base/systemrescue-13.02-amd64.iso
+```
+
+No Hermes, para gerar a ISO pela primeira vez:
+
+```bash
+cd "$HOME/RecoveryOS/SO_SYSTEM_RECOVERY"
+bash boot_gui/build/build-local.sh "$HOME/RecoveryOS/base/systemrescue-13.02-amd64.iso"
+```
+
+A cada atualizacao do codigo:
+
+```bash
+cd "$HOME/RecoveryOS/SO_SYSTEM_RECOVERY"
+git pull --ff-only
+bash boot_gui/build/build-local.sh "$HOME/RecoveryOS/base/systemrescue-13.02-amd64.iso"
+```
+
+Saida: `~/RecoveryOS/out/RedeTI-Recovery-OS-alpha-<data>.iso` e seu `.sha256`. O script verifica a integridade da ISO original, recusa sobrescrever arquivos existentes e confere a estrutura da nova ISO. **Nao utiliza comandos `dd`, formata discos nem instala nada no SSD analisado.** A recompilacao consome espaco em disco local e ainda deve ser testada em QEMU antes de ser utilizada no Ventoy. O SystemRescue permite construir em Linux e tambem em WSL, com as dependencias adequadas.
+
+Nota: `sysrescue-customize` e obtido da fonte oficial e executa codigo no host; revise a origem antes de instalar. Esta instalacao inicial exige internet para os pacotes e um script pequeno. O download de mais de 1 GB da ISO-base e necessario apenas se voce ainda nao possui uma copia verificavel.
+
 ## Criar a ISO própria a partir do SystemRescue
 
 O SystemRescue suporta personalização da ISO com `sysrescue-customize`, inclusão de arquivos usando um módulo **SRM**, inicialização automática de interface gráfica via `dostartx` e `gui_autostart`. Referências oficiais:
