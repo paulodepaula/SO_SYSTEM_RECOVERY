@@ -47,3 +47,27 @@ python3 -m pytest -q
 ```
 
 A v0.2 já dispõe de coletor de inventário de armazenamento, mas **ainda não é um sistema bootável próprio**. A ISO Linux Rescue é usada como ambiente externo de laboratório.
+
+
+## v0.2 - Modulo 2: boot Windows BIOS/MBR, somente leitura
+
+Arquivos:
+- [recovery/windows_boot_collector.py](recovery/windows_boot_collector.py): inspeciona arquivos e cabecalhos em volumes NTFS ja montados read-only;
+- [recovery/diagnose.py](recovery/diagnose.py): combina inventario de discos, preflight SMART e inspecao de arquivos;
+- [tests/test_windows_boot_collector.py](tests/test_windows_boot_collector.py): testes simulados de seguranca e evidencia.
+
+O modulo NAO monta particoes. Use os pontos de montagem ja criados em /mnt/redeti-boot e /mnt/redeti-windows e confirme que ambos estao em modo ro. Se nao estiverem em ro, o coletor cancela essa analise.
+
+No SystemRescue, atualizar os tres scripts para RAM e executar:
+
+    mkdir -p /run/redeti
+    for file in linux_collector.py windows_boot_collector.py diagnose.py; do
+      curl -fL "https://raw.githubusercontent.com/paulodepaula/SO_SYSTEM_RECOVERY/main/recovery/$file" -o "/run/redeti/$file" || exit 1
+    done
+    python3 /run/redeti/diagnose.py --live --acknowledge-read-only
+
+O relatorio aparece apenas no terminal (JSON). O programa consulta lsblk, smartctl, fdisk -l e findmnt. Ele exige volumes NTFS somente leitura pertencentes ao mesmo disco interno. Se houver risco fisico evidenciado pelo inventario, nao realiza leitura adicional de arquivos de Windows. Nao ha comandos de reparo, montagem ou gravacao de laudos no SSD.
+
+Inspeciona exclusivamente bootmgr, Boot/BCD, winload.exe, ntoskrnl.exe e hive SYSTEM, lendo ate 4096 bytes iniciais por arquivo. Distingue MISSING, PRESENT_UNVERIFIED e HEADER_RECOGNIZED. A integridade de BCD e Windows permanece NOT_TESTED: reconhecer assinatura nao comprova consistencia. Suporte UEFI/EFI precisa de modulo proprio.
+
+Execucao em hardware real ainda esta em homologacao. O objetivo desta etapa e observacao, nao recuperacao.
