@@ -102,6 +102,15 @@ def _verified_mount(source: str, path: Path, runner) -> bool:
 def scan(inventory: dict, runner=command, mount_root: Path | None=None) -> dict:
     """Auto-detect eligible non-removable disks; mount NTFS/ESP only read-only."""
     report = {'schema': 'redeti.auto.v0.3', 'collected_at_utc': datetime.now(timezone.utc).isoformat(), 'mode': 'READ_ONLY_AUTOMATIC', 'repairs': 'DISABLED', 'bcd_integrity': 'NOT_TESTED', 'windows_integrity': 'NOT_TESTED', 'disks': [], 'findings': [], 'warnings': []}
+    # Fail closed if multiple fixed disks are present; do not scan clients' other drives.
+    eligible = [d for d in inventory.get('blockdevices', [])
+                if isinstance(d, dict) and d.get('type') == 'disk'
+                and not d.get('rm') and d.get('tran') in {'ata', 'sata', 'nvme', 'sas', 'scsi', 'virtio'}]
+    if len(eligible) > 1:
+        report['warnings'].append('MULTIPLE_INTERNAL_DISKS: automatic file inspection refused')
+        report['disks'] = [{'device': d.get('name'), 'status': 'SKIPPED',
+                            'reason': 'MULTIPLE_INTERNAL_DISKS'} for d in eligible]
+        return report
     for disk in inventory.get('blockdevices', []):
         if disk.get('type') != 'disk':
             continue
