@@ -1,6 +1,12 @@
 # RedeTI Recovery OS
 
-Sistema híbrido **Windows PE + Linux Rescue** em planejamento para diagnóstico e recuperação supervisionada de inicialização do Windows.
+**Fluxo de produto:** inserir o pendrive Ventoy, escolher uma ISO própria do RedeTI Recovery OS, iniciar automaticamente a interface gráfica, reconhecer CPU/RAM/firmware/discos no cabeçalho e apresentar os diagnósticos disponíveis abaixo.
+
+**[Nova aplicação gráfica e receita de ISO v0.4-alpha](boot_gui/README.md)** · [Código do painel](boot_gui/ui/) · [Backend de hardware](boot_gui/app/server.py) · [Receita de ISO](boot_gui/build/compose_iso.sh)
+
+**Status real:** interface e receita de construção disponíveis, mas ISO bootável personalizada **ainda não foi construída/homologada**. O código Python anterior permanece como laboratório, não como fluxo final do técnico.
+
+---
 
 ## O que existe hoje
 - **Página demonstrativa:** [index.html](index.html) — arquitetura, fluxo de evidências e conceito de interface.
