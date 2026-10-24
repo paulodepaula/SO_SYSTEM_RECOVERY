@@ -71,3 +71,28 @@ O relatorio aparece apenas no terminal (JSON). O programa consulta lsblk, smartc
 Inspeciona exclusivamente bootmgr, Boot/BCD, winload.exe, ntoskrnl.exe e hive SYSTEM, lendo ate 4096 bytes iniciais por arquivo. Distingue MISSING, PRESENT_UNVERIFIED e HEADER_RECOGNIZED. A integridade de BCD e Windows permanece NOT_TESTED: reconhecer assinatura nao comprova consistencia. Suporte UEFI/EFI precisa de modulo proprio.
 
 Execucao em hardware real ainda esta em homologacao. O objetivo desta etapa e observacao, nao recuperacao.
+
+
+## v0.3 experimental - diagnostico automatico em uma execucao
+
+**Objetivo:** nao solicitar que o tecnico escolha /dev/sda, descubra volumes ou monte particoes. O script [recovery/auto_scan.py](recovery/auto_scan.py) identifica discos internos pelo inventario do Linux e avalia automaticamente particoes NTFS e ESP FAT no SystemRescue.
+
+Execute **somente em SSD de laboratorio**, no SystemRescue:
+
+```bash
+mkdir -p /run/redeti && curl -fL https://raw.githubusercontent.com/paulodepaula/SO_SYSTEM_RECOVERY/main/recovery/auto_scan.py -o /run/redeti/auto_scan.py && python3 /run/redeti/auto_scan.py --live --acknowledge-read-only
+```
+
+Salvaguardas implementadas:
+- Ignora discos USB/removiveis, como o Ventoy.
+- Impede leitura adicional de arquivos se SMART falhar, estiver inconclusivo ou indicar setores problematicos.
+- Ignora volumes ja montados, em vez de modificar suas opcoes.
+- Monta temporariamente NTFS com `ro,norecover,nodev,nosuid,noexec` e ESP FAT com `ro,nodev,nosuid,noexec`.
+- Valida a montagem `ro` com findmnt antes de ler ate 4096 bytes dos arquivos de boot e do Windows; desmonta quando termina.
+- Recusa disco com tipo de transporte nao reconhecido, para evitar atingir dispositivos inesperados.
+- So cria diretorios temporarios sob `/run` se ele for tmpfs; gera JSON no terminal.
+- Nunca executa formatacao, reparos, SFC, CHKDSK, BCDBoot ou outros comandos de escrita.
+
+**Limites:** Montagem somente leitura nao equivale a risco fisico zero: a leitura pode sobrecarregar um disco defeituoso. Dados de cliente nao devem ser usados na homologacao. A ferramenta nao valida internamente o BCD nem a integridade do Windows; apenas presenca e cabecalhos. Particoes criptografadas, RAID/volumes nao suportados e dispositivos com SMART inconclusivo ficam sem inspecao de arquivos. Falhas ao desmontar exigem conferencia manual. O projeto ainda depende do SystemRescue e nao constitui uma ISO propria.
+
+**Testes:** `python3 -m pytest -q` em ambiente de desenvolvimento; `tests/test_auto_scan.py` contem nove testes com coletores simulados, sem discos reais.
