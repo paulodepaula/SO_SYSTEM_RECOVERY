@@ -1,19 +1,25 @@
 # RedeTI Recovery OS
 
-Projeto de sistema bootável híbrido Windows PE + Linux para diagnóstico e recuperação supervisionada de falhas de inicialização do Windows.
+Sistema híbrido **Windows PE + Linux Rescue** em planejamento para diagnóstico e recuperação supervisionada de inicialização do Windows.
 
-## Página do projeto
+## O que existe hoje
+- **Página demonstrativa:** [index.html](index.html) — arquitetura, fluxo de evidências e conceito de interface.
+- **Protótipo v0.1 em Python:** motor de regras [recovery/engine.py](recovery/engine.py), CLI [recovery/cli.py](recovery/cli.py), [fixtures/](fixtures/) e [tests/](tests/).
+- **Documentação:** [Especificação](docs/ESPECIFICACAO.md) e [Plano de testes](docs/PLANO_DE_TESTES.md).
 
-A página pública está implementada em `index.html`, sem dependências externas. Mostra uma reprodução HTML/CSS responsiva da interface conceitual e descreve arquitetura, diagnóstico orientado por evidências, salvaguardas e roadmap.
+> **Atenção:** esta versão NÃO é uma ISO bootável. O código trabalha SOMENTE com cenários JSON simulados, não lê discos reais e não executa comandos de recuperação. A interface HTML também é demonstrativa.
 
-Para testar localmente, abra `index.html` no navegador. A página não executa diagnósticos nem reparos.
+## Rodar os testes (Python >=3.10)
+```bash
+python3 -m pip install pytest
+python3 -m pytest -q
+python3 -m recovery --fixture fixtures/bcd-corrupt.json --output relatorio-lab.json
+python3 -m recovery --fixture fixtures/failing-disk.json
+python3 -m recovery --fixture fixtures/bitlocker-locked.json
+```
+
+## Futuras etapas
+Coletores somente leitura, adaptador WinPE, bloqueios auditáveis, testes em VMs, mídia bootável híbrida e integração ao Service Desk RedeTI.
 
 ## GitHub Pages
-
-Em **Settings > Pages > Build and deployment**, escolha **Deploy from a branch**, branch **main**, diretório **/(root)** e salve. A URL esperada após o GitHub publicar é `https://paulodepaula.github.io/SO_SYSTEM_RECOVERY/`.
-
-## Escopo
-
-- A interface web é demonstrativa.
-- Coletores de hardware, reparos reais, ISO híbrida e integração ao Service Desk ainda não estão implementados nesta página.
-- Qualquer futuro reparo persistente exigirá identificação e confirmação do dispositivo, evidências, autorização, salvaguardas e auditoria.
+Em **Settings > Pages**, escolha **Deploy from a branch**, branch **main**, diretório **/(root)**. Depois de publicada, a página deverá aparecer em https://paulodepaula.github.io/SO_SYSTEM_RECOVERY/.
