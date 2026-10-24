@@ -1,0 +1,6 @@
+{
+  "kind": "redeti_lab_fixture",
+  "case": "Windows 11 sem inicializacao por BCD inconsistente (simulado)",
+  "disks": [{"id":"DISK-LAB-001","model":"Virtual NVMe","serial":"LAB-NOT-REAL","smart_health":"passed","read_errors":0}],
+  "windows_installations": [{"name":"Windows 11 Pro","boot_mode":"uefi","efi_present":true,"bcd_valid":false,"bitlocker":"off","offline_system_integrity":"healthy"}]
+}
