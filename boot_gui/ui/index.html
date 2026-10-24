@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102437">
+<title>RedeTI Recovery OS | Central de Diagnóstico</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+  <div class="identity"><span class="logo">PD</span><div><strong>RedeTI <span>Recovery OS</span></strong><small>Diagnóstico e recuperação orientados por evidências</small></div></div>
+  <div class="topstate"><span class="lab" id="mode">Reconhecendo...</span><span class="v">v0.4 · Alpha</span></div>
+</header>
+<main>
+<div class="heading">
+  <div><div class="eyebrow">AMBIENTE DE RECUPERAÇÃO</div><h1>Central de diagnóstico</h1><p>Reconhecimento inicial automático, sem modificar discos ou partições.</p></div>
+  <button class="outline" id="refresh" type="button">↻ Atualizar reconhecimento</button>
+</div>
+<section class="overview" aria-label="Identificação do computador">
+  <div class="section-title"><span class="accent-dot"></span><h2>Computador identificado</h2><span class="caption">Informações coletadas ao abrir o sistema</span></div>
+  <div class="specs">
+    <div class="spec"><span class="spec-icon">▣</span><div><label>Disco interno / Windows</label><strong id="disk">Identificando...</strong><small id="disk-detail">—</small></div></div>
+    <div class="spec"><span class="spec-icon">▥</span><div><label>Processador</label><strong id="cpu">Identificando...</strong><small id="cores">—</small></div></div>
+    <div class="spec"><span class="spec-icon">▦</span><div><label>Memória RAM</label><strong id="ram">Identificando...</strong><small>Capacidade total detectada</small></div></div>
+    <div class="spec"><span class="spec-icon">⎋</span><div><label>Modo de boot atual</label><strong id="firmware">Identificando...</strong><small>UEFI / Legacy desta sessão</small></div></div>
+  </div>
+  <div class="systemline"><span id="disk-note">Procurando unidades internas...</span><span id="drive-count">—</span></div>
+</section>
+<section class="panel" aria-label="Opções de diagnóstico">
+  <div class="section-title"><span class="accent-dot"></span><h2>Diagnósticos disponíveis</h2><span class="caption">Selecione a análise que deseja realizar</span></div>
+  <div class="cards" id="cards"></div>
+</section>
+<section class="message" id="result" role="status" aria-live="polite"><strong>Diagnóstico orientado por evidências</strong><p>A identificação de um disco e de partições NTFS não comprova que o Windows consegue iniciar.</p></section>
+<div class="warnings" id="warnings" aria-live="polite"></div>
+<div class="footer"><span>RedeTI Recovery OS · Diagnóstico sem reparos</span><span>Montagem de volumes desabilitada nesta versão</span></div>
+</main></div>
+<script defer src="/app.js"></script>
+</body></html>
