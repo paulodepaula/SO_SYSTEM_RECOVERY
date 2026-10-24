@@ -71,3 +71,7 @@ Build bem-sucedido: https://github.com/paulodepaula/SO_SYSTEM_RECOVERY/actions/r
 5. v1.0: testes BIOS/UEFI em matrizes de hardware e imagens, documentação e liberação controlada.
 
 Este projeto não exige o uso do SSD de cliente durante desenvolvimento.
+
+## Acesso remoto por VPN e SSH (v0.5 planejada)
+
+A arquitetura de conexao automatica na inicializacao, identidades efemeras, Tailscale SSH, controles de acesso e ausencia de credenciais embutidas na ISO esta em [docs/VPN_SSH_BOOT.md](../docs/VPN_SSH_BOOT.md). **A ISO alpha atual nao inclui VPN/SSH**.
