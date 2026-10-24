@@ -1,0 +1,79 @@
+name: Smoke-test RedeTI ISO on QEMU (isolated)
+on:
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: "Successful build run containing RedeTI ISO artifact"
+        required: true
+        default: "40135166088"
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/smoke-recovery-iso.yml'
+permissions:
+  actions: read
+  contents: read
+jobs:
+  qemu-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Install VM and screenshot tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 socat python3-pil
+      - name: Download verified experimental ISO artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_RUN: ${{ inputs.build_run_id || '40135166088' }}
+        run: |
+          mkdir -p dist
+          gh run download "$BUILD_RUN" --repo "$GITHUB_REPOSITORY" \
+            --name RedeTI-Recovery-OS-alpha-ISO --dir dist
+          test -s dist/RedeTI-Recovery-OS-alpha.iso
+          (cd dist && sha256sum -c RedeTI-Recovery-OS-alpha.iso.sha256)
+      - name: Boot ISO in QEMU with no hard disks and no network
+        shell: bash
+        run: |
+          set -euo pipefail
+          qemu-system-x86_64 \
+            -m 3072 -smp 2 -machine q35,accel=tcg -vga std \
+            -boot order=d \
+            -drive file=dist/RedeTI-Recovery-OS-alpha.iso,media=cdrom,readonly=on \
+            -nic none \
+            -vnc 127.0.0.1:0 \
+            -monitor unix:/tmp/redeti-qemu-monitor.sock,server,nowait \
+            -pidfile /tmp/redeti-qemu.pid -daemonize
+          trap 'kill "$(cat /tmp/redeti-qemu.pid)" 2>/dev/null || true' EXIT
+          for seconds in 50 100 150; do
+            sleep 50
+            printf 'info status\nscreendump %s/dist/qemu-%s.ppm\n' "$PWD" "$seconds" \
+              | socat -T 10 - UNIX-CONNECT:/tmp/redeti-qemu-monitor.sock \
+              > "dist/qemu-monitor-$seconds.txt" 2>&1 || true
+          done
+          /usr/bin/python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          images=[]
+          for file in sorted(Path("dist").glob("qemu-*.ppm")):
+              try:
+                  img=Image.open(file).convert("RGB")
+                  out=file.with_suffix(".png")
+                  img.save(out,optimize=True)
+                  images.append((str(out),img.size,len(img.getcolors(maxcolors=200000) or [])))
+              except Exception as exc:
+                  print("Screenshot invalid",file,exc)
+          print("Screenshots:",images)
+          if not images:
+              raise SystemExit("No QEMU screenshot captured; boot not confirmed")
+          PY
+      - name: Save screenshots for visual inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: RedeTI-QEMU-boot-screenshots
+          path: |
+            dist/qemu-*.png
+            dist/qemu-monitor-*.txt
+          retention-days: 3
+          if-no-files-found: warn
