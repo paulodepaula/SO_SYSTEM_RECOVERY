@@ -1,0 +1,26 @@
+{
+  "schema": "redeti.recovery.report.v1",
+  "source": "user_supplied_fixture_only",
+  "real_hardware_access": false,
+  "write_operations_enabled": false,
+  "repair_gate": "MANUAL_REVIEW_REQUIRED",
+  "findings": [
+    {
+      "id": "BCD_INVALID",
+      "severity": "high",
+      "title": "BCD aparentemente inconsistente",
+      "evidence": "bcd_valid=false (fixture)",
+      "recommendation": "Inspecionar entradas BCD e configuracao firmware antes de reconstruir."
+    }
+  ],
+  "proposed_actions": [
+    {
+      "id": "REVIEW_BCD",
+      "title": "Avaliar reconstrucao supervisionada do BCD",
+      "risk": "high",
+      "requires_backup": true,
+      "status": "SIMULATION_ONLY_NOT_EXECUTABLE"
+    }
+  ],
+  "disclaimer": "Relatorio exemplificativo simulado. Nenhum reparo foi executado."
+}
