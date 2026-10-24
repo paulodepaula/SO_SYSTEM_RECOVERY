@@ -23,3 +23,27 @@ Coletores somente leitura, adaptador WinPE, bloqueios auditáveis, testes em VMs
 
 ## GitHub Pages
 Em **Settings > Pages**, escolha **Deploy from a branch**, branch **main**, diretório **/(root)**. Depois de publicada, a página deverá aparecer em https://paulodepaula.github.io/SO_SYSTEM_RECOVERY/.
+
+
+## v0.2 — Coletor Linux somente leitura (laboratório)
+
+Código: [recovery/linux_collector.py](recovery/linux_collector.py).
+Testes: [tests/test_linux_collector.py](tests/test_linux_collector.py).
+
+No terminal do SystemRescue, dentro do repositório:
+
+```bash
+python3 -m recovery.linux_collector --live --acknowledge-read-only
+```
+
+O módulo consulta **somente** os comandos `lsblk`, `smartctl` e `fdisk -l`. Não monta partições, não executa verificações com reparo, não modifica BCD e não escreve relatórios em disco: a saída é JSON no terminal. Os flags `--live` e `--acknowledge-read-only` são obrigatórios para executar a coleta real. O Ventoy e outros dispositivos USB/removíveis são listados, mas não submetidos a SMART/fdisk adicional. Resultados desconhecidos não significam disco saudável.
+
+A integridade de BCD e dos arquivos Windows permanece **NOT_TESTED**, não sendo confundida com a presença dos arquivos. O bloqueio de operações de reparo permanece **BLOCKED** em todos os relatórios da v0.2.
+
+Testes isolados, sem equipamentos reais:
+
+```bash
+python3 -m pytest -q
+```
+
+A v0.2 já dispõe de coletor de inventário de armazenamento, mas **ainda não é um sistema bootável próprio**. A ISO Linux Rescue é usada como ambiente externo de laboratório.
