@@ -7,6 +7,10 @@
 #include "dashboard.h"
 #include "theme.h"
 #include "assets.h"
+/* Compiled-in SHA makes a stale QEMU ISO immediately recognizable. */
+#ifndef REDETI_BUILD_REV
+#define REDETI_BUILD_REV "unknown"
+#endif
 #include "../input.h"
 #include <stdio.h>
 #include <stdint.h>
@@ -366,7 +370,7 @@ static void header(lv_obj_t *root,int width)
         flex(ver,LV_FLEX_FLOW_COLUMN,2);
         lv_obj_set_style_pad_all(ver,6,0);
         txt(ver,"v0.6.0",16,C_WHITE);
-        txt(ver,"DRM",14,C_CYAN);
+        txt(ver,REDETI_BUILD_REV,14,C_CYAN);
     }
 }
 static void nav_item(lv_obj_t *side,const char *name,const char *glyph,
@@ -413,7 +417,7 @@ static void sidebar(lv_obj_t *side,bool compact)
 static void hero(lv_obj_t *content,int width,bool notebook)
 {
     /* Fit the laptop even at 1280-wide DRM resolutions (content ~1018px). */
-    int laptop_width=notebook?(width>=1180?420:275):0;
+    int laptop_width=notebook?(width>=1180?420:width>=960?340:275):0;
     int left_width=width-laptop_width-56;
     lv_obj_t *area=box(content,C_HERO,16,1);
     lv_obj_set_width(area,lv_pct(100));
