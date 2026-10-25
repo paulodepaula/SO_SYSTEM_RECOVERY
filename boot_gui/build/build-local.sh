@@ -59,5 +59,9 @@ xorriso -indev "$image" -ls /sysrescue.d >/dev/null 2>&1
   cd -- "$outdir"
   sha256sum -- "$(basename -- "$image")" > "$(basename -- "$image").sha256"
 )
+# Retention: only after both ISO structure checks and SHA256 generation pass.
+# Never touch the cached SystemRescue base or unrelated files.
+bash "$root/scripts/prune-recovery-isos.sh" --apply "$outdir" "$image"
 printf '\nISO: %s\nSHA256: %s.sha256\n' "$image" "$image"
-echo "Build concluido. Ainda e necessario homologar o boot grafico no QEMU."
+echo "Build concluido. ISOs antigas deste projeto removidas apos validacao (exceto as em uso)."
+echo "Ainda e necessario homologar o boot no QEMU."
