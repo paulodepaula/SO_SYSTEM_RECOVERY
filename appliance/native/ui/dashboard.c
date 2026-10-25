@@ -50,6 +50,7 @@ static lv_obj_t *s_ssh_diagnostics_panel;
 static lv_obj_t *s_ssh_diag_state;
 static lv_obj_t *s_ssh_diag_reason;
 static lv_obj_t *s_ssh_diag_fingerprint;
+static lv_obj_t *s_vpn_diag_state;
 
 static void ascii(char *dst, size_t capacity, const char *source)
 {
@@ -312,6 +313,20 @@ static const char *ssh_key_reason(const char *token)
     if(strcmp(token,"invalid_public_key")==0)return "Arquivo invalido: exige chave publica ssh-ed25519";
     return "Aguardando provisionamento por pendrive";
 }
+static const char *vpn_state_message(const char *state)
+{
+    if(strcmp(state,"connected")==0)return "VPN conectada (tailnet privado)";
+    if(strcmp(state,"connecting")==0)return "Registrando dispositivo temporario...";
+    if(strcmp(state,"awaiting_provision")==0)return "VPN opcional: faltando REDETI/ts-authkey no Ventoy";
+    if(strcmp(state,"invalid_auth_key")==0)return "Token invalido; gere nova chave no painel Tailscale";
+    if(strcmp(state,"vpn_auth_failed")==0)return "Falha no registro; verifique token, tag e ACL";
+    if(strcmp(state,"vpn_daemon_failed")==0)return "Servico Tailscale nao iniciou";
+    if(strcmp(state,"vpn_no_ip")==0)return "Tailscale conectado, mas sem IP valido";
+    if(strcmp(state,"firewall_blocked")==0 ||
+       strcmp(state,"firewall_unverified")==0)
+        return "VPN bloqueada: regras de firewall nao validadas";
+    return "VPN nao conectada";
+}
 static void read_ssh_public_fingerprint(char *out,size_t cap)
 {
     if(cap==0)return;
@@ -367,7 +382,8 @@ static void update_connections(lv_timer_t *timer)
                      have_lan?C_AMBER:0x7894ad);
 
     if(s_status_vpn)set_text(s_status_vpn,vpn_ready?"Conectada":
-                             vpn_connecting?"Conectando":"Nao provisionada");
+                             vpn_connecting?"Conectando":
+                             strcmp(vpn_state,"awaiting_provision")==0?"Nao provisionada":"Offline");
     if(s_status_vpn_detail)set_text(s_status_vpn_detail,vpn_ready?str(vpn,"vpn_ip"):"-");
     status_indicator(s_status_vpn_dot,vpn_ready?C_MINT:
                      vpn_connecting?C_AMBER:0x7894ad);
@@ -382,6 +398,12 @@ static void update_connections(lv_timer_t *timer)
         char fingerprint[160];
         read_ssh_public_fingerprint(fingerprint,sizeof fingerprint);
         set_text(s_ssh_diag_fingerprint,fingerprint);
+    }
+    if(s_vpn_diag_state) {
+        char vpn_note[200];
+        snprintf(vpn_note,sizeof vpn_note,"%s | IP: %s",vpn_state_message(vpn_state),
+                 vpn_ready?str(vpn,"vpn_ip"):"-");
+        set_text(s_vpn_diag_state,vpn_note);
     }
     if(lan)json_object_put(lan);
     if(vpn)json_object_put(vpn);
@@ -763,14 +785,16 @@ void redeti_dashboard_create(lv_display_t *display,json_object *hw)
     inventory(content,hw);
 
     /* Local SSH diagnosis without unlocking a shell or weakening auth. */
-    s_ssh_diagnostics_panel=section(content,"Rede | Diagnostico SSH",166);
+    s_ssh_diagnostics_panel=section(content,"Rede | Diagnostico SSH e VPN",203);
     lv_obj_set_width(s_ssh_diagnostics_panel,lv_pct(100));
     s_ssh_diag_state=txt(s_ssh_diagnostics_panel,"Verificando SSH...",14,C_WHITE);
     s_ssh_diag_reason=txt(s_ssh_diagnostics_panel,"Verificando pendrive...",14,C_AMBER);
     s_ssh_diag_fingerprint=txt(s_ssh_diagnostics_panel,
                                "Identidade SSH: aguardando",14,C_CYAN);
+    s_vpn_diag_state=txt(s_ssh_diagnostics_panel,
+                          "VPN: verificando configuracao...",14,C_MINT);
     txt(s_ssh_diagnostics_panel,
-        "Somente leitura | chave privada nunca e exibida | confira o SHA256 no Windows",14,C_MUTED);
+        "Somente leitura | chaves privadas e tokens nunca sao exibidos",14,C_MUTED);
 
     s_notice=txt(content,"Somente leitura | Windows nao confirmado apenas por NTFS. Nenhum reparo foi executado.",14,C_MUTED);
     lv_obj_set_width(s_notice,lv_pct(100));
