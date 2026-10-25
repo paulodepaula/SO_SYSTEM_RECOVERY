@@ -99,3 +99,25 @@ Na VM usar CPU 64-bit e DRM do adaptador grafico; nao conectar HDD/SSD e nao hab
 ### Evidencias da compilacao
 
 `[Native LVGL compile — GitHub Actions](https://github.com/paulodepaula/SO_SYSTEM_RECOVERY/actions/workflows/native-appliance.yml)` valida a compilacao do projeto sem compilar ISO. Os testes simulados do `appliance/tests/` validam o inventario e a independencia do boot. A ISO appliance so sera anunciada como homologada depois do teste de boot completo.
+
+### Correcao do checksum ao transferir executavel do Docker para o Hermes
+
+Builds anteriores a correcao gravavam `/out/redeti-ui` no arquivo `redeti-ui.sha256`. Este caminho so existe dentro do conteiner Docker. A falha observada no Hermes foi `sha256sum: /out/redeti-ui: No such file or directory`.
+
+O compilador agora gera checksum portavel com o nome `redeti-ui`, e o construtor de ISO verifica o hash dos bytes do executavel real no Hermes, ignorando o caminho antigo no sidecar. Assim, **nao e necessario recompilar o binario de 1,4 MB que ja foi gerado**:
+
+```bash
+cd ~/RecoveryOS/SO_SYSTEM_RECOVERY
+git pull --ff-only
+bash appliance/build/build-local.sh ~/RecoveryOS/base/systemrescue-13.02-amd64.iso
+```
+
+Caso o Hermes ainda tenha o codigo antigo e o `git pull` nao esteja disponivel, uma correcao local e:
+
+```bash
+cd ~/RecoveryOS/native-build/out
+sha256sum redeti-ui > redeti-ui.sha256
+sha256sum -c redeti-ui.sha256
+```
+
+A compilacao da ISO ainda exige o teste separado de boot DRM/KMS no QEMU; sucesso de checksum nao equivale a homologacao de boot.
