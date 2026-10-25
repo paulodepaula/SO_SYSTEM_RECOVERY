@@ -35,4 +35,5 @@ install -m 0755 "$root/appliance/remote/start.sh" "$recipe/build_into_srm/opt/re
 # Prevent stock OpenSSH from listening on LAN even if enabled in a base ISO.
 mkdir -p "$recipe/build_into_srm/etc/systemd/system"
 ln -s /dev/null "$recipe/build_into_srm/etc/systemd/system/sshd.service"
+ln -s /dev/null "$recipe/build_into_srm/etc/systemd/system/sshd.socket"
 sysrescue-customize --auto --source="$source_iso" --dest="$output" --recipe-dir="$recipe"
