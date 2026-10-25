@@ -80,6 +80,24 @@ class DashboardMVP(unittest.TestCase):
         self.assertIn('redeti_input_start(display,s_group,s_input_state,s_input_detail,s_input_dot)',DASHBOARD)
         self.assertNotIn('192.168.1.100',DASHBOARD)
 
+    def test_hero_uses_pinned_user_png_and_one_embedded_symbol(self):
+        import hashlib
+        import struct
+        hero=ROOT/"appliance/native/assets/source/hero-laptop-panel.png"
+        binary=hero.read_bytes()
+        self.assertEqual(binary[:8],b"\\x89PNG\\r\\n\\x1a\\n")
+        self.assertEqual(struct.unpack(">II",binary[16:24]),(380,197))
+        self.assertEqual(hashlib.sha256(binary).hexdigest(),
+                         "0a6e4edf7e152f8e8a99f503af770f6812c320cffef9cb6b095f2cfb5246a2ff")
+        generator=(ROOT/"appliance/native/premium_assets.py").read_text()
+        self.assertIn('"assets/source/hero-laptop-panel.png"',generator)
+        self.assertIn('original.convert("RGBA")',generator)
+        self.assertEqual(generator.count('emit_image("hero_laptop"'),1)
+        self.assertNotIn('def laptop()',generator)
+        self.assertIn('"${CMAKE_CURRENT_LIST_DIR}/assets/source/hero-laptop-panel.png"',CMAKE)
+        self.assertIn('lv_image_set_src(illustration,&redeti_hero_laptop)',DASHBOARD)
+        self.assertIn('(width-12)*256U/380U',DASHBOARD)
+
     def test_real_state_and_no_placeholder_values(self):
         for source in ("hardware.json", "remote-status.json", "lan-ssh-status.json"):
             self.assertIn(source,MAIN+DASHBOARD)

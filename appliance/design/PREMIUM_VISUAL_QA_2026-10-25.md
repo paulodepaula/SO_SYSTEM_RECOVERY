@@ -34,3 +34,13 @@
 - Fonte PT-BR segue Montserrat com transliteracao provisoria.
 - O notebook nao foi homologado visualmente no equipamento real; a verificacao sera feita pela ISO unica da rodada.
 - O stack SSH/Tailscale, a deteccao hardware e o SystemRescue nao foram modificados.
+
+## Notebook definitivo fornecido pelo usuario — adicao incremental
+- Fonte versionada: `appliance/native/assets/source/hero-laptop-panel.png` (380x197, palette PNG transparente, 11 KiB).
+- Derivado da arte enviada pelo usuario. Otimizacao com paleta para reduzir binario sem introduzir imagens de runtime.
+- `premium_assets.py` abre PNG e converte para RGBA antes de serializar o unico simbolo `redeti_hero_laptop` (ARGB8888).
+- `CMakeLists.txt` inclui PNG em `DEPENDS`: alterar arte regenera C durante build.
+- `dashboard.c` limita largura ao container do hero e centraliza a imagem; nenhum redraw de asset remoto.
+- `test_dashboard_mvp.py` fixa hash SHA256 e contrato de imagem incorporada.
+- **Implementado na main. Compilacao nativa e ISO QEMU precisam ser verificadas independentemente.**
+- O codigo anterior do notebook procedural foi removido para evitar ambiguidade e duplicacao.

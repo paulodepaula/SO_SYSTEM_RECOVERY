@@ -1,6 +1,6 @@
 {
   "schema": "redeti.recovery.assets-manifest.v1",
-  "description": "Estado dos recursos visuais: notebook e icones procedurais integrados ao binario (aguardam QA QEMU de ISO); starfield segue em primitivas LVGL",
+  "description": "Fonte do notebook fornecida pelo usuario e versionada no GitHub; gerador nativo e icones ativos, homologacao de nova ISO/QEMU pendente",
   "licensePolicy": "Nao incorporar capturas, logos de terceiros nem imagens sem proveniencia/licenca; manter originals e creditos",
   "buildPolicy": "Converter SVG/PNG para assets LVGL 9 no build; sem download em runtime, sem X11",
   "assets": [
@@ -38,20 +38,20 @@
     {
       "id": "hero-laptop",
       "kind": "illustration",
-      "source": "appliance/native/premium_assets.py",
-      "status": "implemented-not-qemu-verified",
+      "source": "appliance/native/assets/source/hero-laptop-panel.png",
+      "status": "implemented-on-main-awaiting-qemu-homologation",
       "size": [
         380,
-        190
+        197
       ],
       "target": [
-        520,
-        235
+        380,
+        197
       ],
-      "runtime": "ARGB8888 LVGL image descriptor",
+      "runtime": "ARGB8888 (palette PNG expanded to RGBA by offline Pillow converter)",
       "required": true,
-      "notes": "Tela e notebook tres-quartos com ondas, brilho pre-renderizado, sem rede no runtime",
-      "license": "Ilustracao procedural original gerada no build; confirmar titularidade comercial"
+      "notes": "Notebook fornecido pelo usuario, redimensionado e otimizado para 380x197 com transparencia; unico simbolo redeti_hero_laptop gerado no build; hash SHA256 fixado em teste.",
+      "license": "Imagem fornecida pelo usuario para uso no projeto RedeTI Recovery OS"
     },
     {
       "id": "hero-glow",
