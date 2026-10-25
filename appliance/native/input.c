@@ -7,23 +7,26 @@
 static lv_display_t *s_display;
 static lv_group_t *s_keys;
 static lv_obj_t *s_status;
+static lv_obj_t *s_detail;
+static lv_obj_t *s_indicator;
 static unsigned s_pointer_count;
 static unsigned s_keyboard_count;
 
 static void update_status(void)
 {
-    if(s_status == NULL) return;
-    /* Compact wording fits the 2-column status grid. Event counts are real. */
-    const char *line;
-    if(s_pointer_count && s_keyboard_count)
-        line = "Mouse e teclado detectados";
-    else if(s_pointer_count)
-        line = "Mouse OK; teclado aguardando";
-    else if(s_keyboard_count)
-        line = "Teclado OK; mouse aguardando";
-    else
-        line = "Mouse e teclado aguardando";
-    lv_label_set_text(s_status, line);
+    if(s_status==NULL)return;
+    /* The EVDEV counts come from actual device discovery and hotplug. */
+    bool mouse=s_pointer_count>0, keyboard=s_keyboard_count>0;
+    const char *state=mouse&&keyboard?"Mouse + teclado EVDEV":
+                      mouse?"Mouse EVDEV":keyboard?"Teclado EVDEV":
+                      "Aguardando EVDEV";
+    const char *result=mouse&&keyboard?"OK":
+                       mouse||keyboard?"Parcial":"-";
+    lv_label_set_text(s_status,state);
+    if(s_detail)lv_label_set_text(s_detail,result);
+    if(s_indicator)lv_obj_set_style_bg_color(
+        s_indicator,lv_color_hex(mouse&&keyboard?0x0fd2b5:
+                                 mouse||keyboard?0xf8b935:0x7894ad),0);
 }
 
 static void delete_cursor(lv_event_t *e)
@@ -69,11 +72,14 @@ static void on_input_found(lv_indev_t *indev, lv_evdev_type_t type, void *data)
     update_status();
 }
 
-bool redeti_input_start(lv_display_t *display, lv_group_t *keys, lv_obj_t *status)
+bool redeti_input_start(lv_display_t *display, lv_group_t *keys,
+                        lv_obj_t *status, lv_obj_t *detail, lv_obj_t *indicator)
 {
     s_display = display;
     s_keys = keys;
     s_status = status;
+    s_detail = detail;
+    s_indicator = indicator;
     s_pointer_count = 0;
     s_keyboard_count = 0;
     update_status();
@@ -81,6 +87,9 @@ bool redeti_input_start(lv_display_t *display, lv_group_t *keys, lv_obj_t *statu
     lv_result_t result = lv_evdev_discovery_start(on_input_found, NULL);
     if(result != LV_RESULT_OK) {
         lv_label_set_text(status, "Entrada indisponivel");
+        if(s_detail)lv_label_set_text(s_detail,"-");
+        if(s_indicator)lv_obj_set_style_bg_color(
+            s_indicator,lv_color_hex(0x7894ad),0);
         fprintf(stderr, "RedeTI: EVDEV discovery failed (no mouse/keyboard).\n");
         return false;
     }
