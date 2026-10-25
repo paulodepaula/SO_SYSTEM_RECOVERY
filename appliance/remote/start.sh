@@ -19,8 +19,9 @@ status() {
 }
 
 status "starting"
+trap 'status "bootstrap_failed"' ERR
 # Do not expose the preinstalled SystemRescue OpenSSH daemon on LAN.
-systemctl mask --runtime --now sshd.service >/dev/null 2>&1 || true
+systemctl mask --runtime --now sshd.service sshd.socket >/dev/null 2>&1 || true
 if ! id redeti >/dev/null 2>&1; then
   useradd --create-home --user-group --shell /usr/bin/bash redeti
 fi
@@ -88,7 +89,7 @@ hostname="redeti-recovery-$suffix"
 # --ssh enables Tailscale SSH only on this device's tailnet address.
 if ! timeout 150 "$ts" --socket="$socket" up \
   --auth-key="file:$base/ts-authkey" \
-  --ssh --hostname="$hostname" \
+  --ssh --hostname="$hostname" --advertise-tags=tag:redeti-recovery \
   --accept-routes=false --accept-dns=false \
   >> "$base/remote.log" 2>&1; then
   rm -f "$base/ts-authkey"
