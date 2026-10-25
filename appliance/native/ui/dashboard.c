@@ -345,7 +345,7 @@ static void update_connections(lv_timer_t *timer)
         char address[80];
         snprintf(address,sizeof address,"paulo@%s",ip);
         set_text(s_ssh,strcmp(lan_state,"ready")==0?address:
-                    have_lan?"Aguardando chave":"Protegido");
+                    have_lan?"Aguardando chave":"Sem rede");
     }
     if(s_vpn)set_text(s_vpn,strcmp(vpn_state,"connected")==0?"Online":
                            strcmp(vpn_state,"connecting")==0?"Conectando":"Sem VPN");
