@@ -1,6 +1,6 @@
 {
   "schema": "redeti.recovery.assets-manifest.v1",
-  "description": "Planejamento de assets: somente logo existente; nenhum novo icon/hero/background esta implementado ainda",
+  "description": "Estado dos recursos visuais: notebook e icones procedurais integrados ao binario (aguardam QA QEMU de ISO); starfield segue em primitivas LVGL",
   "licensePolicy": "Nao incorporar capturas, logos de terceiros nem imagens sem proveniencia/licenca; manter originals e creditos",
   "buildPolicy": "Converter SVG/PNG para assets LVGL 9 no build; sem download em runtime, sem X11",
   "assets": [
@@ -38,25 +38,26 @@
     {
       "id": "hero-laptop",
       "kind": "illustration",
-      "source": null,
-      "status": "to-create",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-not-qemu-verified",
       "size": [
-        650,
-        320
+        380,
+        190
       ],
       "target": [
         520,
         235
       ],
-      "runtime": "ARGB8888",
+      "runtime": "ARGB8888 LVGL image descriptor",
       "required": true,
-      "notes": "Notebook 3/4 isolado com display azul ondulado, transparente; arte original fiel a composicao"
+      "notes": "Tela e notebook tres-quartos com ondas, brilho pre-renderizado, sem rede no runtime",
+      "license": "Ilustracao procedural original gerada no build; confirmar titularidade comercial"
     },
     {
       "id": "hero-glow",
       "kind": "overlay",
-      "source": null,
-      "status": "optional",
+      "source": "appliance/native/premium_assets.py",
+      "status": "integrated-into-hero-laptop",
       "size": [
         640,
         270
@@ -89,541 +90,541 @@
     {
       "id": "nav-home",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "house",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "nav-diagnostic",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "zap",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "nav-disk",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "database",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "nav-smart",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "chart-no-axes-combined",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "nav-efi",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "cpu",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "nav-windows",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "panels-top-left",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "nav-network",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "globe",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "nav-hardware",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "monitor",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "nav-logs",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "file-text",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "nav-settings",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "settings",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "nav-about",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "info",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "nav-power",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "power",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "top-lan",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "wifi",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "top-ssh",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "lock-keyhole",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "top-vpn",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "shield-check",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "hero-readonly",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "book-open-check",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "hero-secure",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "shield-check",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "hero-fast",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "zap",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "hero-start",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "play",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "hero-input",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "keyboard",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "stat-cpu",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "cpu",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "stat-ram",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "memory-stick",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "stat-firmware",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "microchip",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "stat-disk",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "hard-drive",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "action-diagnostic",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "search-check",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "action-hardware",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "monitor",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "action-disk",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "hard-drive",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "action-repair",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "wrench",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "action-backup",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "file-copy",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "action-report",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "file-output",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "module-disk",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "hard-drive",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "module-smart",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "trending-up",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "module-efi",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "cpu",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "module-windows",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "panels-top-left",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "module-registry",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "box",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     },
     {
       "id": "module-report",
       "kind": "icon",
-      "source": null,
-      "status": "to-source",
+      "source": "appliance/native/premium_assets.py",
+      "status": "implemented-via-shared-symbol-map-pending-qa",
       "semantic": "file-text",
       "sourceFamily": "SVG vector collection; pin version",
-      "license": "verify before distribution; record attribution",
+      "license": "Desenho linear procedural original; 17 glifos compartilham semanticamente as areas da UI",
       "size": [
         24,
         24
       ],
-      "runtime": "LVGL compiled raster/recolor",
+      "runtime": "24x24 ARGB8888 LVGL image recolor",
       "required": true
     }
   ]
