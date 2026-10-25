@@ -17,6 +17,20 @@ set(LV_BUILD_DEMOS OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(lvgl GIT_REPOSITORY https://github.com/lvgl/lvgl.git GIT_TAG "${LVGL_COMMIT}" GIT_SHALLOW FALSE)
 FetchContent_MakeAvailable(lvgl)
 
+# Every native binary carries the commit used to configure the build.
+# The Hermes builder reconfigures CMake on every run and checks the resulting
+# ELF against the full commit before assembling an ISO.
+execute_process(
+  COMMAND git rev-parse --short=8 HEAD
+  WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/../.."
+  OUTPUT_VARIABLE REDETI_BUILD_REV
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ERROR_QUIET
+)
+if(NOT REDETI_BUILD_REV MATCHES "^[0-9a-fA-F]+$")
+  set(REDETI_BUILD_REV "unknown")
+endif()
+
 set(LOGO_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/logo_pd.c")
 add_custom_command(
   OUTPUT "${LOGO_SOURCE}"
@@ -39,6 +53,7 @@ add_custom_command(
 # The UI transliterates accented strings until a visually tested LVGL 9 font exists.
 add_executable(redeti-ui main.c input.c ui/dashboard.c ui/theme.c "${LOGO_SOURCE}" "${PREMIUM_SOURCE}")
 target_link_libraries(redeti-ui PRIVATE lvgl::lvgl PkgConfig::DRM PkgConfig::JSONC)
+target_compile_definitions(redeti-ui PRIVATE REDETI_BUILD_REV="${REDETI_BUILD_REV}")
 target_compile_options(redeti-ui PRIVATE -Wall -Wextra -Werror=implicit-function-declaration)
 install(TARGETS redeti-ui RUNTIME DESTINATION bin)
 
@@ -48,6 +63,7 @@ if(BUILD_TESTING)
   add_executable(redeti-ui-render-smoke
     tests/render_smoke.c input.c ui/dashboard.c ui/theme.c "${LOGO_SOURCE}" "${PREMIUM_SOURCE}")
   target_link_libraries(redeti-ui-render-smoke PRIVATE lvgl::lvgl PkgConfig::DRM PkgConfig::JSONC)
+  target_compile_definitions(redeti-ui-render-smoke PRIVATE REDETI_BUILD_REV="${REDETI_BUILD_REV}")
   add_test(NAME render-mvp-1280x720 COMMAND redeti-ui-render-smoke 1280 720)
   add_test(NAME render-mvp-1366x768 COMMAND redeti-ui-render-smoke 1366 768)
   add_test(NAME render-mvp-1589x990 COMMAND redeti-ui-render-smoke 1589 990)
