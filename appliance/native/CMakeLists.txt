@@ -4,6 +4,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 include(FetchContent)
 find_package(PkgConfig REQUIRED)
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
 pkg_check_modules(DRM REQUIRED IMPORTED_TARGET libdrm)
 pkg_check_modules(JSONC REQUIRED IMPORTED_TARGET json-c)
 
@@ -16,7 +17,16 @@ set(LV_BUILD_DEMOS OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(lvgl GIT_REPOSITORY https://github.com/lvgl/lvgl.git GIT_TAG "${LVGL_COMMIT}" GIT_SHALLOW FALSE)
 FetchContent_MakeAvailable(lvgl)
 
-add_executable(redeti-ui main.c)
+set(LOGO_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/logo_pd.c")
+add_custom_command(
+  OUTPUT "${LOGO_SOURCE}"
+  COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_LIST_DIR}/generate_logo.py"
+    "${CMAKE_CURRENT_LIST_DIR}/../../assets/logo-paulo.svg" "${LOGO_SOURCE}"
+  DEPENDS "${CMAKE_CURRENT_LIST_DIR}/generate_logo.py"
+          "${CMAKE_CURRENT_LIST_DIR}/../../assets/logo-paulo.svg"
+  COMMENT "Converting original PD logo to native LVGL RGB565"
+)
+add_executable(redeti-ui main.c "${LOGO_SOURCE}")
 target_link_libraries(redeti-ui PRIVATE lvgl::lvgl PkgConfig::DRM PkgConfig::JSONC)
 target_compile_options(redeti-ui PRIVATE -Wall -Wextra -Werror=implicit-function-declaration)
 install(TARGETS redeti-ui RUNTIME DESTINATION bin)
