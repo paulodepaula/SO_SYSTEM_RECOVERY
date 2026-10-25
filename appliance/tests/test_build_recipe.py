@@ -69,6 +69,19 @@ class ApplianceBuildSafetyTests(unittest.TestCase):
         self.assertIn('Source revision: $current_commit',script)
         self.assertIn('Windows/QEMU copy',script)
 
+    def test_source_revision_is_injected_into_hermes_and_ci_builds(self):
+        native=(ROOT/"appliance/build/build-native-arch.sh").read_text()
+        cmake=(ROOT/"appliance/native/CMakeLists.txt").read_text()
+        ci=(ROOT/".github/workflows/native-appliance.yml").read_text()
+        self.assertIn('-e REDETI_SOURCE_COMMIT="$source_head"',native)
+        self.assertIn('-DREDETI_SOURCE_COMMIT="$REDETI_SOURCE_COMMIT"',native)
+        self.assertIn('strings /out/redeti-ui | grep -Fx "$source_rev_short" >/dev/null',native)
+        self.assertIn('-DREDETI_SOURCE_COMMIT="$GITHUB_SHA"',ci)
+        self.assertIn('if(DEFINED REDETI_SOURCE_COMMIT',cmake)
+        self.assertIn('string(SUBSTRING "${REDETI_SOURCE_REV}" 0 8 REDETI_BUILD_REV)',cmake)
+        self.assertIn('message(FATAL_ERROR "Unable to resolve recovery UI source commit")',cmake)
+        self.assertNotIn('set(REDETI_BUILD_REV "unknown")',cmake)
+
     def test_boot_logs_native_crash_without_silent_console(self):
         launch = (ROOT / "appliance/boot/launch.sh").read_text()
         self.assertIn("/run/redeti/ui.log", launch)
