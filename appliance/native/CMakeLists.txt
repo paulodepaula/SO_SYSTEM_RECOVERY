@@ -46,6 +46,8 @@ message(STATUS "RedeTI Recovery OS source revision: ${REDETI_SOURCE_REV}")
 string(TIMESTAMP REDETI_BUILD_UTC "%y%m%d-%H%M%S" UTC)
 set(REDETI_BUILD_TAG "b${REDETI_BUILD_UTC}")
 message(STATUS "RedeTI Recovery OS build: v${PROJECT_VERSION} ${REDETI_BUILD_TAG} ${REDETI_BUILD_REV}")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/redeti-build-id.txt"
+  "app_version=v${PROJECT_VERSION}\nbuild_tag=${REDETI_BUILD_TAG}\nsource_commit=${REDETI_SOURCE_REV}\n")
 
 set(LOGO_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/logo_pd.c")
 add_custom_command(
