@@ -1,0 +1,20 @@
+# RedeTI Recovery OS: never commit live device credentials or customer data.
+# These patterns are defense-in-depth; review all staged files before commit.
+**/REDETI/authorized_keys
+**/REDETI/ts-authkey
+**/authorized_keys
+**/ts-authkey
+**/*_ed25519
+**/*_ed25519.pub
+**/*.ppk
+**/*.p12
+**/*.pfx
+**/tailscaled.state
+**/tailscale.state
+**/.env
+**/.env.*
+!**/.env.example
+**/customer-data/
+**/client-disks/
+**/*.qcow2
+**/*.vmdk
