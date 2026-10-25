@@ -1,5 +1,15 @@
 # RedeTI Recovery OS — Linha Appliance (sem desktop Linux)
 
+## Interface visual premium — especificação V1
+
+A tela inicial tem agora uma **especificação visual detalhada e mensurável**, baseada na captura 1589×990 enviada como referência. O trabalho foi especificado **sem modificar o executável ou gerar outra ISO**:
+
+- [Dashboard Visual Spec V1](design/DASHBOARD_VISUAL_SPEC_V1.md): regiões, cores, dimensões, ícones, hero, componentes LVGL, fonte PT-BR, responsividade e aceite;
+- [Tokens V1](design/theme_tokens_v1.json): paleta e medidas em formato consumível pelo código;
+- [Manifesto de assets V1](design/assets_manifest_v1.json): logo original reutilizável, notebook, fundo, glows e ícones ainda a criar/validar.
+
+Apenas a especificação e o inventário foram publicados nesta etapa. A aparência do mockup **ainda não está implementada na ISO**. A implantação deve seguir UI-01 até UI-06, com capturas QEMU nas resoluções previstas e somente leitura preservada.
+
 Esta pasta implementa a nova direção do produto. **Não é uma variante do Sergei Strelec e não inicia um desktop Linux:** o kernel e drivers executam em segundo plano, enquanto o aplicativo LVGL utiliza diretamente o display DRM/KMS.
 
 ## Acesso remoto v0.5.3: SSH LAN + VPN
