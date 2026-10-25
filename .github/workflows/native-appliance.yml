@@ -6,6 +6,9 @@ on:
       - 'appliance/native/**'
       - '.github/workflows/native-appliance.yml'
   workflow_dispatch:
+concurrency:
+  group: redeti-native-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -20,7 +23,8 @@ jobs:
           sudo apt-get install -y --no-install-recommends build-essential cmake ninja-build pkg-config libdrm-dev libjson-c-dev git python3-pil
       - name: Compile LVGL DRM/KMS executable
         run: |
-          cmake -S appliance/native -B /tmp/redeti-appliance-build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          /usr/bin/python3 -c 'from PIL import Image'
+          cmake -S appliance/native -B /tmp/redeti-appliance-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPython3_EXECUTABLE=/usr/bin/python3
           cmake --build /tmp/redeti-appliance-build --parallel 2
           file /tmp/redeti-appliance-build/redeti-ui
           ldd /tmp/redeti-appliance-build/redeti-ui
