@@ -138,3 +138,39 @@ Em Windows, a alternativa e executar diretamente a versao 64-bit do QEMU, por ex
 ```
 
 Ajuste o caminho da ISO. Evite utilitarios que iniciem a imagem com QEMU de 32 bits por padrao.
+
+
+## Diagnostico e correcao da tela "Unable to connect" (v0.4 alpha)
+
+O SystemRescue inicia o Firefox, mas o dashboard exige um servidor Python disponivel em `127.0.0.1:8765`. A primeira receita usava um script unico para iniciar o Python e o navegador. Esse modelo era fragil e poderia encerrar o Python junto com o comando da GUI.
+
+**Novo desenho:** `redeti-cockpit.service` inicia o backend independentemente do Firefox durante o boot, `Restart=on-failure` supervisiona falhas, e `launch.sh` somente verifica a prontidao da API e abre o navegador. Se a API nao responder, a interface mostra a pagina local `offline.html` com orientacoes em vez de um erro generico de conexao.
+
+Arquivos envolvidos:
+- `boot_gui/systemd/redeti-cockpit.service`: servico independente, habilitado na imagem SRM.
+- `boot_gui/build/compose_iso.sh`: copia e habilita o servico apenas no sistema de arquivos temporario da imagem, nunca no host de construcao.
+- `boot_gui/build/launch.sh`: espera a API, inicia a GUI e registra falhas em `/run/redeti/launcher.log`.
+- `boot_gui/ui/offline.html`: orientacoes locais quando a API estiver indisponivel.
+
+Para diagnosticar uma ISO ja inicializada, abra o terminal do QEMU e execute **somente consultas**:
+
+```bash
+cat /run/redeti/gui.log 2>/dev/null || true
+cat /run/redeti/launcher.log 2>/dev/null || true
+systemctl status redeti-cockpit.service --no-pager || true
+ss -lntp | grep 8765 || true
+```
+
+Em ISOs anteriores, o servico `redeti-cockpit.service` nao existira; isso e esperado. Evite inferir a causa so pela tela do Firefox.
+
+Recompilacao local no Hermes (apenas com SSD de laboratorio e sem tocar no Ventoy):
+
+```bash
+cd ~/RecoveryOS/SO_SYSTEM_RECOVERY
+git pull --ff-only
+bash boot_gui/build/build-local.sh ~/RecoveryOS/base/systemrescue-13.02-amd64.iso
+```
+
+Teste primeiro no QEMU. O criterio de aceite exige: `systemctl is-active redeti-cockpit.service` responder `active`, o endpoint HTTP `/api/overview` responder e o Firefox exibir o painel sem terminal manual. A alteracao foi publicada no codigo; o novo boot ainda necessita homologacao em VM antes de uso em equipamento de cliente.
+
+A compilacao automatica completa no GitHub Actions passou a ser **manual** para evitar gerar ISOs de 1,3 GB a cada commit. Prefira o builder local do Hermes para iteracao.
