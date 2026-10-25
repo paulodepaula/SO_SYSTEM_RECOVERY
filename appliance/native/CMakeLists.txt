@@ -32,3 +32,14 @@ add_executable(redeti-ui main.c input.c ui/dashboard.c "${LOGO_SOURCE}")
 target_link_libraries(redeti-ui PRIVATE lvgl::lvgl PkgConfig::DRM PkgConfig::JSONC)
 target_compile_options(redeti-ui PRIVATE -Wall -Wextra -Werror=implicit-function-declaration)
 install(TARGETS redeti-ui RUNTIME DESTINATION bin)
+
+# CTest draws the real MVP using an in-memory display, without DRM, disks or network.
+include(CTest)
+if(BUILD_TESTING)
+  add_executable(redeti-ui-render-smoke
+    tests/render_smoke.c input.c ui/dashboard.c "${LOGO_SOURCE}")
+  target_link_libraries(redeti-ui-render-smoke PRIVATE lvgl::lvgl PkgConfig::DRM PkgConfig::JSONC)
+  add_test(NAME render-mvp-1280x720 COMMAND redeti-ui-render-smoke 1280 720)
+  add_test(NAME render-mvp-1589x990 COMMAND redeti-ui-render-smoke 1589 990)
+  set_tests_properties(render-mvp-1280x720 render-mvp-1589x990 PROPERTIES TIMEOUT 15)
+endif()
