@@ -1,12 +1,6 @@
 name: Build RedeTI Recovery OS ISO (alpha)
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'boot_gui/**'
-      - 'assets/logo-paulo.svg'
-      - '.github/workflows/build-recovery-iso.yml'
 permissions:
   contents: read
 jobs:
