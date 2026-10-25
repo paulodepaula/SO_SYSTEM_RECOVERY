@@ -10,6 +10,7 @@
 
 #define NAVY  0x102437
 extern const lv_image_dsc_t redeti_pd_logo;
+LV_FONT_DECLARE(redeti_font_16);
 #define PANEL 0x1b3045
 #define CARD  0x233b51
 #define CYAN  0x59b2ea
@@ -36,6 +37,7 @@ static void panel(lv_obj_t *obj, uint32_t color) {
 static void label(lv_obj_t *parent, const char *txt, uint32_t color) {
     lv_obj_t *value = lv_label_create(parent);
     lv_label_set_text(value, txt ? txt : "-");
+    lv_obj_set_style_text_font(value, &redeti_font_16, 0);
     lv_obj_set_style_text_color(value, lv_color_hex(color), 0);
     lv_obj_set_width(value, lv_pct(100));
     lv_label_set_long_mode(value, LV_LABEL_LONG_WRAP);
@@ -74,9 +76,10 @@ static void build_ui(lv_display_t *display, json_object *hardware) {
     lv_obj_set_style_radius(root, 0, 0);
     lv_obj_set_style_pad_all(root, 16, 0);
     lv_obj_set_style_pad_row(root, 14, 0);
-    lv_obj_set_style_text_font(root, &lv_font_montserrat_16, 0);
+    lv_obj_set_style_text_font(root, &redeti_font_16, 0);
     lv_obj_set_flex_flow(root, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_scroll_dir(root, LV_DIR_VER);
+    lv_obj_set_scrollbar_mode(root, LV_SCROLLBAR_MODE_OFF);
 
     lv_obj_t *header = lv_obj_create(root);
     panel(header, NAVY);
