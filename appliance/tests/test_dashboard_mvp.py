@@ -105,6 +105,31 @@ class DashboardMVP(unittest.TestCase):
         self.assertIn('lv_image_set_src(illustration,&redeti_hero_laptop)',DASHBOARD)
         self.assertIn('(width-12)*256U/380U',DASHBOARD)
 
+    def test_reference_quick_actions_use_three_by_two_grid(self):
+        self.assertIn('int aq=(half-24-16)/3',DASHBOARD)
+        self.assertIn('lv_obj_set_size(actions,lv_pct(100),160)',DASHBOARD)
+        self.assertIn('lv_obj_set_size(tile,width,69)',DASHBOARD)
+        self.assertEqual(DASHBOARD.count('quick_action_tile(actions,'),6)
+        self.assertIn('quick_action_tile(actions,"Inventario"',DASHBOARD)
+        self.assertIn('quick_action_tile(actions,"Hardware"',DASHBOARD)
+        self.assertIn('quick_action_tile(actions,"Discos"',DASHBOARD)
+        self.assertIn('quick_action_tile(actions,"Reparo do Windows"',DASHBOARD)
+        self.assertIn('lv_obj_add_state(tile,LV_STATE_DISABLED)',DASHBOARD)
+        self.assertIn('redeti_theme_quick_tile(tile,available)',DASHBOARD)
+        self.assertNotIn('Reference layout: two equal columns',DASHBOARD)
+
+    def test_scrollbar_has_dedicated_gutter_and_cards_fit(self):
+        theme=(ROOT/"appliance/native/ui/theme.c").read_text()
+        header=(ROOT/"appliance/native/ui/theme.h").read_text()
+        self.assertIn('int mainw=viewportw-scroll_gutter',DASHBOARD)
+        self.assertIn('lv_obj_set_style_pad_right(content,scroll_gutter,0)',DASHBOARD)
+        self.assertIn('redeti_theme_scrollbar(content)',DASHBOARD)
+        self.assertIn('LV_PART_SCROLLBAR',theme)
+        self.assertIn('void redeti_theme_scrollbar(',header)
+        self.assertIn('void redeti_theme_quick_tile(',header)
+        self.assertIn('txt(b,name,14,active?C_WHITE:C_MUTED)',DASHBOARD)
+        self.assertIn('txt(left,"Verificacao rapida de hardware, disco, sistema e rede.",14,C_MUTED)',DASHBOARD)
+
     def test_real_state_and_no_placeholder_values(self):
         for source in ("hardware.json", "remote-status.json", "lan-ssh-status.json"):
             self.assertIn(source,MAIN+DASHBOARD)
