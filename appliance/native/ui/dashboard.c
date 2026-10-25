@@ -6,6 +6,7 @@
  */
 #include "dashboard.h"
 #include "theme.h"
+#include "assets.h"
 #include "../input.h"
 #include <stdio.h>
 #include <stdint.h>
@@ -102,10 +103,46 @@ static lv_obj_t *txt(lv_obj_t *parent,const char *value,int size,uint32_t color)
     lv_label_set_long_mode(o,LV_LABEL_LONG_WRAP);
     return o;
 }
+/* The same original 24px line language is used across every UI region. */
+static const lv_image_dsc_t *icon_source(const char *icon)
+{
+    if(!icon)return NULL;
+#define ICON_FOR(glyph,kind) if(strcmp(icon,glyph)==0)return &redeti_icon_##kind
+    ICON_FOR(LV_SYMBOL_HOME,home);
+    ICON_FOR(LV_SYMBOL_LIST,list);
+    ICON_FOR(LV_SYMBOL_DRIVE,drive);
+    ICON_FOR(LV_SYMBOL_CHARGE,charge);
+    ICON_FOR(LV_SYMBOL_SETTINGS,settings);
+    ICON_FOR(LV_SYMBOL_FILE,file);
+    ICON_FOR(LV_SYMBOL_WIFI,wifi);
+    ICON_FOR(LV_SYMBOL_IMAGE,image);
+    ICON_FOR(LV_SYMBOL_EYE_OPEN,eye);
+    ICON_FOR(LV_SYMBOL_POWER,power);
+    ICON_FOR(LV_SYMBOL_REFRESH,refresh);
+    ICON_FOR(LV_SYMBOL_PLAY,play);
+    ICON_FOR(LV_SYMBOL_KEYBOARD,keyboard);
+    ICON_FOR(LV_SYMBOL_DOWNLOAD,download);
+    ICON_FOR(LV_SYMBOL_DIRECTORY,directory);
+    ICON_FOR(LV_SYMBOL_SAVE,save);
+    ICON_FOR(LV_SYMBOL_OK,ok);
+#undef ICON_FOR
+    return NULL;
+}
 static lv_obj_t *symbol(lv_obj_t *parent,const char *icon,uint32_t color,int size)
 {
+    const lv_image_dsc_t *src=icon_source(icon);
+    if(src) {
+        lv_obj_t *image=lv_image_create(parent);
+        lv_image_set_src(image,src);
+        /* One white raster icon, tinted per context via LVGL style. */
+        lv_obj_set_style_image_recolor(image,lv_color_hex(color),0);
+        lv_obj_set_style_image_recolor_opa(image,LV_OPA_COVER,0);
+        (void)size;
+        return image;
+    }
+    /* Safe font fallback for any symbol added in future code. */
     lv_obj_t *o=lv_label_create(parent);
-    lv_label_set_text(o,icon);  /* LVGL's included FontAwesome symbol ranges */
+    lv_label_set_text(o,icon);
     lv_obj_set_style_text_font(o,size>=28?&lv_font_montserrat_28:&lv_font_montserrat_20,0);
     lv_obj_set_style_text_color(o,lv_color_hex(color),0);
     return o;
@@ -263,37 +300,18 @@ static void stars(lv_obj_t *parent,int width,int height)
 }
 static void laptop_art(lv_obj_t *parent,int width)
 {
-    /* Built entirely from LVGL primitives. Licensed/photo hero asset comes later. */
+    /* Original prerendered 3/4 notebook and glow, bundled inside the ELF. */
     lv_obj_t *scene=box(parent,C_HERO,0,0);
     lv_obj_set_style_bg_opa(scene,LV_OPA_TRANSP,0);
     lv_obj_set_size(scene,width,197);
-    lv_obj_t *halo=box(scene,0x043a78,LV_RADIUS_CIRCLE,0);
-    lv_obj_set_size(halo,190,190);
-    lv_obj_set_pos(halo,width/2-95,0);
-    lv_obj_set_style_bg_color(halo,lv_color_hex(0x062b58),0);
-    lv_obj_t *screen=box(scene,0x030d23,10,3);
-    lv_obj_set_size(screen,width-54,151);
-    lv_obj_set_pos(screen,29,8);
-    lv_obj_set_style_border_color(screen,lv_color_hex(0x0674cb),0);
-    lv_obj_t *glass=box(screen,0x062b7a,6,0);
-    lv_obj_set_size(glass,width-74,132);
-    lv_obj_set_pos(glass,7,6);
-    lv_obj_set_style_bg_grad_dir(glass,LV_GRAD_DIR_HOR,0);
-    lv_obj_set_style_bg_grad_color(glass,lv_color_hex(0x010a24),0);
-    lv_obj_t *pulse=box(glass,0x007de7,LV_RADIUS_CIRCLE,5);
-    lv_obj_set_size(pulse,75,75);
-    lv_obj_align(pulse,LV_ALIGN_CENTER,0,0);
-    lv_obj_set_style_bg_opa(pulse,LV_OPA_10,0);
-    lv_obj_set_style_border_color(pulse,lv_color_hex(0x00cfff),0);
-    lv_obj_t *heart=symbol(pulse,LV_SYMBOL_REFRESH,0x7aeaff,28);
-    lv_obj_center(heart);
-    lv_obj_t *base=box(scene,0x1b4262,8,1);
-    lv_obj_set_size(base,width,15);
-    lv_obj_set_pos(base,0,163);
-    lv_obj_set_style_border_color(base,lv_color_hex(0x4387b9),0);
-    lv_obj_t *foot=box(scene,0x0b1d2e,8,0);
-    lv_obj_set_size(foot,width-52,9);
-    lv_obj_set_pos(foot,26,177);
+    lv_obj_remove_flag(scene,LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_t *illustration=lv_image_create(scene);
+    lv_image_set_src(illustration,&redeti_hero_laptop);
+    /* Preserve full notebook at 1280px without crossing the text. */
+    uint32_t scale=(uint32_t)(width-8)*256U/380U;
+    if(scale>256U)scale=256U;
+    lv_image_set_scale(illustration,scale);
+    lv_obj_center(illustration);
 }
 static void header(lv_obj_t *root,int width)
 {
