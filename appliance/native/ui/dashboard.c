@@ -1,8 +1,8 @@
 /* RedeTI Recovery OS — Visual MVP v0.6.0
  * Direct DRM/KMS + LVGL 9.6; offline, no desktop or HTTP.
  * Visual reference: appliance/design/DASHBOARD_VISUAL_SPEC_V1.md.
- * Icons use bundled LVGL symbol glyphs; hero and starfield are native
- * LVGL primitives (first MVP, no external/unlicensed photos).
+ * Original icon rasters and hero laptop are generated offline and embedded
+ * in the native ELF. The starfield remains lightweight LVGL primitives.
  */
 #include "dashboard.h"
 #include "theme.h"
