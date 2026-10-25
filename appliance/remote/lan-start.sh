@@ -61,6 +61,18 @@ systemd-run --quiet --collect --unit=redeti-lan-sshd \
 
 # The LAN listener starts even without an SSH key, but no login can succeed.
 # Recheck the USB and IP addresses for DHCP changes and hot-plugged media.
+# Classify kernel/mount diagnostics without showing raw device output or keys.
+# The UI receives only a small, fixed vocabulary of non-secret codes.
+classify_mount_error() {
+  if grep -Eiq 'busy|already mounted' "$DIR/last-mount-error.log" 2>/dev/null; then
+    key_reason="usb_device_busy"
+  elif grep -Eiq 'filesystem type|wrong fs type|bad superblock|unsupported' "$DIR/last-mount-error.log" 2>/dev/null; then
+    key_reason="usb_filesystem_error"
+  else
+    key_reason="usb_mount_failed"
+  fi
+}
+
 key_loaded=false
 key_reason="waiting_usb"
 while true; do
@@ -86,6 +98,7 @@ while true; do
           keyroot="$mountpoint"
           mounted_here=true
         else
+          classify_mount_error
           continue
         fi
         key_src="$keyroot/REDETI/authorized_keys"
