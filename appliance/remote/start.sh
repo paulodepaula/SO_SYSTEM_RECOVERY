@@ -34,6 +34,11 @@ if ! command -v iptables >/dev/null 2>&1; then
   status "firewall_unverified"
   exit 1
 fi
+# Refuse to store even a short-lived enrollment token outside RAM.
+if [ "$(findmnt -n -o FSTYPE -T "$base" 2>/dev/null)" != "tmpfs" ]; then
+  status "unsafe_runtime_storage"
+  exit 1
+fi
 
 # Provision a short-lived, tagged Tailscale auth key from the physical USB.
 # The ISO contains this code but NEVER contains the key itself. A key is
@@ -51,6 +56,7 @@ cleanup() {
 trap cleanup EXIT
 
 found=false
+invalid_seen=false
 for attempt in $(seq 1 15); do
   # source candidates are restricted to USB Ventoy/REDETI_CFG FAT/exFAT and
   # validated device-mapper aliases, not customer SATA/NVMe partitions.
@@ -88,6 +94,7 @@ PY
       then
         found=true
       else
+        invalid_seen=true
         status "invalid_auth_key"
       fi
     fi
@@ -103,15 +110,21 @@ PY
   sleep 2
 done
 if [ "$found" != true ]; then
-  status "awaiting_provision"
+  if [ "$invalid_seen" = true ]; then
+    status "invalid_auth_key"
+  else
+    status "awaiting_provision"
+  fi
   exit 0
 fi
 status "connecting"
 
 # Install fail-closed VPN firewall BEFORE starting tailscaled. The off mode
 # prevents its automatic rules from bypassing our restriction or reordering it.
+# Never flush a chain that might already be enforcing a deny policy.
 if ! iptables -N REDETI_VPN_INPUT 2>/dev/null; then
-  iptables -F REDETI_VPN_INPUT || { status "firewall_blocked"; exit 1; }
+  status "firewall_blocked"
+  exit 1
 fi
 if ! iptables -A REDETI_VPN_INPUT -j DROP ||
    ! iptables -I INPUT 1 -i tailscale0 -j REDETI_VPN_INPUT ||
