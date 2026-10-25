@@ -78,12 +78,12 @@ class LanSSHTests(unittest.TestCase):
     def test_boot_and_image_include_lan_ssh(self):
         launcher = (ROOT / "appliance/boot/launch.sh").read_text()
         iso = (ROOT / "appliance/build/compose-appliance.sh").read_text()
-        gui = (ROOT / "appliance/native/main.c").read_text()
+        gui = (ROOT / "appliance/native/ui/dashboard.c").read_text()
         self.assertIn("redeti-lan-ssh", launcher)
         for name in ("lan-start.sh", "lan.py", "sshd_config"):
             self.assertIn(name, iso)
-        self.assertIn("SSH LAN: paulo@", gui)
-        self.assertIn("SSH: paulo@%s", gui)
+        self.assertIn("paulo@%s", gui)
+        self.assertIn("s_ssh", gui)
 
 if __name__ == "__main__":
     unittest.main()
