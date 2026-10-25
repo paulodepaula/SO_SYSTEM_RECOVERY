@@ -25,6 +25,20 @@ if [ "${stored,,}" != "$computed" ]; then
   exit 4
 fi
 echo "Native ELF SHA256: OK"
+# A valid digest alone does not prove this binary was built from current main.
+command -v git >/dev/null || { echo "Git is required for build provenance" >&2; exit 4; }
+[ -f "$ui.commit" ] || { echo "Native ELF missing source commit; rebuild first" >&2; exit 4; }
+source_commit="$(tr -d '[:space:]' < "$ui.commit")"
+current_commit="$(git -C "$root" rev-parse --verify HEAD)"
+[ "$source_commit" = "$current_commit" ] || {
+  echo "Stale native ELF: built from $source_commit; current source $current_commit" >&2
+  exit 4
+}
+git -C "$root" diff --quiet && git -C "$root" diff --cached --quiet || {
+  echo "Tracked source modifications present; refusing ISO composition" >&2
+  exit 4
+}
+echo "Native ELF commit: $source_commit"
 # Download once and then reuse small static VPN binaries. No secrets embedded.
 bash "$root/appliance/build/fetch-tailscale.sh"
 [ "$(df -Pk "$outdir" | awk 'NR==2 {print $4}')" -ge 8388608 ] || { echo "8 GiB free space required" >&2; exit 5; }
