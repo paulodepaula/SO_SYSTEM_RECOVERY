@@ -1,0 +1,145 @@
+{
+  "schema": "redeti.recovery.design-tokens.v1",
+  "reference": {
+    "width": 1589,
+    "height": 990,
+    "description": "Imagem de referencia enviada na conversa; medidas aproximadas",
+    "ratio": 1.605
+  },
+  "colors": {
+    "bgOuter": "#001126",
+    "bgHeader": "#001735",
+    "bgSidebar": "#081A2E",
+    "bgHero": "#011A38",
+    "bgPanel": "#0A2135",
+    "bgCard": "#1A3049",
+    "bgActive": "#054D8E",
+    "primary": "#008CF4",
+    "cyanElectric": "#00A5FE",
+    "cyanText": "#59B2EA",
+    "mint": "#0FD2B5",
+    "purple": "#A369F9",
+    "amber": "#F8B935",
+    "textPrimary": "#EAF4FF",
+    "textMuted": "#A5BED8",
+    "border": "#234761",
+    "shadow": "#00101F"
+  },
+  "sizes": {
+    "outerMargin": 16,
+    "mainGap": 16,
+    "panelRadius": 16,
+    "cardRadius": 12,
+    "cardBorder": 1,
+    "sidebarWidthXL": 239,
+    "sidebarWidthDesktop": 224,
+    "sidebarWidthCompact": 72,
+    "topbarHeight": 92,
+    "iconMenu": 24,
+    "iconStat": 32,
+    "iconAction": 28,
+    "iconModule": 30,
+    "heroHeightXL": 248,
+    "statHeightXL": 150,
+    "statusHeightXL": 220,
+    "moduleGridHeightXL": 186
+  },
+  "regions": {
+    "topbar": {
+      "x": 16,
+      "y": 0,
+      "width": 1556,
+      "height": 92
+    },
+    "sidebar": {
+      "x": 15,
+      "y": 103,
+      "width": 239,
+      "height": 845
+    },
+    "main": {
+      "x": 272,
+      "y": 102,
+      "width": 1250,
+      "height": 845
+    },
+    "hero": {
+      "x": 272,
+      "y": 102,
+      "width": 1250,
+      "height": 248
+    },
+    "statCards": {
+      "x": 272,
+      "y": 367,
+      "width": 1250,
+      "height": 150
+    },
+    "systemStatusAndQuickActions": {
+      "x": 272,
+      "y": 530,
+      "width": 1250,
+      "height": 220
+    },
+    "modules": {
+      "x": 272,
+      "y": 761,
+      "width": 1250,
+      "height": 186
+    }
+  },
+  "typography": {
+    "heroTitle": 32,
+    "brandTitle": 33,
+    "sectionTitle": 21,
+    "cardValue": 19,
+    "body": 16,
+    "secondary": 14,
+    "minimum": 14,
+    "warning": "Apenas usar fonte PT-BR depois de validacao raster LVGL9; fallback Montserrat validado"
+  },
+  "responsive": [
+    {
+      "id": "XL",
+      "minWidth": 1500,
+      "sidebar": 239,
+      "statColumns": 4,
+      "moduleColumns": 3,
+      "heroNotebook": true
+    },
+    {
+      "id": "desktop",
+      "minWidth": 1200,
+      "maxWidth": 1499,
+      "sidebar": 224,
+      "statColumns": "4 or 2 based on available width",
+      "moduleColumns": 3,
+      "heroNotebook": true
+    },
+    {
+      "id": "compact",
+      "minWidth": 900,
+      "maxWidth": 1199,
+      "sidebar": 72,
+      "statColumns": 2,
+      "moduleColumns": 2,
+      "heroNotebook": "smaller"
+    },
+    {
+      "id": "legacy",
+      "maxWidth": 899,
+      "sidebar": "collapsible",
+      "statColumns": 1,
+      "moduleColumns": 1,
+      "heroNotebook": false
+    }
+  ],
+  "policies": {
+    "onlyRead": true,
+    "sourceOfTruth": "hardware.json, remote-status.json, lan-ssh-status.json and real EVDEV status",
+    "placeholderValuesForbidden": true,
+    "unfinishedActionsDisabled": true,
+    "noDesktop": true,
+    "isoRebuildOnVisualIteration": false
+  }
+}
