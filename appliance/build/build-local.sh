@@ -43,11 +43,23 @@ echo "Native ELF commit: $source_commit"
 bash "$root/appliance/build/fetch-tailscale.sh"
 [ "$(df -Pk "$outdir" | awk 'NR==2 {print $4}')" -ge 8388608 ] || { echo "8 GiB free space required" >&2; exit 5; }
 stamp="$(date -u +%Y%m%dT%H%M%SZ)"
-iso="$outdir/RedeTI-Recovery-OS-appliance-$stamp.iso"
+# Include the source revision in the filename to avoid Windows/QEMU ISO mixups.
+revision="${current_commit:0:8}"
+iso="$outdir/RedeTI-Recovery-OS-appliance-$revision-$stamp.iso"
 bash "$root/appliance/build/compose-appliance.sh" "$base" "$ui" "$iso"
 xorriso -indev "$iso" -ls /sysresccd >/dev/null 2>&1
 xorriso -indev "$iso" -ls /sysrescue.d >/dev/null 2>&1
 (cd -- "$outdir"; sha256sum "$(basename -- "$iso")" > "$(basename -- "$iso").sha256")
+# Portable build manifest: compare the ISO checksum with Windows Get-FileHash.
+{
+  printf 'source_commit=%s\n' "$current_commit"
+  printf 'elf_sha256=%s\n' "$computed"
+  printf 'iso_sha256=%s\n' "$(sha256sum "$iso" | cut -d ' ' -f 1)"
+  printf 'iso_filename=%s\n' "$(basename -- "$iso")"
+} > "$iso.buildinfo"
 echo "ISO created: $iso"
+echo "Source revision: $current_commit"
+echo "ISO SHA256: $(sha256sum "$iso" | cut -d ' ' -f 1)"
+echo "Check the Windows/QEMU copy against the .sha256 before calling it current."
 echo "NOT validated as bootable appliance until VM DRM/KMS smoke test passes."
 echo "Older ISOs preserved for now: call retention script only after QEMU approval."
