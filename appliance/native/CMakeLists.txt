@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(redeti_recovery_appliance VERSION 0.5 LANGUAGES C)
+project(redeti_recovery_appliance VERSION 0.6.0 LANGUAGES C)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 include(FetchContent)
@@ -41,6 +41,11 @@ if(NOT REDETI_SOURCE_REV MATCHES "^[0-9a-fA-F]+$" OR
 endif()
 string(SUBSTRING "${REDETI_SOURCE_REV}" 0 8 REDETI_BUILD_REV)
 message(STATUS "RedeTI Recovery OS source revision: ${REDETI_SOURCE_REV}")
+# Configure a new build tag on every build. Source revision remains separately
+# visible so two test ISOs of the same source can still be distinguished.
+string(TIMESTAMP REDETI_BUILD_UTC "%y%m%d-%H%M%S" UTC)
+set(REDETI_BUILD_TAG "b${REDETI_BUILD_UTC}")
+message(STATUS "RedeTI Recovery OS build: v${PROJECT_VERSION} ${REDETI_BUILD_TAG} ${REDETI_BUILD_REV}")
 
 set(LOGO_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/logo_pd.c")
 add_custom_command(
@@ -64,7 +69,7 @@ add_custom_command(
 # The UI transliterates accented strings until a visually tested LVGL 9 font exists.
 add_executable(redeti-ui main.c input.c ui/dashboard.c ui/theme.c "${LOGO_SOURCE}" "${PREMIUM_SOURCE}")
 target_link_libraries(redeti-ui PRIVATE lvgl::lvgl PkgConfig::DRM PkgConfig::JSONC)
-target_compile_definitions(redeti-ui PRIVATE REDETI_BUILD_REV="${REDETI_BUILD_REV}")
+target_compile_definitions(redeti-ui PRIVATE REDETI_BUILD_REV="${REDETI_BUILD_REV}" REDETI_APP_VERSION="v${PROJECT_VERSION}" REDETI_BUILD_TAG="${REDETI_BUILD_TAG}")
 target_compile_options(redeti-ui PRIVATE -Wall -Wextra -Werror=implicit-function-declaration)
 install(TARGETS redeti-ui RUNTIME DESTINATION bin)
 
@@ -74,7 +79,7 @@ if(BUILD_TESTING)
   add_executable(redeti-ui-render-smoke
     tests/render_smoke.c input.c ui/dashboard.c ui/theme.c "${LOGO_SOURCE}" "${PREMIUM_SOURCE}")
   target_link_libraries(redeti-ui-render-smoke PRIVATE lvgl::lvgl PkgConfig::DRM PkgConfig::JSONC)
-  target_compile_definitions(redeti-ui-render-smoke PRIVATE REDETI_BUILD_REV="${REDETI_BUILD_REV}")
+  target_compile_definitions(redeti-ui-render-smoke PRIVATE REDETI_BUILD_REV="${REDETI_BUILD_REV}" REDETI_APP_VERSION="v${PROJECT_VERSION}" REDETI_BUILD_TAG="${REDETI_BUILD_TAG}")
   add_test(NAME render-mvp-1280x720 COMMAND redeti-ui-render-smoke 1280 720)
   add_test(NAME render-mvp-1366x768 COMMAND redeti-ui-render-smoke 1366 768)
   add_test(NAME render-mvp-1589x990 COMMAND redeti-ui-render-smoke 1589 990)
