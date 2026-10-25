@@ -191,15 +191,15 @@ static lv_obj_t *button(lv_obj_t *parent,const char *caption,const char *glyph,
 static lv_obj_t *status_chip(lv_obj_t *parent,const char *glyph,const char *caption,lv_obj_t **result,int width)
 {
     lv_obj_t *chip=box(parent,0x061b31,10,1);
-    lv_obj_set_size(chip,width,58);
-    lv_obj_set_style_pad_all(chip,8,0);
+    lv_obj_set_size(chip,width,64);
+    lv_obj_set_style_pad_all(chip,6,0);
     flex(chip,LV_FLEX_FLOW_ROW,8);
     lv_obj_set_flex_align(chip,LV_FLEX_ALIGN_START,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_START);
     badge_icon(chip,glyph,C_CYAN);
     lv_obj_t *textcol=box(chip,0x061b31,0,0);
     flex(textcol,LV_FLEX_FLOW_COLUMN,1);
     lv_obj_set_style_bg_opa(textcol,LV_OPA_TRANSP,0);
-    lv_obj_set_size(textcol,width-70,44);
+    lv_obj_set_size(textcol,width-68,50);
     txt(textcol,caption,14,C_CYAN);
     *result=txt(textcol,"Aguardando...",14,C_WHITE);
     lv_obj_set_width(*result,lv_pct(100));
@@ -221,8 +221,8 @@ static void update_connections(lv_timer_t *timer)
         set_text(s_ssh,strcmp(lan_state,"ready")==0?address:
                     have_lan?"Aguardando chave":"Protegido");
     }
-    if(s_vpn)set_text(s_vpn,strcmp(vpn_state,"connected")==0?"Conectada":
-                           strcmp(vpn_state,"connecting")==0?"Conectando":"Nao provisionada");
+    if(s_vpn)set_text(s_vpn,strcmp(vpn_state,"connected")==0?"Online":
+                           strcmp(vpn_state,"connecting")==0?"Conectando":"Sem VPN");
     if(s_status_lan) {
         char buf[128];
         snprintf(buf,sizeof buf,"LAN: %s",have_lan?ip:"nao conectada");
@@ -297,7 +297,7 @@ static void header(lv_obj_t *root,int width)
     lv_obj_set_size(mark,64,64);
     lv_obj_t *heading=box(h,C_HEADER,0,0);
     lv_obj_set_style_bg_opa(heading,LV_OPA_TRANSP,0);
-    lv_obj_set_size(heading,width<1250?315:490,70);
+    lv_obj_set_size(heading,width<1500?375:490,70);
     flex(heading,LV_FLEX_FLOW_COLUMN,4);
     txt(heading,"RedeTI Recovery OS",28,C_WHITE);
     txt(heading,"DIAGNOSTICO AUTOMATICO | SOMENTE LEITURA",14,C_CYAN);
@@ -308,9 +308,9 @@ static void header(lv_obj_t *root,int width)
         lv_obj_set_height(right,65);
         flex(right,LV_FLEX_FLOW_ROW,8);
         lv_obj_set_flex_align(right,LV_FLEX_ALIGN_END,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_END);
-        status_chip(right,LV_SYMBOL_WIFI,"Rede Local",&s_lan,177);
-        status_chip(right,LV_SYMBOL_HOME,"SSH / paulo",&s_ssh,189);
-        status_chip(right,LV_SYMBOL_OK,"VPN",&s_vpn,166);
+        status_chip(right,LV_SYMBOL_WIFI,"Rede Local",&s_lan,width<1500?152:177);
+        status_chip(right,LV_SYMBOL_HOME,"SSH / paulo",&s_ssh,width<1500?158:189);
+        status_chip(right,LV_SYMBOL_OK,"VPN",&s_vpn,width<1500?137:166);
         lv_obj_t *ver=box(right,0x062b4c,9,1);
         lv_obj_set_size(ver,78,57);
         flex(ver,LV_FLEX_FLOW_COLUMN,2);
@@ -336,7 +336,10 @@ static void nav_item(lv_obj_t *side,const char *name,const char *glyph,
     if(cb) {
         lv_obj_add_event_cb(b,cb,LV_EVENT_CLICKED,NULL);
         if(s_group)lv_group_add_obj(s_group,b);
-    } else lv_obj_add_state(b,LV_STATE_DISABLED);
+    } else {
+        /* Keep unimplemented nav entries subtle, not solid grey buttons. */
+        lv_obj_remove_flag(b,LV_OBJ_FLAG_CLICKABLE);
+    }
 }
 static void sidebar(lv_obj_t *side,bool compact)
 {
@@ -357,6 +360,9 @@ static void sidebar(lv_obj_t *side,bool compact)
 }
 static void hero(lv_obj_t *content,int width,bool notebook)
 {
+    /* Fit the laptop even at 1280-wide DRM resolutions (content ~1018px). */
+    int laptop_width=notebook?(width>=1180?420:275):0;
+    int left_width=width-laptop_width-56;
     lv_obj_t *area=box(content,C_HERO,16,1);
     lv_obj_set_width(area,lv_pct(100));
     lv_obj_set_height(area,245);
@@ -366,7 +372,7 @@ static void hero(lv_obj_t *content,int width,bool notebook)
     stars(area,width,240);
     lv_obj_t *left=box(area,C_HERO,0,0);
     lv_obj_set_style_bg_opa(left,LV_OPA_TRANSP,0);
-    lv_obj_set_size(left,notebook?width-470:width-44,205);
+    lv_obj_set_size(left,left_width,205);
     flex(left,LV_FLEX_FLOW_COLUMN,9);
     txt(left,"Diagnostico Automatico",28,C_WHITE);
     txt(left,"Verificacao rapida de hardware, disco, sistema e rede.",16,C_MUTED);
@@ -384,7 +390,7 @@ static void hero(lv_obj_t *content,int width,bool notebook)
     lv_obj_t *start=button(actions,"VER DIAGNOSTICO",LV_SYMBOL_PLAY,notebook?256:230,clicked_details);
     lv_obj_set_style_bg_color(start,lv_color_hex(C_BLUE),0);
     button(actions,"TESTAR ENTRADA",LV_SYMBOL_KEYBOARD,notebook?221:214,clicked_test);
-    if(notebook)laptop_art(area,420);
+    if(notebook)laptop_art(area,laptop_width);
 }
 static void data_card(lv_obj_t *row,int width,const char *glyph,uint32_t tint,
                       const char *name,const char *val,const char *foot)
@@ -513,7 +519,7 @@ void redeti_dashboard_create(lv_display_t *display,json_object *hw)
     lv_obj_set_scrollbar_mode(content,LV_SCROLLBAR_MODE_AUTO);
     flex(content,LV_FLEX_FLOW_COLUMN,12);
     s_overview=content;
-    hero(content,mainw,mainw>=1050);
+    hero(content,mainw,mainw>=900);
 
     lv_obj_t *stat=box(content,C_BG,0,0);
     lv_obj_set_style_bg_opa(stat,LV_OPA_TRANSP,0);
