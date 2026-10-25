@@ -67,3 +67,21 @@ O fluxo [Build RedeTI Recovery OS Appliance MVP ISO](../../.github/workflows/bui
 
 **Nao confundir build de ISO com boot homologado.** Depois de o job concluir, baixe o artifact ZIP, extraia a ISO e seu checksum, valide o SHA-256 e teste no QEMU sem disco real. A tela deve exibir v0.6.0 e os controles de mouse/teclado devem responder.
 
+
+## Falha observada no QEMU — console no lugar do dashboard
+
+A primeira ISO v0.6.0 chegou ao prompt do SystemRescue, mas a interface DRM/KMS nao permaneceu aberta. A causa precisa ser confirmada pelo log na VM. Hipotese forte: a nova quantidade de widgets esgotou o pool LVGL, que por padrao tem apenas **65536 bytes** em memoria interna. Em `appliance/native/lv_conf.h` o pool foi ampliado para **4 MiB**.
+
+Tambem foi adicionado `appliance/native/tests/render_smoke.c` com teste de desenho em framebuffer simulado, executado via CTest nas builds de Ubuntu CI e Arch no Hermes. A rotina de boot agora registra `/run/redeti/ui.log` e `/run/redeti/ui.exit` (se a UI falhar).
+
+Na ISO **antiga** (na tela preta do QEMU) diagnosticar:
+
+```bash
+cat /run/redeti/appliance.log 2>/dev/null
+tail -50 /var/log/sysrescue-autorun.log
+ldd /opt/redeti-appliance/bin/redeti-ui
+/opt/redeti-appliance/bin/redeti-ui /run/redeti/hardware.json
+echo "UI exit status: $?"
+```
+
+Nao ha qualquer necessidade de abrir ou montar disco do cliente. **Nao substituir a ISO v0.5.4 comprovadamente funcional antes de testar a nova**. O aumento de pool e os testes sao correcoes preventivas ate os logs da v0.6.0 identificarem a causa precisa.
