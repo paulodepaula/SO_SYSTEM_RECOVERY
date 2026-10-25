@@ -2,6 +2,12 @@
 
 Esta pasta implementa a nova direção do produto. **Não é uma variante do Sergei Strelec e não inicia um desktop Linux:** o kernel e drivers executam em segundo plano, enquanto o aplicativo LVGL utiliza diretamente o display DRM/KMS.
 
+## Acesso remoto v0.5.3: SSH LAN + VPN
+
+A nova imagem Appliance usa o **usuário fixo `paulo`** tanto no SSH da rede local quanto no Tailscale SSH. O serviço OpenSSH local é iniciado no boot, independente da VPN, mas **a autenticação exige uma chave pública Ed25519** no pendrive (`REDETI/authorized_keys`); não existe senha padrão. O firewall permite a porta 22 somente na interface e sub-rede privada diretamente conectada. O Tailscale continua opcional e separado.
+
+A tela exibirá estados diferentes para `SSH LAN` e `VPN`, incluindo `paulo@IP` quando a conexão estiver pronta. Detalhes, instruções de geração de chave e teste QEMU estão em [remote/README.md](remote/README.md). **Ainda não homologado no boot físico com a nova configuração.**
+
 ## Conteúdo existente
 
 - [ARCHITECTURE.md](ARCHITECTURE.md): arquitetura e critérios de aceite do boot direto.
