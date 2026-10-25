@@ -185,7 +185,13 @@ static lv_obj_t *button(lv_obj_t *parent,const char *caption,const char *glyph,
     if(cb) {
         lv_obj_add_event_cb(b,cb,LV_EVENT_CLICKED,NULL);
         if(s_group)lv_group_add_obj(s_group,b);
-    } else lv_obj_add_state(b,LV_STATE_DISABLED);
+    } else {
+        /* Keep pending actions visibly secondary without LVGL's grey fill. */
+        lv_obj_add_state(b,LV_STATE_DISABLED);
+        lv_obj_set_style_bg_color(b,lv_color_hex(0x10293f),LV_STATE_DISABLED);
+        lv_obj_set_style_bg_opa(b,LV_OPA_COVER,LV_STATE_DISABLED);
+        lv_obj_set_style_border_color(b,lv_color_hex(C_BORDER),LV_STATE_DISABLED);
+    }
     return b;
 }
 static lv_obj_t *status_chip(lv_obj_t *parent,const char *glyph,const char *caption,lv_obj_t **result,int width)
