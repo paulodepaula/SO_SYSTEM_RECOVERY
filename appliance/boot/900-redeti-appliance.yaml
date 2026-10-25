@@ -1,0 +1,17 @@
+---
+# SystemRescue stage-A direct boot. No graphical desktop or browser.
+global:
+  dostartx: false
+  loadsrm: true
+  dovnc: false
+  nofirewall: false
+autorun:
+  ar_nowait: true
+  exec:
+    100:
+      path: "/usr/bin/bash"
+      parameters:
+        - "/opt/redeti-appliance/launch.sh"
+      shell: false
+      wait: never
+      on_error: break
