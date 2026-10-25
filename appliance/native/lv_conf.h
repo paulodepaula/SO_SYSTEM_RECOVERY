@@ -11,7 +11,7 @@
 #define LV_USE_WAYLAND 0
 #define LV_USE_X11 0
 #define LV_USE_OPENGLES 0
-#define LV_USE_EVDEV 0  /* first milestone is display only; input is next */
+#define LV_USE_EVDEV 1  /* direct Linux /dev/input event devices: mouse, tablet, keyboard */
 #define LV_FONT_MONTSERRAT_14 1
 #define LV_FONT_MONTSERRAT_16 1
 #define LV_FONT_MONTSERRAT_20 1
