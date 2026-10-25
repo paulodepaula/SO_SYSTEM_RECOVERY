@@ -132,3 +132,19 @@ Sem chave autorizada ou rede, a interface funciona normalmente, mas a VPN/SSH fi
 O construtor `appliance/build/build-local.sh` baixa, uma vez, a versão estática fixa do Tailscale de seu distribuidor HTTPS oficial, mantém o cache em `~/RecoveryOS/native-build/out` e inclui a ferramenta no SRM. Isso aumenta o tamanho da ISO em relação à versão sem acesso remoto, mas não cria ISOs extras. A limpeza das ISOs anteriores só ocorre depois da homologação de uma nova imagem.
 
 **Leia [o guia de provisionamento e políticas Tailscale](remote/README.md) antes de usar no campo.** Essa integração ainda precisa ser testada em QEMU com rede virtual, chave efêmera de laboratório, ACL restritiva e confirmação de que o IP LAN não aceita SSH. Nenhuma credencial real foi criada ou adicionada ao repositório.
+
+## Correcao emergencial v0.5.2: painel sem textos
+
+No teste QEMU, depois de introduzir `lv_font_conv@1.5.3`, a UI mostrou os cartoes e a logo mas os textos sumiram (exceto o titulo em Montserrat 28). Isso revela uma incompatibilidade de fonte LVGL 8/9 que passou no teste de compilacao, mas nao na renderizacao DRM.
+
+Para a **v0.5.2**, o aplicativo voltou ao `lv_font_montserrat_16` (ja validado no boot), com transliteracao temporaria de caracteres UTF-8 acentuados para ASCII. A tela voltara a apresentar palavras legiveis como "Memoria", "Inicializacao" e "Particoes"; **os acentos ainda nao estarao presentes**. O JSON original do reconhecimento e preservado. Uma fonte PT-BR compatibilizada sera testada posteriormente com renderizacao, nao apenas compilacao.
+
+O projeto usa a interface nativa no QEMU e em hardware fisico; a **v0.5.2 ainda exige boot de homologacao** antes de ser declarada estavel. Nao apague a ultima ISO que exibia texto ate que a nova tenha sido comprovada.
+
+## Firewall e Tailscale SSH
+
+A receita mantem `nofirewall: false`, ou seja, **firewall SystemRescue ativo**. O OpenSSH convencional segue mascarado e nao recebe conexoes da rede LAN. O script `appliance/remote/start.sh` **nao abre TCP 22 em eth0, wlan0 ou em todas as interfaces**. Somente depois de autenticar o Tailscale, obter IP 100.x e identificar `tailscale0`, insere (ou valida) regra INPUT IPv4 restrita a `-i tailscale0 -d IP_DA_VPN/32 -p tcp --dport 22 -j ACCEPT`.
+
+Isso nao garante que Tailscale SSH ja esteja operacional na ISO que esta rodando. E necessario provisionar a chave, conectar rede na VM e validar as regras da tailnet. Com `-nic none` no QEMU, a VPN nao conecta e nenhuma regra e aplicada.
+
+Consulte [remote/README.md](remote/README.md) para o provisionamento e controle de acesso. **Nunca desative o firewall por completo somente para ativar o SSH.**
