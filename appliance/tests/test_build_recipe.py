@@ -48,6 +48,17 @@ class ApplianceBuildSafetyTests(unittest.TestCase):
         self.assertIn("Native ELF checksum mismatch", script)
         self.assertNotIn('sha256sum -c "$(basename -- "$ui").sha256"', script)
 
+    def test_iso_requires_current_native_source_commit(self):
+        native = (ROOT / "appliance/build/build-native-arch.sh").read_text()
+        iso = (ROOT / "appliance/build/build-local.sh").read_text()
+        self.assertIn('source_head="$(git -C "$repo" rev-parse --verify HEAD)"', native)
+        self.assertIn('"$work/out/redeti-ui.commit"', native)
+        self.assertIn('git -C "$repo" diff --quiet', native)
+        self.assertIn('source_commit="$(tr -d', iso)
+        self.assertIn('"$source_commit" = "$current_commit"', iso)
+        self.assertIn("Stale native ELF", iso)
+        self.assertIn('git -C "$root" diff --quiet', iso)
+
     def test_boot_logs_native_crash_without_silent_console(self):
         launch = (ROOT / "appliance/boot/launch.sh").read_text()
         self.assertIn("/run/redeti/ui.log", launch)
