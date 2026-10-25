@@ -55,3 +55,47 @@ Ainda não existe uma ISO final `appliance` neste repositório. A antiga ISO da 
 ## Retencao de ISOs no Hermes
 
 O projeto adotou politica de **apenas uma ISO RedeTI gerada e verificada** na pasta de saida, alem do cache fixo da ISO-base SystemRescue. O script compartilhado [scripts/prune-recovery-isos.sh](../scripts/prune-recovery-isos.sh) suporta --dry-run e --apply, validando SHA-256 antes de remover arquivos antigos. O compilador legado [boot_gui/build/build-local.sh](../boot_gui/build/build-local.sh) ja chama a limpeza automaticamente apos o build bem-sucedido. **Quando o compilador do Appliance for implementado, devera chamar o mesmo script** apos a validacao da nova ISO. Ate la nao existe um build de ISO Appliance ativo para aplicar esta politica.
+
+
+## Etapa A em implementacao: compilacao nativa e ISO sem XFCE
+
+A linha Appliance tem scripts independentes da receita antiga `boot_gui`. **O executavel em C e o conjunto de bibliotecas ainda precisam passar no teste real SystemRescue/QEMU.**
+
+### Compilar apenas o executavel no Hermes (sem gerar ISO)
+
+```bash
+cd ~/RecoveryOS/SO_SYSTEM_RECOVERY
+git pull --ff-only
+bash appliance/build/build-native-arch.sh
+```
+
+Requer Docker no Hermes. O script cria um conteiner **Arch Linux nao privilegiado**, monta o codigo do projeto em leitura (`/project:ro`) e grava apenas no cache dedicado `~/RecoveryOS/native-build/`. Ele instala dependencias no conteiner, busca o LVGL v9.6.0 fixado por commit e compila `redeti-ui` com DRM/KMS e json-c. O monograma PD original e convertido localmente para RGB565 e incorporado como recurso do executavel, sem navegador.
+
+A compilacao inicial baixa uma imagem Arch e dependencias pequenas/moderadas, mas **nao baixa nem cria outra ISO de 1,3 GB**. Revisoes posteriores reutilizam o cache de compilacao. A compilacao Arch e deliberada para aproximar o ambiente ABI do SystemRescue, mas nao elimina a necessidade de validar dinamicamente as bibliotecas no boot.
+
+Arquivo final: `~/RecoveryOS/native-build/out/redeti-ui`.
+
+### Gerar uma unica ISO de laboratorio (somente depois de compilar)
+
+```bash
+cd ~/RecoveryOS/SO_SYSTEM_RECOVERY
+bash appliance/build/build-local.sh ~/RecoveryOS/base/systemrescue-13.02-amd64.iso
+```
+
+Este builder separado insere o executavel e o coletor Python no SRM, adiciona `900-redeti-appliance.yaml` com `dostartx: false`, e configura o `autorun` de console para executar o programa. Usa a ISO-base preservada e valida sua assinatura SHA-256, mas **nao promete que o binario rodara no runtime SystemRescue antes do QEMU**.
+
+A ISO gerada tem nome `RedeTI-Recovery-OS-appliance-<timestamp>.iso`. Por seguranca, enquanto o primeiro boot nativo nao passar, o script mantem a ISO anterior. Depois do aceite visual e do teste de entrada, utilizar o controlador de retencao `scripts/prune-recovery-isos.sh` para manter somente a versao aprovada.
+
+### Teste QEMU sem disco
+
+Na VM usar CPU 64-bit e DRM do adaptador grafico; nao conectar HDD/SSD e nao habilitar rede. Exemplo no Windows, ajustando a ISO:
+
+```powershell
+& "C:\Program Files\qemu\qemu-system-x86_64.exe" -machine q35,vmport=off -accel tcg -cpu max -m 3072 -smp 2 -device virtio-vga -device qemu-xhci -device usb-tablet -boot order=d -cdrom "D:\ISOs\RedeTI-Recovery-OS-appliance.iso" -nic none
+```
+
+**Critério de aceite:** logo PD e Central RedeTI aparecem diretamente, sem desktop, barra XFCE, Firefox ou HTTP. A ausencia de disco interno aparece como `Nenhum disco interno identificado`; nao se pode marcar Windows como confirmado apenas com NTFS.
+
+### Evidencias da compilacao
+
+`[Native LVGL compile — GitHub Actions](https://github.com/paulodepaula/SO_SYSTEM_RECOVERY/actions/workflows/native-appliance.yml)` valida a compilacao do projeto sem compilar ISO. Os testes simulados do `appliance/tests/` validam o inventario e a independencia do boot. A ISO appliance so sera anunciada como homologada depois do teste de boot completo.
