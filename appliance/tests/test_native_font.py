@@ -9,7 +9,7 @@ class NativeFontTests(unittest.TestCase):
         cmake = (ROOT / "appliance/native/CMakeLists.txt").read_text()
         self.assertNotIn("lv_font_conv@", cmake)
         self.assertNotIn("PTBR_FONT_SOURCE", cmake)
-        self.assertIn('add_executable(redeti-ui main.c "${LOGO_SOURCE}")', cmake)
+        self.assertIn('add_executable(redeti-ui main.c input.c "${LOGO_SOURCE}")', cmake)
 
     def test_all_ui_labels_use_proven_fallback(self):
         main = (ROOT / "appliance/native/main.c").read_text()
