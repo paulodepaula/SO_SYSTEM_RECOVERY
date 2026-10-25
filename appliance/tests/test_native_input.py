@@ -44,6 +44,15 @@ class NativeInputTests(unittest.TestCase):
             self.assertIn(expected, main)
         self.assertIn("Entrada OK: clique ou Enter", main)
 
+    def test_panel_entry_state_is_compact_and_truthful(self):
+        source=(ROOT/"appliance/native/input.c").read_text()
+        self.assertIn('s_pointer_count && s_keyboard_count',source)
+        self.assertIn('"Mouse e teclado detectados"',source)
+        self.assertIn('"Mouse OK; teclado aguardando"',source)
+        self.assertIn('"Teclado OK; mouse aguardando"',source)
+        self.assertIn('"Entrada indisponivel"',source)
+        self.assertNotIn('teste: clique ou Tab + Enter',source)
+
     def test_diagnostics_remain_read_only(self):
         main = (ROOT / "appliance/native/ui/dashboard.c").read_text()
         self.assertIn("Nenhum reparo foi executado", main)
