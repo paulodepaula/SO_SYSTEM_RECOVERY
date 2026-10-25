@@ -85,7 +85,7 @@ class DashboardMVP(unittest.TestCase):
         import struct
         hero=ROOT/"appliance/native/assets/source/hero-laptop-panel.png"
         binary=hero.read_bytes()
-        self.assertEqual(binary[:8],b"\\x89PNG\\r\\n\\x1a\\n")
+        self.assertEqual(binary[:8],b"\x89PNG\r\n\x1a\n")
         self.assertEqual(struct.unpack(">II",binary[16:24]),(380,197))
         self.assertEqual(hashlib.sha256(binary).hexdigest(),
                          "0a6e4edf7e152f8e8a99f503af770f6812c320cffef9cb6b095f2cfb5246a2ff")
