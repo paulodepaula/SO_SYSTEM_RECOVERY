@@ -43,10 +43,8 @@ ssh-keygen -lf "$DIR/ssh_host_ed25519_key.pub" > "$DIR/host_fingerprint"
 # Stop the default SystemRescue SSH daemon, which may otherwise offer root login.
 systemctl stop sshd.service sshd.socket >/dev/null 2>&1 || true
 /usr/bin/sshd -t -f "$CONFIG" || { status "sshd_invalid_config"; exit 1; }
-systemd-run --quiet --collect --unit=redeti-lan-sshd \
-  --property=Restart=on-failure --property=RestartSec=2 \
-  /usr/bin/sshd -D -e -f "$CONFIG"
-
+# Configure INPUT allowlist before opening any listener to avoid a brief
+# unprotected startup window.
 # Put an explicit allowlist before any pre-existing permissive rules.
 # A preexisting tailnet-specific rule in INPUT remains effective via RETURN.
 iptables -N REDETI_LAN_SSH >/dev/null 2>&1 || true
@@ -56,6 +54,9 @@ iptables -C REDETI_LAN_SSH -j DROP >/dev/null 2>&1 ||
   iptables -A REDETI_LAN_SSH -j DROP
 iptables -C INPUT -p tcp --dport 22 -j REDETI_LAN_SSH >/dev/null 2>&1 ||
   iptables -I INPUT 1 -p tcp --dport 22 -j REDETI_LAN_SSH
+systemd-run --quiet --collect --unit=redeti-lan-sshd \
+  --property=Restart=on-failure --property=RestartSec=2 \
+  /usr/bin/sshd -D -e -f "$CONFIG"
 
 # The LAN listener starts even without an SSH key, but no login can succeed.
 # Recheck the USB and IP addresses for DHCP changes and hot-plugged media.
