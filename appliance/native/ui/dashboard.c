@@ -213,8 +213,12 @@ static void update_connections(lv_timer_t *timer)
     const char *vpn_state=str(vpn,"state");
     bool have_lan=strcmp(lan_state,"ready")==0||strcmp(lan_state,"awaiting_key")==0;
     if(s_lan)set_text(s_lan,have_lan?ip:"Sem rede");
-    if(s_ssh)set_text(s_ssh,strcmp(lan_state,"ready")==0?"paulo / chave OK":
-                            have_lan?"Aguardando chave":"Protegido");
+    if(s_ssh) {
+        char address[80];
+        snprintf(address,sizeof address,"paulo@%s",ip);
+        set_text(s_ssh,strcmp(lan_state,"ready")==0?address:
+                    have_lan?"Aguardando chave":"Protegido");
+    }
     if(s_vpn)set_text(s_vpn,strcmp(vpn_state,"connected")==0?"Conectada":
                            strcmp(vpn_state,"connecting")==0?"Conectando":"Nao provisionada");
     if(s_status_lan) {
@@ -568,7 +572,6 @@ void redeti_dashboard_create(lv_display_t *display,json_object *hw)
     lv_obj_set_width(s_notice,lv_pct(100));
     if(side)sidebar(side,compact);
     redeti_input_start(display,s_group,s_input_state);
-    lv_group_focus_obj(lv_group_get_focused(s_group)); /* preserve keyboard focus */
     update_connections(NULL);
     lv_timer_create(update_connections,3000,NULL);
 }
