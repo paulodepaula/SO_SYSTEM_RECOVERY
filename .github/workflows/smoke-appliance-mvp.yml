@@ -1,0 +1,78 @@
+name: QEMU smoke test for Appliance MVP
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/smoke-appliance-mvp.yml'
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  boot-ui:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Install QEMU tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 socat python3-pil
+      - name: Fetch one verified MVP ISO, no local ISO build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist shots
+          gh run download 40160854100 --repo "$GITHUB_REPOSITORY" \
+            --name RedeTI-Recovery-OS-appliance-MVP-v0.6.0 --dir dist
+          cd dist
+          file="$(find . -maxdepth 1 -type f -name 'RedeTI-Recovery-OS-appliance-*.iso' -print -quit)"
+          test -n "$file" && test -s "$file"
+          sha256sum -c "$file.sha256"
+          echo "ISO=${file#./}" >> "$GITHUB_ENV"
+      - name: Boot isolated x86_64 with DRM and no disks or network
+        run: |
+          set -euo pipefail
+          qemu-system-x86_64 \
+            -machine q35,accel=tcg -cpu max -m 3072 -smp 2 \
+            -device virtio-vga -device qemu-xhci -device usb-tablet -device usb-kbd \
+            -boot order=d -drive "file=dist/$ISO,media=cdrom,readonly=on" \
+            -nic none -vnc 127.0.0.1:0 \
+            -monitor unix:/tmp/redeti-mvp-monitor.sock,server,nowait \
+            -pidfile /tmp/redeti-mvp.pid -daemonize
+          for second in 60 120 180; do
+            sleep 60
+            printf 'info status\nscreendump %s/shots/boot-%s.ppm\n' "$PWD" "$second" \
+              | socat -T 20 - UNIX-CONNECT:/tmp/redeti-mvp-monitor.sock \
+              > "shots/monitor-$second.txt" 2>&1 || true
+          done
+          kill "$(cat /tmp/redeti-mvp.pid)" 2>/dev/null || true
+      - name: Assert a blue graphical dashboard rather than black Linux console
+        run: |
+          /usr/bin/python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          best=0.0
+          for path in sorted(Path("shots").glob("boot-*.ppm")):
+              image=Image.open(path).convert("RGB")
+              image.thumbnail((300,200))
+              image.save(path.with_suffix(".png"))
+              samples=list(image.getdata())
+              # UI background is navy; black SystemRescue console is not.
+              fraction=sum(b>28 and b>r*1.45 and b>g*1.17
+                  for r,g,b in samples)/len(samples)
+              best=max(best,fraction)
+              print(path.name, "blue-ui-fraction",round(fraction,3), "size",image.size)
+          print("Best graphical-area fraction:",round(best,3))
+          if best<0.12:
+              raise SystemExit("MVP boot failed: SystemRescue console instead of RedeTI dashboard")
+          PY
+      - name: Save evidence even when QEMU test fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: RedeTI-MVP-QEMU-screenshots
+          path: |
+            shots/*.png
+            shots/monitor-*.txt
+          retention-days: 1
+          if-no-files-found: warn
