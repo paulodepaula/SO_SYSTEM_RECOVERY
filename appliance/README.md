@@ -154,3 +154,28 @@ A receita mantem `nofirewall: false`, ou seja, **firewall SystemRescue ativo**. 
 Isso nao garante que Tailscale SSH ja esteja operacional na ISO que esta rodando. E necessario provisionar a chave, conectar rede na VM e validar as regras da tailnet. Com `-nic none` no QEMU, a VPN nao conecta e nenhuma regra e aplicada.
 
 Consulte [remote/README.md](remote/README.md) para o provisionamento e controle de acesso. **Nunca desative o firewall por completo somente para ativar o SSH.**
+
+## v0.5.4 — mouse e teclado diretos no QEMU e hardware físico
+
+**Falha observada em v0.5.3:** o painel nativo abre e reconhece CPU/RAM, mas não movimenta o cursor nem recebe teclas porque `LV_USE_EVDEV` estava desativado e não existia dispositivo `lv_indev` associado à tela DRM/KMS. Isso **não é falha de USB do QEMU nem motivo para instalar XFCE**.
+
+**Correção no código:** a build v0.5.4 habilita `LV_USE_EVDEV=1`, implementa `appliance/native/input.c` e usa `lv_evdev_discovery_start` (LVGL 9.6) para detectar automaticamente dispositivos sob `/dev/input/event*` e dispositivos USB conectados posteriormente. Vincula ponteiros REL (mouse), ABS (USB Tablet), teclado e um cursor visível à tela DRM; liga o teclado ao `lv_group`. Mostra o status dos periféricos e um botão **TESTAR MOUSE / TECLADO**, que responde a clique ou Tab + Enter. Os demais cartões continuam informativos e não executam reparos.
+
+Em QEMU Windows teste com:
+
+```powershell
+& "C:\Program Files\qemu\qemu-system-x86_64.exe" `
+  -machine q35,vmport=off `
+  -accel tcg -cpu max -m 3072 -smp 2 `
+  -device virtio-vga `
+  -device qemu-xhci -device usb-tablet -device usb-kbd `
+  -display gtk,grab-on-hover=off `
+  -boot order=d -cdrom "D:\ISOs\NOME-EXATO-DA-NOVA-ISO.iso" `
+  -nic none
+```
+
+Ajuste o caminho da ISO. O VM usa uma interface USB Tablet absoluta e teclado virtual USB; não passa teclado, mouse nem discos físicos do Windows para o Linux. Com `-nic none`, SSH LAN e VPN permanecerão sem rede, como esperado. Para testar SSH use a receita de rede de laboratório documentada em [remote/README.md](remote/README.md).
+
+**Critérios de aceite:** versão visual v0.5.4; status `mouse detectado | teclado detectado`; cursor acompanha o mouse; clique no botão responde; Tab/Enter também responde. Sem disco interno, painel continua em somente leitura. Verificação CI valida que os símbolos do driver compilaram, **mas não comprova os eventos de entrada**: precisam ser testados visualmente no QEMU.
+
+Se a janela não receber teclas, clique nela para dar foco. `Ctrl+Alt+G` libera o ponteiro capturado pelo QEMU quando necessário; isso é diferente do driver EVDEV ausente na ISO v0.5.3.
