@@ -152,14 +152,23 @@ class DashboardMVP(unittest.TestCase):
         self.assertIn("paulo@%s",DASHBOARD)
         self.assertIn('Nenhum reparo foi executado',DASHBOARD)
 
+    def test_private_vpn_is_visible_without_displaying_secrets(self):
+        self.assertIn('s_vpn_diag_state=txt(s_ssh_diagnostics_panel,',DASHBOARD)
+        self.assertIn('vpn_state_message(vpn_state)',DASHBOARD)
+        self.assertIn('vpn_ready?str(vpn,"vpn_ip"):"-"',DASHBOARD)
+        for state in ('"awaiting_provision"','"invalid_auth_key"',
+                      '"vpn_auth_failed"','"firewall_unverified"'):
+            self.assertIn(state,DASHBOARD)
+        self.assertNotIn('ts-authkey","r"',DASHBOARD)
+
     def test_rede_menu_exposes_safe_ssh_diagnostics_without_shell(self):
-        self.assertIn('s_ssh_diagnostics_panel=section(content,"Rede | Diagnostico SSH",166)',DASHBOARD)
+        self.assertIn('s_ssh_diagnostics_panel=section(content,"Rede | Diagnostico SSH e VPN",203)',DASHBOARD)
         self.assertIn('lv_obj_scroll_to_view(s_ssh_diagnostics_panel,LV_ANIM_ON)',DASHBOARD)
         self.assertIn('ssh_key_reason(str(lan,"key_reason"))',DASHBOARD)
         self.assertIn('read_ssh_public_fingerprint(fingerprint,sizeof fingerprint)',DASHBOARD)
         self.assertIn('fopen("/run/redeti/ssh/host_fingerprint","r")',DASHBOARD)
         self.assertIn('strstr(line,"SHA256:")',DASHBOARD)
-        self.assertIn('Somente leitura | chave privada nunca e exibida',DASHBOARD)
+        self.assertIn('Somente leitura | chaves privadas e tokens nunca sao exibidos',DASHBOARD)
         for token in ('"usb_device_busy"','"usb_filesystem_error"',
                       '"waiting_usb"','"usb_mount_failed"','"key_file_missing"',
                       '"invalid_public_key"','"installed"'):
