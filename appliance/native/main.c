@@ -115,6 +115,47 @@ static void build_ui(lv_display_t *display, json_object *hardware) {
     info_card(summary, "Modo de inicialização", field_text(hardware, "recovery_boot_firmware"), col_width);
     info_card(summary, "Disco e Windows", field_text(field_json(hardware, "target"), "message"), col_width);
 
+    /* Show detected disks and partitions in the screen, not in a terminal. */
+    label(root, "Hardware e particoes detectados automaticamente", WHITE);
+    lv_obj_t *volumes = lv_obj_create(root);
+    panel(volumes, PANEL);
+    lv_obj_set_width(volumes, lv_pct(100));
+    lv_obj_set_height(volumes, LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(volumes, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_style_pad_row(volumes, 7, 0);
+    json_object *disks = field_json(hardware, "disks");
+    size_t count = disks && json_object_is_type(disks, json_type_array)
+                       ? json_object_array_length(disks) : 0;
+    if (count == 0) label(volumes, "Nenhum disco interno identificado nesta sessao", MUTED);
+    for (size_t i = 0; i < count && i < 4; i++) {
+        json_object *disk = json_object_array_get_idx(disks, i);
+        if (!disk) continue;
+        json_object *bytes = field_json(disk, "size_bytes");
+        double gib = bytes && json_object_is_type(bytes, json_type_int)
+                         ? (double)json_object_get_int64(bytes) / 1073741824.0 : 0.0;
+        char text[400];
+        snprintf(text, sizeof(text), "%s  |  %s  |  %.1f GiB  |  %s%s",
+                 field_text(disk, "device"), field_text(disk, "model"), gib,
+                 field_text(disk, "transport"),
+                 json_object_get_boolean(field_json(disk, "is_removable_or_usb"))
+                    ? "  |  USB/RECOVERY" : "");
+        label(volumes, text, CYAN);
+        json_object *parts = field_json(disk, "partitions");
+        size_t pn = parts && json_object_is_type(parts, json_type_array)
+                        ? json_object_array_length(parts) : 0;
+        for (size_t j = 0; j < pn && j < 6; j++) {
+            json_object *part = json_object_array_get_idx(parts, j);
+            if (!part) continue;
+            json_object *psize = field_json(part, "size_bytes");
+            double pgib = psize && json_object_is_type(psize, json_type_int)
+                              ? (double)json_object_get_int64(psize) / 1073741824.0 : 0.0;
+            snprintf(text, sizeof(text), "   %s  |  %s  |  %.2f GiB",
+                     field_text(part, "device"), field_text(part, "filesystem"), pgib);
+            label(volumes, text, MUTED);
+        }
+        if (pn > 6) label(volumes, "   Mais particoes omitidas nesta tela", MUTED);
+    }
+    if (count > 4) label(volumes, "Mais discos detectados (resumo limitado a quatro)", MUTED);
     label(root, "Diagnósticos disponíveis", WHITE);
     lv_obj_t *grid = lv_obj_create(root);
     panel(grid, NAVY);
