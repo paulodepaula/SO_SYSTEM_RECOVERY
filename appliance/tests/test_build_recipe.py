@@ -48,6 +48,13 @@ class ApplianceBuildSafetyTests(unittest.TestCase):
         self.assertIn("Native ELF checksum mismatch", script)
         self.assertNotIn('sha256sum -c "$(basename -- "$ui").sha256"', script)
 
+    def test_boot_logs_native_crash_without_silent_console(self):
+        launch = (ROOT / "appliance/boot/launch.sh").read_text()
+        self.assertIn("/run/redeti/ui.log", launch)
+        self.assertIn("/run/redeti/ui.exit", launch)
+        self.assertIn("Falha na interface nativa", launch)
+        self.assertIn("tail -n 35", launch)
+
     def test_shell_scripts_have_valid_syntax(self):
         for name in ("appliance/build/build-native-arch.sh", "appliance/build/compose-appliance.sh",
                      "appliance/build/build-local.sh", "appliance/boot/launch.sh"):
