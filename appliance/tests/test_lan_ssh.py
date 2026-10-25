@@ -75,6 +75,18 @@ class LanSSHTests(unittest.TestCase):
         self.assertEqual(subprocess.run(["bash", "-n", str(ROOT / "appliance/remote/lan-start.sh")],
                                         capture_output=True).returncode, 0)
 
+    def test_ssh_usb_provisioning_reasons_are_safe_and_specific(self):
+        script=(ROOT / "appliance/remote/lan-start.sh").read_text()
+        self.assertIn('"key_reason":"%s"',script)
+        for reason in ("waiting_usb","usb_mount_failed","key_file_missing",
+                       "invalid_public_key","installed"):
+            self.assertIn(f'key_reason="{reason}"',script)
+        self.assertIn('status "awaiting_key" "$primary_ip" "$key_reason"',script)
+        self.assertIn('mount -o ro,nosuid,nodev,noexec',script)
+        self.assertIn('umount -- "$mountpoint"',script)
+        self.assertNotIn('PasswordAuthentication yes',script)
+        self.assertNotIn('PermitRootLogin yes',script)
+
     def test_boot_and_image_include_lan_ssh(self):
         launcher = (ROOT / "appliance/boot/launch.sh").read_text()
         iso = (ROOT / "appliance/build/compose-appliance.sh").read_text()
