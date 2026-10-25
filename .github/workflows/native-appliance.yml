@@ -1,0 +1,40 @@
+name: Appliance native LVGL compile (no ISO)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'appliance/native/**'
+      - '.github/workflows/native-appliance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build libraries (no display server)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends build-essential cmake ninja-build pkg-config libdrm-dev libjson-c-dev git
+      - name: Compile LVGL DRM/KMS executable
+        run: |
+          cmake -S appliance/native -B /tmp/redeti-appliance-build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build /tmp/redeti-appliance-build --parallel 2
+          file /tmp/redeti-appliance-build/redeti-ui
+          ldd /tmp/redeti-appliance-build/redeti-ui
+      - name: Fail closed without hardware evidence
+        run: |
+          set +e
+          /tmp/redeti-appliance-build/redeti-ui /run/redeti/does-not-exist.json
+          rc=$?
+          set -e
+          test "$rc" -eq 2
+      - name: Save test executable for developer inspection only
+        uses: actions/upload-artifact@v4
+        with:
+          name: redeti-ui-ubuntu-compile-only
+          path: /tmp/redeti-appliance-build/redeti-ui
+          retention-days: 2
+          if-no-files-found: error
