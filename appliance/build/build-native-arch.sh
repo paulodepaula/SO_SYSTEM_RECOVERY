@@ -44,7 +44,7 @@ if [ "$(git -C "$repo" rev-parse --verify HEAD)" != "$source_head" ] ||
   echo "Source changed during compilation; refusing to attest the ELF" >&2
   exit 3
 fi
-printf '%s\\n' "$source_head" > "$work/out/redeti-ui.commit"
+printf '%s\n' "$source_head" > "$work/out/redeti-ui.commit"
 echo "Compiled source commit: $source_head"
 echo "Executable: $work/out/redeti-ui"
 echo "WARNING: ABI compatibility must still be verified in SystemRescue/QEMU."
