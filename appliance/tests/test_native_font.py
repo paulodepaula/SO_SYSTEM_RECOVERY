@@ -17,7 +17,7 @@ class NativeFontTests(unittest.TestCase):
         self.assertIn("safe_label_text(value, txt)", main)
         self.assertIn("lv_obj_set_style_text_font(remote_status, redeti_text_font", main)
         self.assertNotIn("&redeti_font_16", main)
-        self.assertIn("v0.5.2", main)
+        self.assertIn("v0.5.3", main)
 
     def test_pt_br_data_is_transliterated_without_modifying_inventory(self):
         main = (ROOT / "appliance/native/main.c").read_text()
