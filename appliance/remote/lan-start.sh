@@ -11,8 +11,9 @@ mkdir -p "$DIR"
 chmod 0700 "$BASE" "$DIR"
 
 status() {
-  # caller supplies only fixed states and numeric IPv4 addresses.
-  printf '{"state":"%s","ssh_user":"paulo","lan_ip":"%s"}\n' "$1" "${2:-}" > "$BASE/lan-ssh-status.json.tmp"
+  # All status and reason values are fixed tokens. No keys/secrets are logged.
+  printf '{"state":"%s","ssh_user":"paulo","lan_ip":"%s","key_reason":"%s"}\n' \
+    "$1" "${2:-}" "${3:-unknown}" > "$BASE/lan-ssh-status.json.tmp"
   chmod 0644 "$BASE/lan-ssh-status.json.tmp"
   mv -f "$BASE/lan-ssh-status.json.tmp" "$BASE/lan-ssh-status.json"
 }
@@ -61,8 +62,10 @@ systemd-run --quiet --collect --unit=redeti-lan-sshd \
 # The LAN listener starts even without an SSH key, but no login can succeed.
 # Recheck the USB and IP addresses for DHCP changes and hot-plugged media.
 key_loaded=false
+key_reason="waiting_usb"
 while true; do
   if [ "$key_loaded" = false ]; then
+    key_reason="waiting_usb"
     device="$(python3 "$ROOT/provision.py" 2>/dev/null || true)"
     if [ -n "$device" ]; then
       mountpoint="$BASE/lan-provision"
@@ -74,9 +77,16 @@ while true; do
             chown paulo:paulo "$home/.ssh/authorized_keys"
             chmod 0600 "$home/.ssh/authorized_keys"
             key_loaded=true
+            key_reason="installed"
+          else
+            key_reason="invalid_public_key"
           fi
+        else
+          key_reason="key_file_missing"
         fi
         umount -- "$mountpoint" || true
+      else
+        key_reason="usb_mount_failed"
       fi
     fi
   fi
@@ -92,11 +102,11 @@ while true; do
   done < <(python3 "$ROOT/lan.py" networks 2>/dev/null || true)
 
   if [ "$key_loaded" = true ] && [ -n "$primary_ip" ]; then
-    status "ready" "$primary_ip"
+    status "ready" "$primary_ip" "installed"
   elif [ -z "$primary_ip" ]; then
-    status "waiting_lan"
+    status "waiting_lan" "" "$key_reason"
   else
-    status "awaiting_key" "$primary_ip"
+    status "awaiting_key" "$primary_ip" "$key_reason"
   fi
   sleep 10
 done
