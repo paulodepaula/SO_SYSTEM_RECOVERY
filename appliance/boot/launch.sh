@@ -7,6 +7,14 @@ install -d -m 0700 /run/redeti
 printf '%s\n' "RedeTI: reconhecendo hardware (somente leitura)" > /run/redeti/appliance.log
 /usr/bin/python3 /opt/redeti-appliance/probe.py --output /run/redeti/hardware.json \
   >> /run/redeti/appliance.log 2>&1
+# Ensure both remote services see the same account even if systemd starts
+# their transient units concurrently. Login passwords remain impossible.
+if ! id paulo >/dev/null 2>&1; then
+  useradd --create-home --user-group --shell /usr/bin/bash --password '*' paulo || true
+fi
+if id paulo >/dev/null 2>&1; then
+  usermod --password '*' paulo || true
+fi
 # Remote access is a separate transient systemd service, never a UI dependency.
 # It requires an explicitly provisioned USB VPN auth key to connect.
 if command -v systemd-run >/dev/null 2>&1; then
