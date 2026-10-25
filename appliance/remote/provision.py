@@ -31,29 +31,48 @@ def candidates(disks):
     # Do not guess when multiple USB partitions match.
     return found
 
-def verified_ventoy_mapper(device, dev_root=Path("/dev"), sys_root=Path("/sys")):
-    """Trust VentoyPart only if its *sole* backing block device is our USB part.
+def verified_ventoy_mappers(device, dev_root=Path("/dev"), sys_root=Path("/sys")):
+    """Identify *existing* Ventoy mappings backed solely by this USB partition.
 
-    Never create a mapper, alter block-device flags or infer it from a name alone.
+    Ventoy 1.1.01+ originally exposed /dev/mapper/sdXN while newer releases
+    also use /dev/mapper/VentoyPart. Neither name is trusted on its own.
     """
-    mapper = dev_root / "mapper" / "VentoyPart"
+    src_name = device.rsplit("/", 1)[-1]
     try:
-        resolved = mapper.resolve(strict=True)
-        disk = (dev_root / device.rsplit("/", 1)[-1]).resolve(strict=True)
-        if not re.fullmatch(r"dm-[0-9]+", resolved.name):
-            return None
-        if not stat.S_ISBLK(os.stat(resolved).st_mode):
-            return None
-        slaves = sys_root / "class" / "block" / resolved.name / "slaves"
-        if {item.name for item in slaves.iterdir()} != {disk.name}:
-            return None
-        return str(mapper)
-    except (OSError, ValueError):
-        return None
+        usb = (dev_root / src_name).resolve(strict=True)
+    except OSError:
+        return []
+    found = []
+    for alias in ("VentoyPart", src_name):
+        mapper = dev_root / "mapper" / alias
+        try:
+            resolved = mapper.resolve(strict=True)
+            if not re.fullmatch(r"dm-[0-9]+", resolved.name):
+                continue
+            if not stat.S_ISBLK(os.stat(resolved).st_mode):
+                continue
+            slaves = sys_root / "class" / "block" / resolved.name / "slaves"
+            members = list(slaves.iterdir())
+            if len(members) != 1:
+                continue
+            backing = (dev_root / members[0].name).resolve(strict=True)
+            if backing != usb:
+                continue
+            if str(mapper) not in found:
+                found.append(str(mapper))
+        except (OSError, ValueError):
+            continue
+    return found
+
+
+def verified_ventoy_mapper(device, dev_root=Path("/dev"), sys_root=Path("/sys")):
+    """Backward-compatible single mapper API for older provisioning tests."""
+    mappings = verified_ventoy_mappers(device, dev_root, sys_root)
+    return mappings[0] if mappings else None
 
 
 def sources(disks, dev_root=Path("/dev"), sys_root=Path("/sys")):
-    """Return verified devices in order: original USB and its Ventoy mapper."""
+    """Return approved USB partition then only its verified Ventoy mappings."""
     volumes = candidates(disks)
     if len(volumes) != 1:
         return []
@@ -65,9 +84,7 @@ def sources(disks, dev_root=Path("/dev"), sys_root=Path("/sys")):
     )
     result = [src]
     if matched and (matched.get("label") or "").casefold() == "ventoy":
-        mapper = verified_ventoy_mapper(src, dev_root, sys_root)
-        if mapper:
-            result.append(mapper)
+        result.extend(verified_ventoy_mappers(src, dev_root, sys_root))
     return result
 
 
