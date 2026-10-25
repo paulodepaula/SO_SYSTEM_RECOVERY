@@ -85,3 +85,17 @@ echo "UI exit status: $?"
 ```
 
 Nao ha qualquer necessidade de abrir ou montar disco do cliente. **Nao substituir a ISO v0.5.4 comprovadamente funcional antes de testar a nova**. O aumento de pool e os testes sao correcoes preventivas ate os logs da v0.6.0 identificarem a causa precisa.
+
+## Homologacao visual observada em QEMU (25/10/2026)
+
+Captura enviada pelo operador confirmou o **boot direto da versao v0.6.0** apos corrigir a falha de memoria interna do LVGL. A tela mostrou logo PD, menu lateral, banner, cards de CPU/RAM/firmware/discos, status e acoes; entrada EVDEV indicou mouse e teclado detectados. O QEMU foi iniciado sem disco interno e o estado de rede apareceu como indisponivel, coerente com teste isolado. Isso **nao comprova por si so os cliques**, o SSH ou os modulos de diagnostico ainda incompletos.
+
+Falhas de acabamento visiveis na primeira captura v0.6.0:
+- Hero do notebook ausente em resolucao com conteudo central proximo de 1018 px, causado por breakpoint `mainw>=1050`;
+- Texto VPN cortado no topbar por altura/largura e wrap excessivo;
+- Itens de menu ainda indisponiveis ganharam preenchimento cinza muito destacado;
+- Modulos inferiores requerem rolagem em telas com altura aproximada de 800 px; validar rodinha e teclado.
+
+Correcoes de layout ja foram publicadas em `ui/dashboard.c` (notebook para `mainw>=900`, cards compactos no cabeçalho, estados curtos, estilos neutros para itens inativos), pendentes de screenshot da ISO recompilada. **Nao republicar a captura fornecida pelo usuario sem permissao.**
+
+**Proximo gate:** testes CTest e GitHub CI verdes; depois uma ISO experimental, teste QEMU e verificacao de cursor/clique, notebook, topbar e scroll. Não afirmar que a fidelidade visual total foi atingida.
