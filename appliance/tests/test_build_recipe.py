@@ -59,6 +59,16 @@ class ApplianceBuildSafetyTests(unittest.TestCase):
         self.assertIn("Stale native ELF", iso)
         self.assertIn('git -C "$root" diff --quiet', iso)
 
+    def test_iso_filename_and_manifest_identify_source_revision(self):
+        script=(ROOT/"appliance/build/build-local.sh").read_text()
+        self.assertIn('revision="${current_commit:0:8}"',script)
+        self.assertIn('RedeTI-Recovery-OS-appliance-$revision-$stamp.iso',script)
+        self.assertIn('printf \'source_commit=%s',script)
+        self.assertIn('printf \'iso_sha256=%s',script)
+        self.assertIn('> "$iso.buildinfo"',script)
+        self.assertIn('Source revision: $current_commit',script)
+        self.assertIn('Windows/QEMU copy',script)
+
     def test_boot_logs_native_crash_without_silent_console(self):
         launch = (ROOT / "appliance/boot/launch.sh").read_text()
         self.assertIn("/run/redeti/ui.log", launch)
