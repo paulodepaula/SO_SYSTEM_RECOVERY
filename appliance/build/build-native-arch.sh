@@ -34,6 +34,17 @@ docker run --rm --pull=missing \
     ctest --test-dir /cache/lvgl --output-on-failure
     install -m 0755 /cache/lvgl/redeti-ui /out/redeti-ui
     file /out/redeti-ui
+    install -m 0644 /cache/lvgl/redeti-build-id.txt /out/redeti-ui.buildinfo
+    grep -Fx "source_commit=$REDETI_SOURCE_COMMIT" /out/redeti-ui.buildinfo >/dev/null
+    build_tag="$(sed -n "s/^build_tag=//p" /out/redeti-ui.buildinfo)"
+    [[ "$build_tag" =~ ^b[0-9]{6}-[0-9]{6}$ ]] || {
+      echo "Invalid native build tag" >&2
+      exit 4
+    }
+    strings /out/redeti-ui | grep -Fx "$build_tag" >/dev/null || {
+      echo "Compiled UI does not contain current build tag" >&2
+      exit 4
+    }
     # Verify the revision is actually embedded in the displayed UI.
     source_rev_short="${REDETI_SOURCE_COMMIT:0:8}"
     strings /out/redeti-ui | grep -Fx "$source_rev_short" >/dev/null || {
