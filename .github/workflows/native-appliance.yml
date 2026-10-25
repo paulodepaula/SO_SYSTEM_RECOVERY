@@ -24,7 +24,7 @@ jobs:
       - name: Compile LVGL DRM/KMS executable
         run: |
           /usr/bin/python3 -c 'from PIL import Image'
-          cmake -S appliance/native -B /tmp/redeti-appliance-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPython3_EXECUTABLE=/usr/bin/python3
+          cmake -S appliance/native -B /tmp/redeti-appliance-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPython3_EXECUTABLE=/usr/bin/python3 -DREDETI_SOURCE_COMMIT="$GITHUB_SHA"
           cmake --build /tmp/redeti-appliance-build --parallel 2
           ctest --test-dir /tmp/redeti-appliance-build --output-on-failure
           file /tmp/redeti-appliance-build/redeti-ui
