@@ -39,6 +39,8 @@ class RemoteBootstrapTests(unittest.TestCase):
         self.assertIn("passwd -l redeti", code)
         self.assertIn("systemctl mask --runtime --now sshd.service", code)
         self.assertIn("--ssh --hostname", code)
+        self.assertIn("--advertise-tags=tag:redeti-recovery", code)
+        self.assertIn("sshd.socket", code)
         self.assertIn("--state=mem:", code)
         self.assertIn("--auth-key=\"file:", code)
         self.assertNotIn("PasswordAuthentication yes", code)
