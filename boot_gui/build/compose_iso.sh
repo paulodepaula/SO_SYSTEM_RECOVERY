@@ -17,6 +17,12 @@ recipe="$temp/recipe"
 mkdir -p "$recipe/iso_add/sysrescue.d" "$recipe/build_into_srm/opt/redeti-recovery"
 cp "$root/boot_gui/recipe/iso_add/sysrescue.d/700-redeti.yaml" "$recipe/iso_add/sysrescue.d/"
 cp -R "$root/boot_gui/app" "$root/boot_gui/ui" "$root/boot_gui/build" "$recipe/build_into_srm/opt/redeti-recovery/"
+# Install and enable a dedicated service in the temporary SRM filesystem.
+# Never operate on the build host's systemd directory.
+svc_root="$recipe/build_into_srm/etc/systemd/system"
+mkdir -p "$svc_root/multi-user.target.wants"
+cp "$root/boot_gui/systemd/redeti-cockpit.service" "$svc_root/redeti-cockpit.service"
+ln -s ../redeti-cockpit.service "$svc_root/multi-user.target.wants/redeti-cockpit.service"
 if [ -f "$root/assets/logo-paulo.svg" ]; then
   mkdir -p "$recipe/build_into_srm/opt/redeti-recovery/ui/assets"
   cp "$root/assets/logo-paulo.svg" "$recipe/build_into_srm/opt/redeti-recovery/ui/assets/"
