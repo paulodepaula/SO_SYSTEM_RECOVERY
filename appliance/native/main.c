@@ -120,7 +120,7 @@ static void remote_status_update(lv_timer_t *timer) {
     const char *s = field_text(state, "state");
     if (strcmp(s, "connected") == 0) {
         char line[160];
-        snprintf(line, sizeof(line), "VPN: conectada  |  SSH: redeti@%s",
+        snprintf(line, sizeof(line), "VPN: conectada  |  SSH: paulo@%s",
                  field_text(state, "vpn_ip"));
         safe_label_text(widget, line);
     } else if (strcmp(s, "awaiting_provision") == 0) {
@@ -130,6 +130,29 @@ static void remote_status_update(lv_timer_t *timer) {
     } else {
         safe_label_text(widget, "VPN: indisponivel  |  SSH: inativo");
     }
+    json_object_put(state);
+}
+/* LAN OpenSSH status is independent of the Tailscale enrollment status. */
+static void lan_status_update(lv_timer_t *timer) {
+    lv_obj_t *widget = (lv_obj_t *)lv_timer_get_user_data(timer);
+    json_object *state = json_object_from_file("/run/redeti/lan-ssh-status.json");
+    if (!state) {
+        safe_label_text(widget, "SSH LAN: iniciando | usuario: paulo");
+        return;
+    }
+    const char *s = field_text(state, "state");
+    const char *ip = field_text(state, "lan_ip");
+    char line[180];
+    if (strcmp(s, "ready") == 0) {
+        snprintf(line, sizeof line, "SSH LAN: paulo@%s | porta 22 | chave publica", ip);
+    } else if (strcmp(s, "awaiting_key") == 0) {
+        snprintf(line, sizeof line, "SSH LAN: %s | aguardando chave publica", ip);
+    } else if (strcmp(s, "waiting_lan") == 0) {
+        snprintf(line, sizeof line, "SSH LAN: aguardando rede | usuario: paulo");
+    } else {
+        snprintf(line, sizeof line, "SSH LAN: indisponivel | usuario: paulo");
+    }
+    safe_label_text(widget, line);
     json_object_put(state);
 }
 static void build_ui(lv_display_t *display, json_object *hardware) {
@@ -168,7 +191,7 @@ static void build_ui(lv_display_t *display, json_object *hardware) {
     lv_obj_set_style_text_color(headline, lv_color_hex(WHITE), 0);
     lv_obj_set_style_text_font(headline, &lv_font_montserrat_28, 0);
     label(name, "DIAGNOSTICO AUTOMATICO  |  SOMENTE LEITURA", CYAN);
-    label(root, "v0.5.2  |  Diagnóstico automático  |  TEXTO SEGURO", CYAN);
+    label(root, "v0.5.3  |  Diagnóstico automático  |  SSH LAN + VPN", CYAN);
     lv_obj_t *remote_status = lv_label_create(root);
     lv_obj_set_width(remote_status, lv_pct(100));
     lv_obj_set_style_text_color(remote_status, lv_color_hex(CYAN), 0);
@@ -176,6 +199,13 @@ static void build_ui(lv_display_t *display, json_object *hardware) {
     safe_label_text(remote_status, "VPN: aguardando  |  SSH: inativo");
     lv_timer_t *remote_timer = lv_timer_create(remote_status_update, 2500, remote_status);
     remote_status_update(remote_timer);
+    lv_obj_t *lan_status = lv_label_create(root);
+    lv_obj_set_width(lan_status, lv_pct(100));
+    lv_obj_set_style_text_color(lan_status, lv_color_hex(CYAN), 0);
+    lv_obj_set_style_text_font(lan_status, redeti_text_font, 0);
+    safe_label_text(lan_status, "SSH LAN: iniciando | usuario: paulo");
+    lv_timer_t *lan_timer = lv_timer_create(lan_status_update, 2500, lan_status);
+    lan_status_update(lan_timer);
     lv_obj_t *summary = lv_obj_create(root);
     panel(summary, PANEL);
     lv_obj_set_width(summary, lv_pct(100));
