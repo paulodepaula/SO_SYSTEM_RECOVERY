@@ -22,4 +22,17 @@ cp "$root/appliance/boot/900-redeti-appliance.yaml" "$recipe/iso_add/sysrescue.d
 cp "$root/appliance/probe.py" "$recipe/build_into_srm/opt/redeti-appliance/probe.py"
 cp "$root/appliance/boot/launch.sh" "$recipe/build_into_srm/opt/redeti-appliance/launch.sh"
 install -m 0755 "$binary" "$recipe/build_into_srm/opt/redeti-appliance/bin/redeti-ui"
+# Ship static Tailscale binaries and remote scripts; NEVER bundle auth keys.
+tsout="${REDETI_APPLIANCE_WORK:-$HOME/RecoveryOS/native-build}/out"
+for name in tailscale tailscaled; do
+  [ -s "$tsout/$name" ] && [ -f "$tsout/$name.sha256" ] || { echo "Missing Tailscale binary: $name" >&2; exit 4; }
+  (cd "$tsout" && sha256sum -c "$name.sha256" >/dev/null)
+  install -m 0755 "$tsout/$name" "$recipe/build_into_srm/opt/redeti-appliance/bin/$name"
+done
+mkdir -p "$recipe/build_into_srm/opt/redeti-appliance/remote"
+cp "$root/appliance/remote/provision.py" "$recipe/build_into_srm/opt/redeti-appliance/remote/provision.py"
+install -m 0755 "$root/appliance/remote/start.sh" "$recipe/build_into_srm/opt/redeti-appliance/remote/start.sh"
+# Prevent stock OpenSSH from listening on LAN even if enabled in a base ISO.
+mkdir -p "$recipe/build_into_srm/etc/systemd/system"
+ln -s /dev/null "$recipe/build_into_srm/etc/systemd/system/sshd.service"
 sysrescue-customize --auto --source="$source_iso" --dest="$output" --recipe-dir="$recipe"
