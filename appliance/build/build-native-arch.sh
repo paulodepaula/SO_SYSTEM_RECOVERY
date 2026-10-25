@@ -18,7 +18,8 @@ docker run --rm --pull=missing \
   archlinux:base-devel \
   bash -euc '
     pacman -Sy --noconfirm --needed cmake ninja pkgconf libdrm json-c git python python-pillow
-    cmake -S /project/appliance/native -B /cache/lvgl -G Ninja -DCMAKE_BUILD_TYPE=Release
+    /usr/bin/python3 -c "from PIL import Image"
+    cmake -S /project/appliance/native -B /cache/lvgl -G Ninja -DCMAKE_BUILD_TYPE=Release -DPython3_EXECUTABLE=/usr/bin/python3
     cmake --build /cache/lvgl --parallel 2
     install -m 0755 /cache/lvgl/redeti-ui /out/redeti-ui
     file /out/redeti-ui
