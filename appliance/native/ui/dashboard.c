@@ -468,7 +468,7 @@ static void data_card(lv_obj_t *row,int width,const char *glyph,uint32_t tint,
     lv_obj_set_flex_grow(sub,1);
     lv_obj_set_height(sub,42);
     txt(sub,name,14,C_MUTED);
-    lv_obj_t *v=txt(card,val,20,C_WHITE);
+    lv_obj_t *v=txt(card,val,16,C_WHITE);
     lv_obj_set_width(v,lv_pct(100));
     if(foot)txt(card,foot,14,C_MUTED);
 }
@@ -539,7 +539,7 @@ static void module_item(lv_obj_t *parent,int width,const char *glyph,
     lv_obj_set_flex_grow(labels,1);
     lv_obj_set_height(labels,51);
     flex(labels,LV_FLEX_FLOW_COLUMN,4);
-    txt(labels,title,16,available?C_WHITE:C_MUTED);
+    txt(labels,title,14,available?C_WHITE:C_MUTED);
     txt(labels,note,14,C_MUTED);
 }
 static void inventory(lv_obj_t *content,json_object *hw)
@@ -578,7 +578,10 @@ void redeti_dashboard_create(lv_display_t *display,json_object *hw)
     if(sw<640||sh<480){fprintf(stderr,"RedeTI: mode too small for dashboard\n");return;}
     bool compact=sw<1200, legacy=sw<900;
     int sb=legacy?0:(compact?72:(sw>=1500?239:220));
-    int mainw=sw-sb-(legacy?0:18)-24;
+    /* Reserve a dedicated right-hand scroll gutter; cards never sit below the scrollbar. */
+    int viewportw=sw-sb-(legacy?0:18)-24;
+    int scroll_gutter=20;
+    int mainw=viewportw-scroll_gutter;
     int cols=mainw>=860?4:2;
     int cardw=(mainw-12*(cols-1))/cols;
     s_group=lv_group_create();
@@ -600,7 +603,8 @@ void redeti_dashboard_create(lv_display_t *display,json_object *hw)
         lv_obj_set_size(side,sb,sh-116);
     }
     lv_obj_t *content=box(body,C_BG,0,0);
-    lv_obj_set_size(content,mainw,sh-116);
+    lv_obj_set_size(content,viewportw,sh-116);
+    /* The outer 20px remain scrollbar-only, outside all dashboard cards. */
     lv_obj_set_style_bg_opa(content,LV_OPA_TRANSP,0);
     lv_obj_set_scroll_dir(content,LV_DIR_VER);
     lv_obj_set_scrollbar_mode(content,LV_SCROLLBAR_MODE_AUTO);
@@ -651,9 +655,10 @@ void redeti_dashboard_create(lv_display_t *display,json_object *hw)
     lv_obj_set_width(quick,half);
     lv_obj_t *actions=box(quick,C_PANEL,0,0);
     lv_obj_set_style_bg_opa(actions,LV_OPA_TRANSP,0);
-    lv_obj_set_size(actions,lv_pct(100),164);
+    lv_obj_set_size(actions,lv_pct(100),174);
     flex(actions,LV_FLEX_FLOW_ROW_WRAP,8);
-    int aq=(half-24-16)/3;
+    /* Reference layout: two equal columns x three aligned rows. */
+    int aq=(half-24-8)/2;
     button(actions,"Inventario",LV_SYMBOL_LIST,aq,clicked_details);
     button(actions,"Hardware",LV_SYMBOL_IMAGE,aq,clicked_details);
     button(actions,"Discos",LV_SYMBOL_DRIVE,aq,clicked_details);
