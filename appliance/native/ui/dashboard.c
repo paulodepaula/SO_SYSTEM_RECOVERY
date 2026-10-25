@@ -247,6 +247,36 @@ static lv_obj_t *button(lv_obj_t *parent,const char *caption,const char *glyph,
     }
     return b;
 }
+/* Six equal action cards, 3 columns x 2 rows at desktop widths.
+ * Reuses the existing callbacks, no new diagnostics or repair operations. */
+static lv_obj_t *quick_action_tile(lv_obj_t *parent,const char *caption,
+                                   const char *glyph,int width,lv_event_cb_t cb)
+{
+    bool available=cb!=NULL;
+    lv_obj_t *tile=lv_button_create(parent);
+    lv_obj_set_size(tile,width,69);
+    style_button(tile,available?0x0e3456:0x0b2339);
+    redeti_theme_quick_tile(tile,available);
+    lv_obj_set_style_pad_left(tile,10,0);
+    lv_obj_set_style_pad_right(tile,8,0);
+    lv_obj_set_style_pad_top(tile,7,0);
+    lv_obj_set_style_pad_bottom(tile,7,0);
+    flex(tile,LV_FLEX_FLOW_ROW,8);
+    lv_obj_set_flex_align(tile,LV_FLEX_ALIGN_START,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_CENTER);
+    symbol(tile,glyph,available?C_CYAN:C_MUTED,20);
+    lv_obj_t *label=txt(tile,caption,14,available?C_WHITE:C_MUTED);
+    lv_obj_set_width(label,width-10-8-24-8);
+    lv_label_set_long_mode(label,LV_LABEL_LONG_WRAP);
+    lv_obj_set_style_text_line_space(label,2,0);
+    if(available) {
+        lv_obj_add_event_cb(tile,cb,LV_EVENT_CLICKED,NULL);
+        if(s_group)lv_group_add_obj(s_group,tile);
+    } else {
+        lv_obj_add_state(tile,LV_STATE_DISABLED);
+    }
+    return tile;
+}
+
 static lv_obj_t *status_chip(lv_obj_t *parent,const char *glyph,const char *caption,lv_obj_t **result,int width)
 {
     lv_obj_t *chip=box(parent,0x061b31,10,1);
@@ -387,7 +417,7 @@ static void nav_item(lv_obj_t *side,const char *name,const char *glyph,
     flex(b,LV_FLEX_FLOW_ROW,12);
     lv_obj_set_flex_align(b,LV_FLEX_ALIGN_START,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_CENTER);
     symbol(b,glyph,active?C_CYAN:C_MUTED,20);
-    if(!compact)txt(b,name,16,active?C_WHITE:C_MUTED);
+    if(!compact)txt(b,name,14,active?C_WHITE:C_MUTED);
     if(cb) {
         lv_obj_add_event_cb(b,cb,LV_EVENT_CLICKED,NULL);
         if(s_group)lv_group_add_obj(s_group,b);
@@ -433,7 +463,7 @@ static void hero(lv_obj_t *content,int width,bool notebook)
     lv_obj_set_size(left,left_width,205);
     flex(left,LV_FLEX_FLOW_COLUMN,9);
     txt(left,"Diagnostico Automatico",28,C_WHITE);
-    txt(left,"Verificacao rapida de hardware, disco, sistema e rede.",16,C_MUTED);
+    txt(left,"Verificacao rapida de hardware, disco, sistema e rede.",14,C_MUTED);
     lv_obj_t *reasons=box(left,C_HERO,0,0);
     lv_obj_set_style_bg_opa(reasons,LV_OPA_TRANSP,0);
     lv_obj_set_size(reasons,lv_pct(100),47);
@@ -604,10 +634,11 @@ void redeti_dashboard_create(lv_display_t *display,json_object *hw)
     }
     lv_obj_t *content=box(body,C_BG,0,0);
     lv_obj_set_size(content,viewportw,sh-116);
-    /* The outer 20px remain scrollbar-only, outside all dashboard cards. */
+    /* Percent-width children now use only mainw; scrollbar owns its gutter. */
     lv_obj_set_style_bg_opa(content,LV_OPA_TRANSP,0);
+    lv_obj_set_style_pad_right(content,scroll_gutter,0);
     lv_obj_set_scroll_dir(content,LV_DIR_VER);
-    lv_obj_set_scrollbar_mode(content,LV_SCROLLBAR_MODE_AUTO);
+    redeti_theme_scrollbar(content);
     flex(content,LV_FLEX_FLOW_COLUMN,12);
     s_overview=content;
     hero(content,mainw,mainw>=900);
@@ -630,7 +661,7 @@ void redeti_dashboard_create(lv_display_t *display,json_object *hw)
 
     lv_obj_t *mid=box(content,C_BG,0,0);
     lv_obj_set_style_bg_opa(mid,LV_OPA_TRANSP,0);
-    const int panel_height=238;
+    const int panel_height=222;
     bool stack_mid=mainw<900;
     lv_obj_set_size(mid,lv_pct(100),stack_mid?panel_height*2+12:panel_height);
     flex(mid,stack_mid?LV_FLEX_FLOW_COLUMN:LV_FLEX_FLOW_ROW,12);
@@ -655,16 +686,16 @@ void redeti_dashboard_create(lv_display_t *display,json_object *hw)
     lv_obj_set_width(quick,half);
     lv_obj_t *actions=box(quick,C_PANEL,0,0);
     lv_obj_set_style_bg_opa(actions,LV_OPA_TRANSP,0);
-    lv_obj_set_size(actions,lv_pct(100),174);
+    lv_obj_set_size(actions,lv_pct(100),160);
     flex(actions,LV_FLEX_FLOW_ROW_WRAP,8);
-    /* Reference layout: two equal columns x three aligned rows. */
-    int aq=(half-24-8)/2;
-    button(actions,"Inventario",LV_SYMBOL_LIST,aq,clicked_details);
-    button(actions,"Hardware",LV_SYMBOL_IMAGE,aq,clicked_details);
-    button(actions,"Discos",LV_SYMBOL_DRIVE,aq,clicked_details);
-    button(actions,"Reparar",LV_SYMBOL_SETTINGS,aq,NULL);
-    button(actions,"Drivers",LV_SYMBOL_DOWNLOAD,aq,NULL);
-    button(actions,"Relatorio",LV_SYMBOL_FILE,aq,NULL);
+    /* Reference layout: three aligned columns x two rows. */
+    int aq=(half-24-16)/3;
+    quick_action_tile(actions,"Inventario",LV_SYMBOL_LIST,aq,clicked_details);
+    quick_action_tile(actions,"Hardware",LV_SYMBOL_IMAGE,aq,clicked_details);
+    quick_action_tile(actions,"Discos",LV_SYMBOL_DRIVE,aq,clicked_details);
+    quick_action_tile(actions,"Reparo do Windows",LV_SYMBOL_SETTINGS,aq,NULL);
+    quick_action_tile(actions,"Backup de Drivers",LV_SYMBOL_DOWNLOAD,aq,NULL);
+    quick_action_tile(actions,"Exportar Relatorio",LV_SYMBOL_FILE,aq,NULL);
 
     lv_obj_t *modules=section(content,"Modulos de Diagnostico",210);
     lv_obj_set_width(modules,lv_pct(100));
