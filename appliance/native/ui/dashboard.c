@@ -466,7 +466,8 @@ static void status_tile(lv_obj_t *grid,int tile_width,const char *glyph,
     txt(heading,title,14,C_MUTED);
 
     /* Keep 14px minimum; values wrap instead of colliding with labels. */
-    *status=txt(tile,"Aguardando",14,C_WHITE);
+    const int value_font_size=tile_width>=220?16:14;
+    *status=txt(tile,"Aguardando",value_font_size,C_WHITE);
     lv_obj_set_width(*status,lv_pct(100));
     lv_label_set_long_mode(*status,LV_LABEL_LONG_WRAP);
     lv_obj_set_style_text_line_space(*status,1,0);
