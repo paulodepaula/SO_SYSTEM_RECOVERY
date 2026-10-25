@@ -1,0 +1,27 @@
+[Unit]
+Description=RedeTI Recovery OS diagnostic dashboard (read-only)
+Documentation=https://github.com/paulodepaula/SO_SYSTEM_RECOVERY
+After=local-fs.target
+ConditionPathExists=/opt/redeti-recovery/app/server.py
+
+[Service]
+Type=exec
+User=root
+Group=root
+WorkingDirectory=/opt/redeti-recovery
+RuntimeDirectory=redeti
+RuntimeDirectoryMode=0700
+ExecStart=/usr/bin/python3 -u /opt/redeti-recovery/app/server.py --live
+Restart=on-failure
+RestartSec=2
+StartLimitIntervalSec=30
+StartLimitBurst=5
+StandardOutput=append:/run/redeti/gui.log
+StandardError=append:/run/redeti/gui.log
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
