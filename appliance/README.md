@@ -50,3 +50,8 @@ Ainda não existe uma ISO final `appliance` neste repositório. A antiga ISO da 
 3. Integrar monograma PD fiel como asset renderizável pelo LVGL e teclado/mouse.
 4. Validar reconhecimento real de disco no cabeçalho, sem confundir `candidato NTFS` com Windows confirmado.
 5. Só depois gerar e homologar ISO Appliance v0.5 no Ventoy.
+
+
+## Retencao de ISOs no Hermes
+
+O projeto adotou politica de **apenas uma ISO RedeTI gerada e verificada** na pasta de saida, alem do cache fixo da ISO-base SystemRescue. O script compartilhado [scripts/prune-recovery-isos.sh](../scripts/prune-recovery-isos.sh) suporta --dry-run e --apply, validando SHA-256 antes de remover arquivos antigos. O compilador legado [boot_gui/build/build-local.sh](../boot_gui/build/build-local.sh) ja chama a limpeza automaticamente apos o build bem-sucedido. **Quando o compilador do Appliance for implementado, devera chamar o mesmo script** apos a validacao da nova ISO. Ate la nao existe um build de ISO Appliance ativo para aplicar esta politica.
