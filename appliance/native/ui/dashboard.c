@@ -80,6 +80,7 @@ static void bg(lv_obj_t *obj, uint32_t color, int radius, int border)
     lv_obj_set_style_border_color(obj,lv_color_hex(C_BORDER),0);
     lv_obj_set_style_pad_all(obj,0,0);
     lv_obj_set_style_shadow_width(obj,0,0);
+    lv_obj_set_scrollbar_mode(obj,LV_SCROLLBAR_MODE_OFF);
 }
 static lv_obj_t *box(lv_obj_t *parent,uint32_t color,int radius,int border)
 {
@@ -152,7 +153,7 @@ static void clicked_details(lv_event_t *e)
 static void clicked_home(lv_event_t *e)
 {
     (void)e;
-    if(s_overview)lv_obj_scroll_to_view(s_overview,LV_ANIM_ON);
+    if(s_overview)lv_obj_scroll_to_y(s_overview,0,LV_ANIM_ON);
 }
 static void clicked_network(lv_event_t *e)
 {
