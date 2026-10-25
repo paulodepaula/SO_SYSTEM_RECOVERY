@@ -20,6 +20,7 @@ echo "Compiling LVGL v9.6 direct DRM/KMS (Arch container; no ISO)."
 docker run --rm --pull=missing \
   --cpus 2 --memory 4g --pids-limit 256 \
   --network bridge \
+  -e REDETI_SOURCE_COMMIT="$source_head" \
   -v "$repo:/project:ro" \
   -v "$work/cache:/cache" \
   -v "$work/out:/out" \
@@ -28,11 +29,17 @@ docker run --rm --pull=missing \
   bash -euc '
     pacman -Sy --noconfirm --needed cmake ninja pkgconf libdrm libevdev json-c git python python-pillow nodejs npm ttf-dejavu
     /usr/bin/python3 -c "from PIL import Image"
-    cmake -S /project/appliance/native -B /cache/lvgl -G Ninja -DCMAKE_BUILD_TYPE=Release -DPython3_EXECUTABLE=/usr/bin/python3
+    cmake -S /project/appliance/native -B /cache/lvgl -G Ninja -DCMAKE_BUILD_TYPE=Release -DPython3_EXECUTABLE=/usr/bin/python3 -DREDETI_SOURCE_COMMIT="$REDETI_SOURCE_COMMIT"
     cmake --build /cache/lvgl --parallel 2
     ctest --test-dir /cache/lvgl --output-on-failure
     install -m 0755 /cache/lvgl/redeti-ui /out/redeti-ui
     file /out/redeti-ui
+    # Verify the revision is actually embedded in the displayed UI.
+    source_rev_short="${REDETI_SOURCE_COMMIT:0:8}"
+    strings /out/redeti-ui | grep -Fxq "$source_rev_short" || {
+      echo "Compiled UI is missing its source revision" >&2
+      exit 4
+    }
     ldd /out/redeti-ui
     (cd /out && sha256sum redeti-ui > redeti-ui.sha256)
   '
