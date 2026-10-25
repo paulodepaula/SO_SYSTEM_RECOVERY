@@ -15,6 +15,7 @@ source_head="$(git -C "$repo" rev-parse --verify HEAD)"
 work="${REDETI_APPLIANCE_WORK:-$HOME/RecoveryOS/native-build}"
 mkdir -p "$work/cache" "$work/out"
 work="$(realpath -e -- "$work")"
+rm -f -- "$work/out/redeti-ui.commit"
 echo "Compiling LVGL v9.6 direct DRM/KMS (Arch container; no ISO)."
 docker run --rm --pull=missing \
   --cpus 2 --memory 4g --pids-limit 256 \
