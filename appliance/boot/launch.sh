@@ -10,6 +10,10 @@ printf '%s\n' "RedeTI: reconhecendo hardware (somente leitura)" > /run/redeti/ap
 # Remote access is a separate transient systemd service, never a UI dependency.
 # It requires an explicitly provisioned USB VPN auth key to connect.
 if command -v systemd-run >/dev/null 2>&1; then
+  # LAN SSH is independent from VPN enrollment and starts at every boot.
+  systemd-run --quiet --collect --unit=redeti-lan-ssh \
+    /usr/bin/bash /opt/redeti-appliance/remote/lan-start.sh \
+    >> /run/redeti/appliance.log 2>&1 || true
   systemd-run --quiet --collect --unit=redeti-remote \
     /usr/bin/bash /opt/redeti-appliance/remote/start.sh \
     >> /run/redeti/appliance.log 2>&1 || true
