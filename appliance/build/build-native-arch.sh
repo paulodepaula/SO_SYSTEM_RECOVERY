@@ -25,7 +25,7 @@ docker run --rm --pull=missing \
     install -m 0755 /cache/lvgl/redeti-ui /out/redeti-ui
     file /out/redeti-ui
     ldd /out/redeti-ui
-    sha256sum /out/redeti-ui > /out/redeti-ui.sha256
+    (cd /out && sha256sum redeti-ui > redeti-ui.sha256)
   '
 echo "Executable: $work/out/redeti-ui"
 echo "WARNING: ABI compatibility must still be verified in SystemRescue/QEMU."
