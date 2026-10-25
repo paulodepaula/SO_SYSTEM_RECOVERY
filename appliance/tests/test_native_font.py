@@ -9,22 +9,22 @@ class NativeFontTests(unittest.TestCase):
         cmake = (ROOT / "appliance/native/CMakeLists.txt").read_text()
         self.assertNotIn("lv_font_conv@", cmake)
         self.assertNotIn("PTBR_FONT_SOURCE", cmake)
-        self.assertIn('add_executable(redeti-ui main.c input.c "${LOGO_SOURCE}")', cmake)
+        self.assertIn('add_executable(redeti-ui main.c input.c ui/dashboard.c "${LOGO_SOURCE}")', cmake)
 
     def test_all_ui_labels_use_proven_fallback(self):
-        main = (ROOT / "appliance/native/main.c").read_text()
-        self.assertIn("redeti_text_font = &lv_font_montserrat_16", main)
-        self.assertIn("safe_label_text(value, txt)", main)
-        self.assertIn("lv_obj_set_style_text_font(remote_status, redeti_text_font", main)
+        main = (ROOT / "appliance/native/ui/dashboard.c").read_text()
+        self.assertIn("&lv_font_montserrat_16", main)
+        self.assertIn("set_text(o,value)", main)
+        self.assertIn("lv_obj_set_style_text_font(o,font", main)
         self.assertNotIn("&redeti_font_16", main)
-        self.assertIn("v0.5.4", main)
+        self.assertIn("v0.6.0", main)
 
     def test_pt_br_data_is_transliterated_without_modifying_inventory(self):
-        main = (ROOT / "appliance/native/main.c").read_text()
-        self.assertIn("static void safe_label_text(", main)
+        main = (ROOT / "appliance/native/ui/dashboard.c").read_text()
+        self.assertIn("static void ascii(", main)
         self.assertIn("0xc3", main)
-        self.assertIn("lv_label_set_text(widget, dst)", main)
-        self.assertIn('field_text(field_json(hardware, "target"), "message")', main)
+        self.assertIn("lv_label_set_text(label,buf)", main)
+        self.assertIn('str(value(hw,"target"),"message")', main)
 
 if __name__ == "__main__":
     unittest.main()
