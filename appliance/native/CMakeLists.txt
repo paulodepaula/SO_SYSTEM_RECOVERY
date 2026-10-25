@@ -17,19 +17,30 @@ set(LV_BUILD_DEMOS OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(lvgl GIT_REPOSITORY https://github.com/lvgl/lvgl.git GIT_TAG "${LVGL_COMMIT}" GIT_SHALLOW FALSE)
 FetchContent_MakeAvailable(lvgl)
 
-# Every native binary carries the commit used to configure the build.
-# The Hermes builder reconfigures CMake on every run and checks the resulting
-# ELF against the full commit before assembling an ISO.
-execute_process(
-  COMMAND git rev-parse --short=8 HEAD
-  WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/../.."
-  OUTPUT_VARIABLE REDETI_BUILD_REV
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-  ERROR_QUIET
-)
-if(NOT REDETI_BUILD_REV MATCHES "^[0-9a-fA-F]+$")
-  set(REDETI_BUILD_REV "unknown")
+# Hermes supplies the trusted host Git SHA explicitly, because a read-only
+# bind mount may fail git safe.directory checks inside the Arch container.
+# CI supplies GITHUB_SHA. Never ship an ambiguous 'unknown' revision.
+if(DEFINED REDETI_SOURCE_COMMIT AND NOT REDETI_SOURCE_COMMIT STREQUAL "")
+  set(REDETI_SOURCE_REV "${REDETI_SOURCE_COMMIT}")
+else()
+  execute_process(
+    COMMAND git rev-parse HEAD
+    WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/../.."
+    OUTPUT_VARIABLE REDETI_SOURCE_REV
+    RESULT_VARIABLE REDETI_GIT_STATUS
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  if(NOT REDETI_GIT_STATUS EQUAL 0)
+    message(FATAL_ERROR "Unable to resolve recovery UI source commit")
+  endif()
 endif()
+string(LENGTH "${REDETI_SOURCE_REV}" REDETI_SOURCE_REV_LENGTH)
+if(NOT REDETI_SOURCE_REV MATCHES "^[0-9a-fA-F]+$" OR
+   NOT REDETI_SOURCE_REV_LENGTH EQUAL 40)
+  message(FATAL_ERROR "Recovery UI source revision must be a complete 40-character Git SHA")
+endif()
+string(SUBSTRING "${REDETI_SOURCE_REV}" 0 8 REDETI_BUILD_REV)
+message(STATUS "RedeTI Recovery OS source revision: ${REDETI_SOURCE_REV}")
 
 set(LOGO_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/logo_pd.c")
 add_custom_command(
