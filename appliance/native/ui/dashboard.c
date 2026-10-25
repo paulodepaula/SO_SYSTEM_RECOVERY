@@ -46,6 +46,10 @@ static lv_obj_t *s_input_detail;
 static lv_obj_t *s_input_dot;
 static lv_obj_t *s_details;
 static lv_obj_t *s_overview;
+static lv_obj_t *s_ssh_diagnostics_panel;
+static lv_obj_t *s_ssh_diag_state;
+static lv_obj_t *s_ssh_diag_reason;
+static lv_obj_t *s_ssh_diag_fingerprint;
 
 static void ascii(char *dst, size_t capacity, const char *source)
 {
@@ -209,8 +213,9 @@ static void clicked_home(lv_event_t *e)
 static void clicked_network(lv_event_t *e)
 {
     (void)e;
-    set_notice("Rede/SSH: verifique o estado real no topo e no painel de sistema.");
-    if(s_status_lan)lv_obj_scroll_to_view(s_status_lan,LV_ANIM_ON);
+    set_notice("Rede/SSH: diagnostico seguro disponivel abaixo do inventario.");
+    if(s_ssh_diagnostics_panel)lv_obj_scroll_to_view(s_ssh_diagnostics_panel,LV_ANIM_ON);
+    else if(s_status_lan)lv_obj_scroll_to_view(s_status_lan,LV_ANIM_ON);
 }
 static void style_button(lv_obj_t *b,uint32_t base)
 {
@@ -295,6 +300,32 @@ static lv_obj_t *status_chip(lv_obj_t *parent,const char *glyph,const char *capt
     lv_obj_set_width(*result,lv_pct(100));
     return chip;
 }
+/* Read only the PUBLIC server fingerprint from tmpfs, never host private keys. */
+static const char *ssh_key_reason(const char *token)
+{
+    if(strcmp(token,"installed")==0)return "Chave Ed25519 carregada do pendrive";
+    if(strcmp(token,"waiting_usb")==0)return "USB nao encontrado: Ventoy/REDETI_CFG em FAT32/exFAT";
+    if(strcmp(token,"usb_mount_failed")==0)return "Particao USB detectada, mas leitura falhou";
+    if(strcmp(token,"key_file_missing")==0)return "Falta REDETI/authorized_keys na particao USB";
+    if(strcmp(token,"invalid_public_key")==0)return "Arquivo invalido: exige chave publica ssh-ed25519";
+    return "Aguardando provisionamento por pendrive";
+}
+static void read_ssh_public_fingerprint(char *out,size_t cap)
+{
+    if(cap==0)return;
+    snprintf(out,cap,"Identidade SSH: aguardando chave de servidor");
+    FILE *in=fopen("/run/redeti/ssh/host_fingerprint","r");
+    if(!in)return;
+    char line[256];
+    if(fgets(line,sizeof line,in)) {
+        const char *start=strstr(line,"SHA256:");
+        if(start) {
+            size_t n=strcspn(start," \t\r\n");
+            if(n>7 && n<90)snprintf(out,cap,"Identidade SSH: %.*s",(int)n,start);
+        }
+    }
+    fclose(in);
+}
 /* A coloured dot signals a measured state, never a mocked connection. */
 static void status_indicator(lv_obj_t *dot,uint32_t color)
 {
@@ -338,6 +369,18 @@ static void update_connections(lv_timer_t *timer)
     if(s_status_vpn_detail)set_text(s_status_vpn_detail,vpn_ready?str(vpn,"vpn_ip"):"-");
     status_indicator(s_status_vpn_dot,vpn_ready?C_MINT:
                      vpn_connecting?C_AMBER:0x7894ad);
+    if(s_ssh_diag_state) {
+        char summary[180];
+        snprintf(summary,sizeof summary,"LAN: %s | SSH: %s | usuario: paulo",
+                 have_lan?ip:"indisponivel",lan_state);
+        set_text(s_ssh_diag_state,summary);
+    }
+    if(s_ssh_diag_reason)set_text(s_ssh_diag_reason,ssh_key_reason(str(lan,"key_reason")));
+    if(s_ssh_diag_fingerprint) {
+        char fingerprint[160];
+        read_ssh_public_fingerprint(fingerprint,sizeof fingerprint);
+        set_text(s_ssh_diag_fingerprint,fingerprint);
+    }
     if(lan)json_object_put(lan);
     if(vpn)json_object_put(vpn);
 }
@@ -716,6 +759,16 @@ void redeti_dashboard_create(lv_display_t *display,json_object *hw)
     module_item(modulegrid,mw,LV_SYMBOL_DIRECTORY,"Registro e drivers","Em desenvolvimento",false);
     module_item(modulegrid,mw,LV_SYMBOL_SAVE,"Relatorio tecnico","Em desenvolvimento",false);
     inventory(content,hw);
+
+    /* Local SSH diagnosis without unlocking a shell or weakening auth. */
+    s_ssh_diagnostics_panel=section(content,"Rede | Diagnostico SSH",166);
+    lv_obj_set_width(s_ssh_diagnostics_panel,lv_pct(100));
+    s_ssh_diag_state=txt(s_ssh_diagnostics_panel,"Verificando SSH...",14,C_WHITE);
+    s_ssh_diag_reason=txt(s_ssh_diagnostics_panel,"Verificando pendrive...",14,C_AMBER);
+    s_ssh_diag_fingerprint=txt(s_ssh_diagnostics_panel,
+                               "Identidade SSH: aguardando",14,C_CYAN);
+    txt(s_ssh_diagnostics_panel,
+        "Somente leitura | chave privada nunca e exibida | confira o SHA256 no Windows",14,C_MUTED);
 
     s_notice=txt(content,"Somente leitura | Windows nao confirmado apenas por NTFS. Nenhum reparo foi executado.",14,C_MUTED);
     lv_obj_set_width(s_notice,lv_pct(100));
