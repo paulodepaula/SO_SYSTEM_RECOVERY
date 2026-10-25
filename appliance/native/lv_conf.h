@@ -1,6 +1,10 @@
 #ifndef REDETI_LV_CONF_H
 #define REDETI_LV_CONF_H
 /* Dedicated appliance display: DRM dumb buffers; no window server. */
+/* Visual dashboard creates hundreds of widgets; LVGL's 64 KiB default
+ * internal heap is insufficient and may abort GUI before drawing a frame.
+ * Keep a bounded 4 MiB allocator, independent from DRM framebuffer memory. */
+#define LV_MEM_SIZE (4 * 1024 * 1024)
 #define LV_COLOR_DEPTH 32
 #define LV_COLOR_FORMAT_DEFAULT LV_COLOR_FORMAT_XRGB8888
 #define LV_USE_LINUX_DRM 1
