@@ -160,7 +160,8 @@ class DashboardMVP(unittest.TestCase):
         self.assertIn('fopen("/run/redeti/ssh/host_fingerprint","r")',DASHBOARD)
         self.assertIn('strstr(line,"SHA256:")',DASHBOARD)
         self.assertIn('Somente leitura | chave privada nunca e exibida',DASHBOARD)
-        for token in ('"waiting_usb"','"usb_mount_failed"','"key_file_missing"',
+        for token in ('"usb_device_busy"','"usb_filesystem_error"',
+                      '"waiting_usb"','"usb_mount_failed"','"key_file_missing"',
                       '"invalid_public_key"','"installed"'):
             self.assertIn(token,DASHBOARD)
         self.assertNotIn('fopen("/run/redeti/ssh/ssh_host_ed25519_key"',DASHBOARD)
