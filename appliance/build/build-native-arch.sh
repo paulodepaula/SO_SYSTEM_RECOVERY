@@ -17,7 +17,7 @@ docker run --rm --pull=missing \
   -w /project \
   archlinux:base-devel \
   bash -euc '
-    pacman -Sy --noconfirm --needed cmake ninja pkgconf libdrm json-c git
+    pacman -Sy --noconfirm --needed cmake ninja pkgconf libdrm json-c git python python-pillow
     cmake -S /project/appliance/native -B /cache/lvgl -G Ninja -DCMAKE_BUILD_TYPE=Release
     cmake --build /cache/lvgl --parallel 2
     install -m 0755 /cache/lvgl/redeti-ui /out/redeti-ui
