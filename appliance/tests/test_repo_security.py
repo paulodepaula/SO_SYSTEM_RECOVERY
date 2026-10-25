@@ -17,7 +17,7 @@ SECRET_NAMES = (
 CONTENT_PATTERNS = (
     re.compile(rb"-----BEGIN (?:OPENSSH|RSA|EC|DSA|ENCRYPTED) PRIVATE KEY-----"),
     re.compile(rb"tskey-auth-[A-Za-z0-9_-]{25,}"),
-    re.compile(rb"-----BEGIN PGP PRIVATE KEY BLOCK-----"),
+    re.compile(rb"-----BEGIN " + rb"PGP PRIVATE KEY BLOCK-----"),
 )
 
 
@@ -49,6 +49,6 @@ class RepositorySecurityTests(unittest.TestCase):
                 continue
             payload = file.read_bytes()
             for pattern in CONTENT_PATTERNS:
-                self.assertIsNone(
-                    pattern.search(payload),
+                self.assertFalse(
+                    pattern.search(payload) is not None,
                     "Credential-like content in tracked file: " + str(path))
