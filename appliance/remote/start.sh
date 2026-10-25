@@ -99,6 +99,19 @@ fi
 rm -f "$base/ts-authkey"
 ip="$("$ts" --socket="$socket" ip -4 2>/dev/null | head -n1)"
 if [[ "$ip" =~ ^100\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+  # SystemRescue blocks unsolicited inbound traffic by default.
+  # Permit SSH only when it ARRIVES ON the VPN interface and is destined to
+  # this session's tailnet IP. Never open TCP/22 on eth0, wlan0 or the LAN.
+  if ! command -v iptables >/dev/null 2>&1; then
+    status "firewall_unverified" "$ip"
+    exit 1
+  fi
+  if ! iptables -C INPUT -i tailscale0 -d "$ip/32" -p tcp --dport 22 -j ACCEPT >/dev/null 2>&1; then
+    if ! iptables -I INPUT 1 -i tailscale0 -d "$ip/32" -p tcp --dport 22 -j ACCEPT; then
+      status "firewall_blocked" "$ip"
+      exit 1
+    fi
+  fi
   status "connected" "$ip"
 else
   status "vpn_no_ip"
