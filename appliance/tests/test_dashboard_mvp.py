@@ -8,6 +8,10 @@ MAIN=(ROOT/"appliance/native/main.c").read_text()
 CMAKE=(ROOT/"appliance/native/CMakeLists.txt").read_text()
 
 class DashboardMVP(unittest.TestCase):
+    def test_lvgl_heap_sized_for_visual_dashboard(self):
+        config=(ROOT/"appliance/native/lv_conf.h").read_text()
+        self.assertIn("#define LV_MEM_SIZE (4 * 1024 * 1024)",config)
+
     def test_is_native_and_modular(self):
         self.assertIn('ui/dashboard.c',CMAKE)
         self.assertIn('redeti_dashboard_create(display, hardware)',MAIN)
