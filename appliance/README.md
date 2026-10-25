@@ -28,7 +28,7 @@ python3 /opt/redeti-appliance/probe.py --output /run/redeti/hardware.json
 
 ### Sobre a tela LVGL
 
-O arquivo `native/main.c` é o **primeiro esqueleto de implementação**, não uma aplicação já compilada/homologada. Para compilar é necessário fornecer uma árvore **LVGL v9.x** para o Linux de destino com `LV_USE_LINUX_DRM=1`, libdrm e `json-c`. A renderização usa diretamente DRM/KMS (não `DISPLAY`, X11, Wayland, Firefox ou `127.0.0.1:8765`). A versão inicial ainda precisa de entrada de mouse/teclado evdev/libinput, fonts, logo PD como asset nativo e validação em VGA/UEFI.
+O arquivo `native/main.c` já compilou no GitHub Actions com LVGL 9.6, DRM/KMS e logo PD incorporada. **Isso ainda não equivale à homologação de inicialização real no SystemRescue/QEMU.** Para compilar é necessário fornecer uma árvore **LVGL v9.x** para o Linux de destino com `LV_USE_LINUX_DRM=1`, libdrm e `json-c`. A renderização usa diretamente DRM/KMS (não `DISPLAY`, X11, Wayland, Firefox ou `127.0.0.1:8765`). A versão inicial ainda precisa de entrada de mouse/teclado evdev/libinput, fonts, logo PD como asset nativo e validação em VGA/UEFI.
 
 **Importante:** não copie binário compilado no Ubuntu para a ISO Arch/SystemRescue sem verificar ABI e dependências. Compile para o rootfs específico e preserve a ISO anterior até passar no QEMU.
 
@@ -41,7 +41,7 @@ BIOS / UEFI → kernel Linux e drivers mínimos
             → Central exclusiva RedeTI, sem desktop
 ```
 
-Ainda não existe uma ISO final `appliance` neste repositório. A antiga ISO da pasta `boot_gui/` continua baseada em XFCE/Firefox e **não atende** ao novo objetivo. Não é adequado retirar o desktop da ISO antiga antes de compilar e testar uma interface DRM funcional.
+O código da receita de build da ISO Appliance está disponível, mas **a ISO nativa ainda não foi produzida nem testada em boot real**. A antiga ISO da pasta `boot_gui/` continua baseada em XFCE/Firefox e **não atende** ao novo objetivo. Não é adequado retirar o desktop da ISO antiga antes de compilar e testar uma interface DRM funcional.
 
 ### Próximos bloqueios para homologar o primeiro boot direto
 
