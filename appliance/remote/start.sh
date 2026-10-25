@@ -108,6 +108,18 @@ if [ "$found" != true ]; then
 fi
 status "connecting"
 
+# Install fail-closed VPN firewall BEFORE starting tailscaled. The off mode
+# prevents its automatic rules from bypassing our restriction or reordering it.
+if ! iptables -N REDETI_VPN_INPUT 2>/dev/null; then
+  iptables -F REDETI_VPN_INPUT || { status "firewall_blocked"; exit 1; }
+fi
+if ! iptables -A REDETI_VPN_INPUT -j DROP ||
+   ! iptables -I INPUT 1 -i tailscale0 -j REDETI_VPN_INPUT ||
+   ! iptables -I OUTPUT 1 -o tailscale0 -m conntrack --ctstate NEW -j DROP; then
+  status "firewall_blocked"
+  exit 1
+fi
+
 # Tailscale sessions are ephemeral: state lives in RAM, never in client disks.
 systemd-run --quiet --collect --unit=redeti-tailscaled \
   --property=Restart=on-failure --property=RestartSec=2 \
@@ -128,7 +140,7 @@ hostname="redeti-recovery-$suffix"
 if ! timeout 150 "$ts" --socket="$socket" up \
   --auth-key="file:$auth_file" \
   --ssh=false --hostname="$hostname" --advertise-tags=tag:redeti-recovery \
-  --accept-routes=false --accept-dns=false \
+  --netfilter-mode=off --accept-routes=false --accept-dns=false \
   >> "$base/remote.log" 2>&1; then
   status "vpn_auth_failed"
   exit 1
@@ -144,14 +156,8 @@ if [[ ! "$ip" =~ ^100\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
   status "vpn_no_ip"
   exit 1
 fi
-if ! {
-  iptables -N REDETI_VPN_INPUT 2>/dev/null || iptables -F REDETI_VPN_INPUT
-  iptables -A REDETI_VPN_INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-  iptables -A REDETI_VPN_INPUT -d "$ip/32" -p tcp --dport 22 -j ACCEPT
-  iptables -A REDETI_VPN_INPUT -j DROP
-  iptables -I INPUT 1 -i tailscale0 -j REDETI_VPN_INPUT
-  iptables -I OUTPUT 1 -o tailscale0 -m conntrack --ctstate NEW -j DROP
-}; then
+if ! iptables -I REDETI_VPN_INPUT 1 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT ||
+   ! iptables -I REDETI_VPN_INPUT 2 -d "$ip/32" -p tcp --dport 22 -j ACCEPT; then
   "$ts" --socket="$socket" down >/dev/null 2>&1 || true
   status "firewall_blocked"
   exit 1
