@@ -176,7 +176,8 @@ static lv_obj_t *button(lv_obj_t *parent,const char *caption,const char *glyph,
     lv_obj_t *b=lv_button_create(parent);
     lv_obj_set_size(b,width,52);
     style_button(b,cb?C_ACTIVE:0x10293f);
-    lv_obj_set_style_pad_hor(b,16,0);
+    lv_obj_set_style_pad_left(b,16,0);
+    lv_obj_set_style_pad_right(b,16,0);
     flex(b,LV_FLEX_FLOW_ROW,10);
     lv_obj_set_flex_align(b,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_CENTER);
     if(glyph)symbol(b,glyph,C_WHITE,20);
@@ -287,7 +288,8 @@ static void header(lv_obj_t *root,int width)
 {
     lv_obj_t *h=box(root,C_HEADER,0,0);
     lv_obj_set_size(h,width,92);
-    lv_obj_set_style_pad_hor(h,20,0);
+    lv_obj_set_style_pad_left(h,20,0);
+    lv_obj_set_style_pad_right(h,20,0);
     flex(h,LV_FLEX_FLOW_ROW,18);
     lv_obj_set_flex_align(h,LV_FLEX_ALIGN_START,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_CENTER);
     lv_obj_t *mark=lv_image_create(h);
@@ -325,7 +327,8 @@ static void nav_item(lv_obj_t *side,const char *name,const char *glyph,
     lv_obj_set_height(b,46);
     style_button(b,active?C_ACTIVE:C_SIDE);
     if(!active)lv_obj_set_style_border_width(b,0,0);
-    lv_obj_set_style_pad_hor(b,10,0);
+    lv_obj_set_style_pad_left(b,10,0);
+    lv_obj_set_style_pad_right(b,10,0);
     flex(b,LV_FLEX_FLOW_ROW,12);
     lv_obj_set_flex_align(b,LV_FLEX_ALIGN_START,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_CENTER);
     symbol(b,glyph,active?C_CYAN:C_MUTED,20);
@@ -410,7 +413,8 @@ static void row_status(lv_obj_t *parent,const char *glyph,const char *title,
     lv_obj_t *line=box(parent,0x0e2941,8,0);
     lv_obj_set_width(line,lv_pct(100));
     lv_obj_set_height(line,33);
-    lv_obj_set_style_pad_hor(line,10,0);
+    lv_obj_set_style_pad_left(line,10,0);
+    lv_obj_set_style_pad_right(line,10,0);
     flex(line,LV_FLEX_FLOW_ROW,10);
     lv_obj_set_flex_align(line,LV_FLEX_ALIGN_START,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_START);
     symbol(line,glyph,C_CYAN,20);
