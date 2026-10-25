@@ -45,6 +45,31 @@ class VentoyFallbackTests(TestCase):
                 self.assertIsNone(
                     provision.verified_ventoy_mapper("/dev/sdb1", dev, sys))
 
+    def test_older_ventoy_exposes_partition_named_mapper(self):
+        # Ventoy installed before release 1.1.18 can use /dev/mapper/sdb1.
+        with TemporaryDirectory() as root:
+            path = Path(root)
+            dev, sys = path / "dev", path / "sys"
+            (dev / "mapper").mkdir(parents=True)
+            (sys / "class/block/dm-2/slaves").mkdir(parents=True)
+            (dev / "sdb1").touch()
+            (dev / "sda1").touch()
+            (dev / "dm-2").touch()
+            (dev / "mapper/sdb1").symlink_to("../dm-2")
+            (sys / "class/block/dm-2/slaves/sdb1").touch()
+            with mock.patch.object(provision.stat, "S_ISBLK", return_value=True):
+                self.assertEqual(
+                    provision.sources(inventory(), dev, sys),
+                    ["/dev/sdb1", str(dev / "mapper/sdb1")])
+                self.assertEqual(
+                    provision.verified_ventoy_mapper("/dev/sdb1",dev,sys),
+                    str(dev / "mapper/sdb1"))
+                # Same filename without matching hardware must not pass.
+                (sys / "class/block/dm-2/slaves/sdb1").unlink()
+                (sys / "class/block/dm-2/slaves/sda1").touch()
+                self.assertEqual(provision.sources(inventory(),dev,sys),
+                                 ["/dev/sdb1"])
+
     def test_missing_mapper_does_not_get_created(self):
         with TemporaryDirectory() as root:
             path = Path(root)
