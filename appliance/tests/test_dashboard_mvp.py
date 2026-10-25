@@ -82,7 +82,10 @@ class DashboardMVP(unittest.TestCase):
 
     def test_dashboard_exposes_source_revision_for_qemu_homologation(self):
         self.assertIn('REDETI_BUILD_REV',CMAKE)
-        self.assertIn('git rev-parse --short=8 HEAD',CMAKE)
+        self.assertIn('COMMAND git rev-parse HEAD',CMAKE)
+        self.assertIn('string(SUBSTRING "${REDETI_SOURCE_REV}" 0 8 REDETI_BUILD_REV)',CMAKE)
+        self.assertIn('message(FATAL_ERROR "Recovery UI source revision must be a complete 40-character Git SHA")',CMAKE)
+        self.assertNotIn('set(REDETI_BUILD_REV "unknown")',CMAKE)
         self.assertIn('target_compile_definitions(redeti-ui PRIVATE REDETI_BUILD_REV=',CMAKE)
         self.assertIn('txt(ver,REDETI_BUILD_REV,14,C_CYAN)',DASHBOARD)
         self.assertNotIn('txt(ver,"DRM",14,C_CYAN)',DASHBOARD)
