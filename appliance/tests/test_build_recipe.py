@@ -36,6 +36,18 @@ class ApplianceBuildSafetyTests(unittest.TestCase):
         self.assertIn("sha256sum", script)
         self.assertNotIn("prune-recovery-isos.sh", script)
 
+    def test_arch_builder_emits_portable_checksum(self):
+        script = (ROOT / "appliance/build/build-native-arch.sh").read_text()
+        self.assertIn("(cd /out && sha256sum redeti-ui > redeti-ui.sha256)", script)
+        self.assertNotIn("sha256sum /out/redeti-ui > /out/redeti-ui.sha256", script)
+
+    def test_appliance_builder_accepts_old_docker_checksum_path(self):
+        script = (ROOT / "appliance/build/build-local.sh").read_text()
+        self.assertIn('stored="$(awk', script)
+        self.assertIn('computed="$(sha256sum -- "$ui"', script)
+        self.assertIn("Native ELF checksum mismatch", script)
+        self.assertNotIn('sha256sum -c "$(basename -- "$ui").sha256"', script)
+
     def test_shell_scripts_have_valid_syntax(self):
         for name in ("appliance/build/build-native-arch.sh", "appliance/build/compose-appliance.sh",
                      "appliance/build/build-local.sh", "appliance/boot/launch.sh"):
