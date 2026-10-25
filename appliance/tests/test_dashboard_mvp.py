@@ -26,8 +26,16 @@ class DashboardMVP(unittest.TestCase):
                         "Modulos de Diagnostico", "Discos e Particoes"):
             self.assertIn(section,DASHBOARD)
         self.assertIn("redeti_pd_logo",DASHBOARD)
-        self.assertIn("laptop_art(area,420)",DASHBOARD)
+        self.assertIn("laptop_art(area,laptop_width)",DASHBOARD)
         self.assertIn("stars(area,width,240)",DASHBOARD)
+
+    def test_mid_size_display_keeps_laptop_and_short_vpn_status(self):
+        self.assertIn("hero(content,mainw,mainw>=900)", DASHBOARD)
+        self.assertIn("width>=1180?420:275", DASHBOARD)
+        self.assertIn('?"Online":', DASHBOARD)
+        self.assertIn('"Sem VPN"', DASHBOARD)
+        self.assertIn("lv_obj_remove_flag(b,LV_OBJ_FLAG_CLICKABLE)", DASHBOARD)
+        self.assertIn("lv_obj_set_style_bg_color(b,lv_color_hex(0x10293f),LV_STATE_DISABLED)", DASHBOARD)
 
     def test_real_state_and_no_placeholder_values(self):
         for source in ("hardware.json", "remote-status.json", "lan-ssh-status.json"):
