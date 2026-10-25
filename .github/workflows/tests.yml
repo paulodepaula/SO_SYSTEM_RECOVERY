@@ -20,7 +20,7 @@ jobs:
       - name: Run isolated tests (no real devices)
         run: python -m pytest -q
       - name: Validate Recovery OS launcher shell syntax
-        run: bash -n boot_gui/build/launch.sh boot_gui/build/compose_iso.sh boot_gui/build/build-local.sh
+        run: bash -n boot_gui/build/launch.sh boot_gui/build/compose_iso.sh boot_gui/build/build-local.sh scripts/prune-recovery-isos.sh
       - name: Check systemd service syntax
         run: systemd-analyze verify boot_gui/systemd/redeti-cockpit.service
       - name: Test graphical Recovery OS backend (simulated inventory)
