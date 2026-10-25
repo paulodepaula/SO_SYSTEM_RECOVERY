@@ -7,6 +7,7 @@
 #include <json-c/json.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define NAVY  0x102437
 extern const lv_image_dsc_t redeti_pd_logo;
@@ -64,6 +65,29 @@ static void diagnostic_card(lv_obj_t *parent, const char *title, const char *sta
     label(card, title, CYAN);
     label(card, status, MUTED);
 }
+/* The VPN bootstrap is independent from DRM; update status without HTTP. */
+static void remote_status_update(lv_timer_t *timer) {
+    lv_obj_t *widget = (lv_obj_t *)lv_timer_get_user_data(timer);
+    json_object *state = json_object_from_file("/run/redeti/remote-status.json");
+    if (!state) {
+        lv_label_set_text(widget, "VPN: aguardando inicializacao  |  SSH: inativo");
+        return;
+    }
+    const char *s = field_text(state, "state");
+    if (strcmp(s, "connected") == 0) {
+        char line[160];
+        snprintf(line, sizeof(line), "VPN: conectada  |  SSH: redeti@%s",
+                 field_text(state, "vpn_ip"));
+        lv_label_set_text(widget, line);
+    } else if (strcmp(s, "awaiting_provision") == 0) {
+        lv_label_set_text(widget, "VPN: nao provisionada  |  SSH: protegido");
+    } else if (strcmp(s, "connecting") == 0 || strcmp(s, "starting") == 0) {
+        lv_label_set_text(widget, "VPN: conectando  |  SSH: aguardando autorizacao");
+    } else {
+        lv_label_set_text(widget, "VPN: indisponivel  |  SSH: inativo");
+    }
+    json_object_put(state);
+}
 static void build_ui(lv_display_t *display, json_object *hardware) {
     int screen_width = lv_display_get_horizontal_resolution(display);
     if (screen_width < 360) screen_width = 360;
@@ -101,6 +125,13 @@ static void build_ui(lv_display_t *display, json_object *hardware) {
     lv_obj_set_style_text_font(headline, &lv_font_montserrat_28, 0);
     label(name, "DIAGNOSTICO AUTOMATICO  |  SOMENTE LEITURA", CYAN);
     label(root, "v0.5.1  |  Diagnóstico automático  |  PT-BR: á é í ó ú ã õ ç", CYAN);
+    lv_obj_t *remote_status = lv_label_create(root);
+    lv_obj_set_width(remote_status, lv_pct(100));
+    lv_obj_set_style_text_color(remote_status, lv_color_hex(CYAN), 0);
+    lv_obj_set_style_text_font(remote_status, &redeti_font_16, 0);
+    lv_label_set_text(remote_status, "VPN: aguardando  |  SSH: inativo");
+    lv_timer_t *remote_timer = lv_timer_create(remote_status_update, 2500, remote_status);
+    remote_status_update(remote_timer);
     lv_obj_t *summary = lv_obj_create(root);
     panel(summary, PANEL);
     lv_obj_set_width(summary, lv_pct(100));
