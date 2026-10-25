@@ -55,21 +55,30 @@ class DashboardMVP(unittest.TestCase):
         for forbidden in ("requests.get", "urllib.request", "http://", "https://", "mount(", "os.system"):
             self.assertNotIn(forbidden,art)
 
-    def test_status_panel_is_two_column_grid_with_readable_wrapping(self):
-        self.assertIn('lv_obj_t *statusgrid=box(system,C_PANEL,0,0)',DASHBOARD)
-        self.assertIn('flex(statusgrid,LV_FLEX_FLOW_ROW_WRAP,8)',DASHBOARD)
-        self.assertIn('const int tile_width=(half-24-8)/2',DASHBOARD)
-        self.assertIn('lv_obj_set_size(tile,tile_width,86)',DASHBOARD)
-        self.assertIn('lv_label_set_long_mode(*status,LV_LABEL_LONG_WRAP)',DASHBOARD)
-        self.assertIn('value_font_size=tile_width>=220?16:14',DASHBOARD)
-        self.assertIn('lv_obj_set_style_text_line_space(*status,1,0)',DASHBOARD)
+    def test_status_panel_has_three_aligned_columns(self):
+        self.assertIn('static void status_row3(',DASHBOARD)
+        self.assertIn('flex(statusgrid,LV_FLEX_FLOW_COLUMN,2)',DASHBOARD)
+        self.assertIn('const int row_width=half-24',DASHBOARD)
+        self.assertIn('const int centre_w=row_width-20-18-label_w-detail_w',DASHBOARD)
+        self.assertIn('lv_obj_set_style_text_align(*detail,LV_TEXT_ALIGN_RIGHT,0)',DASHBOARD)
+        self.assertIn('lv_label_set_long_mode(*state,LV_LABEL_LONG_DOT)',DASHBOARD)
+        self.assertIn('lv_label_set_long_mode(*detail,LV_LABEL_LONG_DOT)',DASHBOARD)
         self.assertIn('bool stack_mid=mainw<900',DASHBOARD)
-        for label in ('"Rede"','"SSH"','"VPN"','"Entrada"'):
-            self.assertIn('status_tile(statusgrid,tile_width',DASHBOARD)
-            self.assertIn(label,DASHBOARD)
-        self.assertNotIn('row_status(system,',DASHBOARD)
-        self.assertIn('have_lan?ip:"Sem conexao"',DASHBOARD)
+        for title in ('"Rede"','"SSH"','"VPN"','"Entrada"'):
+            self.assertIn(title,DASHBOARD)
+        self.assertEqual(DASHBOARD.count('status_row3(statusgrid,row_width,'),4)
+        self.assertNotIn('status_tile(',DASHBOARD)
+
+    def test_status_values_and_colours_are_derived_from_real_state(self):
+        self.assertIn('have_lan?"Conectada (LAN)":"Sem rede"',DASHBOARD)
+        self.assertIn('ssh_ready?"Protegido"',DASHBOARD)
+        self.assertIn('vpn_ready?"Conectada"',DASHBOARD)
         self.assertIn('str(vpn,"vpn_ip")',DASHBOARD)
+        self.assertIn('status_indicator(s_status_lan_dot,have_lan?C_MINT',DASHBOARD)
+        self.assertIn('status_indicator(s_status_ssh_dot,ssh_ready?C_MINT',DASHBOARD)
+        self.assertIn('status_indicator(s_status_vpn_dot,vpn_ready?C_MINT',DASHBOARD)
+        self.assertIn('redeti_input_start(display,s_group,s_input_state,s_input_detail,s_input_dot)',DASHBOARD)
+        self.assertNotIn('192.168.1.100',DASHBOARD)
 
     def test_real_state_and_no_placeholder_values(self):
         for source in ("hardware.json", "remote-status.json", "lan-ssh-status.json"):
