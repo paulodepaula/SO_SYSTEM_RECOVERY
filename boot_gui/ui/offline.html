@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RedeTI Recovery OS - Serviço indisponível</title>
+<style>
+:root{color-scheme:dark}body{margin:0;background:#101d2b;color:#eaf4fa;font:16px/1.6 system-ui,Arial,sans-serif;display:flex;min-height:100vh;align-items:center;justify-content:center}
+main{max-width:760px;padding:34px;border-radius:16px;border:1px solid #426077;background:#1a3044}
+h1{font-size:25px;margin:0 0 8px}p{color:#c1d1dd}code,pre{color:#a4edc4}pre{white-space:pre-wrap;background:#0e1e2c;border-radius:8px;padding:16px}
+a{color:#88d6f3}small{color:#9db4c5}
+</style></head>
+<body><main><small>RedeTI Recovery OS · inicialização protegida</small>
+<h1>Central de diagnóstico indisponível</h1>
+<p>O ambiente gráfico iniciou, mas o serviço local de diagnóstico não respondeu. Nenhum reparo foi executado.</p>
+<p>Para investigar, abra o terminal deste ambiente Linux e consulte:</p>
+<pre>systemctl status redeti-cockpit.service --no-pager
+cat /run/redeti/launcher.log
+cat /run/redeti/gui.log</pre>
+<p>Depois de corrigir a causa, <a href="http://127.0.0.1:8765/">tente abrir a central novamente</a>.</p>
+<small>Os logs estão na memória temporária do SystemRescue.</small></main></body></html>
