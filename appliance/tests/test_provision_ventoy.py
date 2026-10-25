@@ -78,7 +78,7 @@ class VentoyFallbackTests(TestCase):
         self.assertIn('mount -o ro,nosuid,nodev,noexec -- "$source"', code)
         self.assertIn('if [ "$mounted_here" = true ]; then', code)
         self.assertIn('umount -- "$mountpoint"', code)
-        self.assertIn('if [ ! -L "$keyroot/REDETI" ]', code.replace('&& [ ! -L', 'if [ ! -L', 1))
+        self.assertIn('[ ! -L "$keyroot/REDETI" ]', code)
         self.assertNotIn("dmsetup create", code)
         self.assertNotIn("blockdev --setrw", code)
         self.assertNotIn("PasswordAuthentication yes", code)
