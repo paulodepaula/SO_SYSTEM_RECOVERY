@@ -20,7 +20,8 @@ Ventoy → ISO híbrida BIOS/UEFI
        → systemd ou init mínimo
             ├── redeti-inventory (lê /proc, /sys, lsblk; JSON em /run tmpfs)
             ├── redeti-ui (LVGL + DRM/KMS; tela única exclusiva)
-            └── rede/SSH/VPN (futuro, independente e bloqueado por padrão)
+            ├── SSH LAN (usuário paulo; porta 22 apenas na sub-rede local; chave pública obrigatória)
+            └── Tailscale SSH (opcional; usuário paulo; autenticação/ACL da tailnet)
 ```
 
 **LVGL com driver DRM/KMS** é a camada preferida: usa `/dev/dri/cardX` e desenha diretamente no monitor. Entrada de mouse/teclado via evdev/libinput. Não existe área de trabalho ou navegador. Fallback de vídeo para dispositivos legados: fbdev, somente se disponível e testado. Em QEMU, habilitar controladora de vídeo com DRM/KMS e dispositivo USB tablet para entrada. Não depender de OpenGL/EGL para o primeiro protótipo; iniciar com dumb buffers/software rendering.
@@ -41,7 +42,7 @@ O executável LVGL deve ser compilado para as bibliotecas do sistema de destino 
 - **Computador**: modelo de CPU, núcleos lógicos, RAM, modo de boot **do Recovery OS** (UEFI/Legacy).
 - **Disco candidato**: modelo, capacidade, interface, partições encontradas e estado de detecção do sistema Windows.
 - **Outros discos**: não escolher automaticamente quando houver mais de um disco interno.
-- **Rede/VPN**: estado offline ou aguardando autorização, sem chave persistente no ISO.
+- **Rede/VPN**: exibir endereço SSH LAN (paulo@IP), situação da chave pública e VPN Tailscale separadamente; sem segredos persistentes na ISO.
 
 ## Segurança obrigatória
 
