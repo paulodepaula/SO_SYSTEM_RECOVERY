@@ -66,13 +66,31 @@ key_reason="waiting_usb"
 while true; do
   if [ "$key_loaded" = false ]; then
     key_reason="waiting_usb"
-    device="$(python3 "$ROOT/provision.py" 2>/dev/null || true)"
-    if [ -n "$device" ]; then
+    # For Ventoy boot, /dev/sdb1 may be busy with the ISO's device-mapper.
+    # sources prints the validated physical USB followed by VentoyPart
+    # ONLY when /sys confirms that the mapper has this exact USB backing.
+    mapfile -t sources < <(python3 "$ROOT/provision.py" sources 2>/dev/null || true)
+    if [ "${#sources[@]}" -gt 0 ]; then
+      key_reason="usb_mount_failed"
       mountpoint="$BASE/lan-provision"
       mkdir -p "$mountpoint"
-      if mount -o ro,nosuid,nodev,noexec -- "$device" "$mountpoint" 2>/dev/null; then
-        key_src="$mountpoint/REDETI/authorized_keys"
-        if [ -f "$key_src" ] && [ ! -L "$key_src" ]; then
+      for source in "${sources[@]}"; do
+        keyroot=""
+        mounted_here=false
+        # Reuse existing mount (without remount or unmount): read only from it.
+        # Never read a path unless it belongs to the approved block source.
+        existing="$(findmnt -r -n -S "$source" -o TARGET 2>/dev/null | sed -n '1p' || true)"
+        if [[ "$existing" = /* && "$existing" != "/" && -d "$existing" && ! -L "$existing" ]]; then
+          keyroot="$existing"
+        elif mount -o ro,nosuid,nodev,noexec -- "$source" "$mountpoint" 2>"$DIR/last-mount-error.log"; then
+          keyroot="$mountpoint"
+          mounted_here=true
+        else
+          continue
+        fi
+        key_src="$keyroot/REDETI/authorized_keys"
+        if [ -d "$keyroot/REDETI" ] && [ ! -L "$keyroot/REDETI" ] &&
+           [ -f "$key_src" ] && [ ! -L "$key_src" ]; then
           if python3 "$ROOT/lan.py" install-key "$key_src" "$home/.ssh/authorized_keys"; then
             chown paulo:paulo "$home/.ssh/authorized_keys"
             chmod 0600 "$home/.ssh/authorized_keys"
@@ -84,13 +102,16 @@ while true; do
         else
           key_reason="key_file_missing"
         fi
-        umount -- "$mountpoint" || true
-      else
-        key_reason="usb_mount_failed"
-      fi
+        # Never unmount a pre-existing SystemRescue/Ventoy mount.
+        if [ "$mounted_here" = true ]; then
+          umount -- "$mountpoint" || true
+        fi
+        # If partition was readable, trying the same filesystem via another
+        # device name cannot repair a missing/invalid key; stop here.
+        break
+      done
     fi
   fi
-
   primary_ip=""
   while IFS=$'\t' read -r iface subnet address; do
     [ -n "$iface" ] || continue
