@@ -38,7 +38,18 @@ class RemoteBootstrapTests(unittest.TestCase):
         self.assertIn("useradd --create-home --user-group", code)
         self.assertIn("usermod --password '*' paulo", code)
         self.assertNotIn("systemctl mask --runtime --now sshd.service", code)
-        self.assertIn("--ssh --hostname", code)
+        self.assertIn('--ssh=false --hostname=', code)
+        self.assertNotIn('--ssh --hostname=', code)
+        self.assertIn('--netfilter-mode=off',code)
+        self.assertIn('"$provision_script" sources',code)
+        self.assertIn('mount -o ro,nosuid,nodev,noexec',code)
+        self.assertIn('findmnt -r -n -S "$source"',code)
+        self.assertIn('REDETI_VPN_INPUT',code)
+        self.assertIn('iptables -I INPUT 1 -i tailscale0',code)
+        self.assertIn('iptables -I OUTPUT 1 -o tailscale0 -m conntrack --ctstate NEW -j DROP',code)
+        self.assertIn('iptables -A REDETI_VPN_INPUT -j DROP',code)
+        self.assertIn('iptables -I REDETI_VPN_INPUT 2 -d "$ip/32" -p tcp --dport 22 -j ACCEPT',code)
+        self.assertIn('trap cleanup EXIT',code)
         self.assertIn("--advertise-tags=tag:redeti-recovery", code)
         self.assertIn("useradd --create-home --user-group", code)
         self.assertIn('iptables -I INPUT 1 -i tailscale0', code)
@@ -51,6 +62,28 @@ class RemoteBootstrapTests(unittest.TestCase):
         self.assertIn("--auth-key=\"file:", code)
         self.assertNotIn("PasswordAuthentication yes", code)
         self.assertNotIn("PermitRootLogin yes", code)
+
+    def test_vpn_does_not_embed_secrets_or_publish_services(self):
+        vpn=(ROOT/"appliance/remote/start.sh").read_text()
+        sshd=(ROOT/"appliance/remote/sshd_config").read_text()
+        iso=(ROOT/"appliance/build/compose-appliance.sh").read_text()
+        self.assertIn('tskey-auth-',vpn)
+        self.assertIn('--auth-key="file:$auth_file"',vpn)
+        self.assertNotIn('--auth-key=tskey-',vpn)
+        self.assertIn('--state=mem:',vpn)
+        self.assertIn('rm -f -- "$auth_file"',vpn)
+        self.assertIn('--accept-routes=false --accept-dns=false',vpn)
+        for forbidden in ('--advertise-routes=', '--advertise-exit-node',
+                          '--ssh --hostname=', 'tailscale serve', 'tailscale funnel',
+                          'iptables -P INPUT ACCEPT', 'iptables -F INPUT',
+                          'blockdev --setrw', 'dmsetup create'):
+            self.assertNotIn(forbidden,vpn)
+        for expected in ('AllowUsers paulo','PasswordAuthentication no',
+                         'AuthenticationMethods publickey','PermitRootLogin no',
+                         'AllowTcpForwarding no'):
+            self.assertIn(expected,sshd)
+        self.assertNotIn('ts-authkey"',iso)
+        self.assertIn('Tailscale binaries and remote scripts',iso)
 
     def test_no_disk_mounting_without_usb_validation(self):
         code = (ROOT / "appliance/remote/start.sh").read_text()
