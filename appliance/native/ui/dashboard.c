@@ -322,6 +322,7 @@ static const char *vpn_state_message(const char *state)
     if(strcmp(state,"vpn_auth_failed")==0)return "Falha no registro; verifique token, tag e ACL";
     if(strcmp(state,"vpn_daemon_failed")==0)return "Servico Tailscale nao iniciou";
     if(strcmp(state,"vpn_no_ip")==0)return "Tailscale conectado, mas sem IP valido";
+    if(strcmp(state,"unsafe_runtime_storage")==0)return "VPN bloqueada: armazenamento temporario nao e RAM";
     if(strcmp(state,"firewall_blocked")==0 ||
        strcmp(state,"firewall_unverified")==0)
         return "VPN bloqueada: regras de firewall nao validadas";
