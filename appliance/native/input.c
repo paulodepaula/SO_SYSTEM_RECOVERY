@@ -13,10 +13,16 @@ static unsigned s_keyboard_count;
 static void update_status(void)
 {
     if(s_status == NULL) return;
-    char line[160];
-    snprintf(line, sizeof line, "Entrada: mouse %s | teclado %s | teste: clique ou Tab + Enter",
-             s_pointer_count ? "detectado" : "aguardando",
-             s_keyboard_count ? "detectado" : "aguardando");
+    /* Compact wording fits the 2-column status grid. Event counts are real. */
+    const char *line;
+    if(s_pointer_count && s_keyboard_count)
+        line = "Mouse e teclado detectados";
+    else if(s_pointer_count)
+        line = "Mouse OK; teclado aguardando";
+    else if(s_keyboard_count)
+        line = "Teclado OK; mouse aguardando";
+    else
+        line = "Mouse e teclado aguardando";
     lv_label_set_text(s_status, line);
 }
 
@@ -74,7 +80,7 @@ bool redeti_input_start(lv_display_t *display, lv_group_t *keys, lv_obj_t *statu
     /* Discovery scans /dev/input/event* now and follows USB hotplug. */
     lv_result_t result = lv_evdev_discovery_start(on_input_found, NULL);
     if(result != LV_RESULT_OK) {
-        lv_label_set_text(status, "Entrada indisponivel: verificar /dev/input/event*");
+        lv_label_set_text(status, "Entrada indisponivel");
         fprintf(stderr, "RedeTI: EVDEV discovery failed (no mouse/keyboard).\n");
         return false;
     }
