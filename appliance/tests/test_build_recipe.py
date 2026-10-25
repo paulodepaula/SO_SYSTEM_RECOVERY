@@ -82,6 +82,22 @@ class ApplianceBuildSafetyTests(unittest.TestCase):
         self.assertIn('message(FATAL_ERROR "Unable to resolve recovery UI source commit")',cmake)
         self.assertNotIn('set(REDETI_BUILD_REV "unknown")',cmake)
 
+    def test_display_version_matches_iso_and_native_build_metadata(self):
+        native=(ROOT/"appliance/build/build-native-arch.sh").read_text()
+        iso=(ROOT/"appliance/build/build-local.sh").read_text()
+        cmake=(ROOT/"appliance/native/CMakeLists.txt").read_text()
+        ui=(ROOT/"appliance/native/ui/dashboard.c").read_text()
+        self.assertIn('redeti-build-id.txt',cmake)
+        self.assertIn('app_version=v${PROJECT_VERSION}',cmake)
+        self.assertIn('build_tag=${REDETI_BUILD_TAG}',cmake)
+        self.assertIn('install -m 0644 /cache/lvgl/redeti-build-id.txt /out/redeti-ui.buildinfo',native)
+        self.assertIn('strings /out/redeti-ui | grep -Fx "$build_tag"',native)
+        self.assertIn('grep -Fx "source_commit=$current_commit" "$ui.buildinfo"',iso)
+        self.assertIn("printf 'app_version=%s",iso)
+        self.assertIn("printf 'build_tag=%s",iso)
+        for name in ('REDETI_APP_VERSION','REDETI_BUILD_TAG','REDETI_BUILD_REV'):
+            self.assertIn(f'txt(ver,{name},',ui)
+
     def test_boot_logs_native_crash_without_silent_console(self):
         launch = (ROOT / "appliance/boot/launch.sh").read_text()
         self.assertIn("/run/redeti/ui.log", launch)
