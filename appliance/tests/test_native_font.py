@@ -25,6 +25,8 @@ class NativeFontTests(unittest.TestCase):
         self.assertIn("Modo de inicialização", main)
         self.assertIn("Discos e partições", main)
         self.assertIn("Relatório técnico", main)
+        self.assertIn("v0.5.1", main)
+        self.assertIn("PT-BR: á é í ó ú ã õ ç", main)
 
 if __name__ == "__main__":
     unittest.main()
