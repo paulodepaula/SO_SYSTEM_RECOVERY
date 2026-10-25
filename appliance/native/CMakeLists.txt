@@ -26,9 +26,17 @@ add_custom_command(
           "${CMAKE_CURRENT_LIST_DIR}/../../assets/logo-paulo.svg"
   COMMENT "Converting original PD logo to native LVGL RGB565"
 )
+# Offline generated original art: no filesystem or third-party UI assets at runtime.
+set(PREMIUM_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/premium_assets.c")
+add_custom_command(
+  OUTPUT "${PREMIUM_SOURCE}"
+  COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_LIST_DIR}/premium_assets.py" "${PREMIUM_SOURCE}"
+  DEPENDS "${CMAKE_CURRENT_LIST_DIR}/premium_assets.py"
+  COMMENT "Generating original laptop and consistent LVGL line icons"
+)
 # The verified Montserrat built-in font avoids LVGL 8/9 generated font ABI mismatch.
 # The UI transliterates accented strings until a visually tested LVGL 9 font exists.
-add_executable(redeti-ui main.c input.c ui/dashboard.c ui/theme.c "${LOGO_SOURCE}")
+add_executable(redeti-ui main.c input.c ui/dashboard.c ui/theme.c "${LOGO_SOURCE}" "${PREMIUM_SOURCE}")
 target_link_libraries(redeti-ui PRIVATE lvgl::lvgl PkgConfig::DRM PkgConfig::JSONC)
 target_compile_options(redeti-ui PRIVATE -Wall -Wextra -Werror=implicit-function-declaration)
 install(TARGETS redeti-ui RUNTIME DESTINATION bin)
@@ -37,7 +45,7 @@ install(TARGETS redeti-ui RUNTIME DESTINATION bin)
 include(CTest)
 if(BUILD_TESTING)
   add_executable(redeti-ui-render-smoke
-    tests/render_smoke.c input.c ui/dashboard.c ui/theme.c "${LOGO_SOURCE}")
+    tests/render_smoke.c input.c ui/dashboard.c ui/theme.c "${LOGO_SOURCE}" "${PREMIUM_SOURCE}")
   target_link_libraries(redeti-ui-render-smoke PRIVATE lvgl::lvgl PkgConfig::DRM PkgConfig::JSONC)
   add_test(NAME render-mvp-1280x720 COMMAND redeti-ui-render-smoke 1280 720)
   add_test(NAME render-mvp-1589x990 COMMAND redeti-ui-render-smoke 1589 990)
