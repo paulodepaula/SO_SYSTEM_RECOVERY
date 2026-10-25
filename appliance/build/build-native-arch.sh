@@ -36,7 +36,7 @@ docker run --rm --pull=missing \
     file /out/redeti-ui
     # Verify the revision is actually embedded in the displayed UI.
     source_rev_short="${REDETI_SOURCE_COMMIT:0:8}"
-    strings /out/redeti-ui | grep -Fxq "$source_rev_short" || {
+    strings /out/redeti-ui | grep -Fx "$source_rev_short" >/dev/null || {
       echo "Compiled UI is missing its source revision" >&2
       exit 4
     }
