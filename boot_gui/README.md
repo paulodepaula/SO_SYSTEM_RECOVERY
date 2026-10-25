@@ -174,25 +174,24 @@ bash boot_gui/build/build-local.sh ~/RecoveryOS/base/systemrescue-13.02-amd64.is
 Teste primeiro no QEMU. O criterio de aceite exige: `systemctl is-active redeti-cockpit.service` responder `active`, o endpoint HTTP `/api/overview` responder e o Firefox exibir o painel sem terminal manual. A alteracao foi publicada no codigo; o novo boot ainda necessita homologacao em VM antes de uso em equipamento de cliente.
 
 A compilacao automatica completa no GitHub Actions passou a ser **manual** para evitar gerar ISOs de 1,3 GB a cada commit. Prefira o builder local do Hermes para iteracao.
-
 ## Política de armazenamento do Hermes (somente a última ISO)
 
 Para evitar acumular imagens de aproximadamente 1,3 GB a cada compilação:
 
-- **Preservar sempre** a ISO original em \`~/RecoveryOS/base/systemrescue-13.02-amd64.iso\` (cache reutilizável).
-- **Manter uma única ISO RedeTI** em \`~/RecoveryOS/out/\`, acompanhada do SHA-256.
-- **Somente após** construir a nova ISO, verificar a estrutura com \`xorriso\` e gerar um checksum correto, o script \`build-local.sh\` chama automaticamente \`scripts/prune-recovery-isos.sh --apply\`.
-- O script elimina **apenas** arquivos \`RedeTI-Recovery-OS-alpha*.iso\` ou \`RedeTI-Recovery-OS-appliance*.iso\` com nomes gerenciados; não faz limpeza recursiva, não toca na ISO-base nem em arquivos de terceiros. Uma ISO em uso pelo QEMU é preservada quando \`fuser\` a identifica.
+- **Preservar sempre** a ISO original em `~/RecoveryOS/base/systemrescue-13.02-amd64.iso` (cache reutilizável).
+- **Manter uma única ISO RedeTI** em `~/RecoveryOS/out/`, acompanhada do SHA-256.
+- **Somente após** construir a nova ISO, verificar a estrutura com `xorriso` e gerar um checksum correto, o script `build-local.sh` chama automaticamente `scripts/prune-recovery-isos.sh --apply`.
+- O script elimina **apenas** arquivos `RedeTI-Recovery-OS-alpha*.iso` ou `RedeTI-Recovery-OS-appliance*.iso` com nomes gerenciados; não faz limpeza recursiva, não toca na ISO-base nem em arquivos de terceiros. Uma ISO em uso pelo QEMU é preservada quando `fuser` a identifica.
 - Se o build falhar, as ISOs anteriores ficam intactas. A verificação estrutural não garante boot correto; teste a última ISO no QEMU antes do uso.
-- A política pode ser reaproveitada pelo futuro construtor \`appliance/\` sem alterar o SSD do cliente.
+- A política pode ser reaproveitada pelo futuro construtor `appliance/` sem alterar o SSD do cliente.
 
-Para **pré-visualizar** a limpeza, escolha uma ISO validada (com seu \`.sha256\`) e execute:
+Para **pré-visualizar** a limpeza, escolha uma ISO validada (com seu `.sha256`) e execute:
 
-\`\`\`bash
+```bash
 bash scripts/prune-recovery-isos.sh --dry-run \
   "$HOME/RecoveryOS/out" \
   "$HOME/RecoveryOS/out/NOME-DA-ISO-VALIDADA.iso"
-\`\`\`
+```
 
 A aplicação da limpeza é automática no próximo build bem-sucedido; se a nova ISO ainda não estiver validada, não apague versões antigas manualmente.
 
