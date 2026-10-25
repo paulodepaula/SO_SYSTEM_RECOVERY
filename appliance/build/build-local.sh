@@ -39,6 +39,18 @@ git -C "$root" diff --quiet && git -C "$root" diff --cached --quiet || {
   exit 4
 }
 echo "Native ELF commit: $source_commit"
+# Preserve exactly the build/version shown on-screen in the ISO manifest.
+[ -s "$ui.buildinfo" ] || { echo "Native ELF missing build identity; recompile first" >&2; exit 4; }
+grep -Fx "source_commit=$current_commit" "$ui.buildinfo" >/dev/null || {
+  echo "Native build identity does not match current commit" >&2
+  exit 4
+}
+build_tag="$(sed -n 's/^build_tag=//p' "$ui.buildinfo")"
+app_version="$(sed -n 's/^app_version=//p' "$ui.buildinfo")"
+[[ "$build_tag" =~ ^b[0-9]{6}-[0-9]{6}$ ]] || { echo "Invalid native build identity" >&2; exit 4; }
+[[ "$app_version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid application version" >&2; exit 4; }
+echo "Native build: $app_version | $build_tag | ${source_commit:0:8}"
+
 # Download once and then reuse small static VPN binaries. No secrets embedded.
 bash "$root/appliance/build/fetch-tailscale.sh"
 [ "$(df -Pk "$outdir" | awk 'NR==2 {print $4}')" -ge 8388608 ] || { echo "8 GiB free space required" >&2; exit 5; }
@@ -52,6 +64,8 @@ xorriso -indev "$iso" -ls /sysrescue.d >/dev/null 2>&1
 (cd -- "$outdir"; sha256sum "$(basename -- "$iso")" > "$(basename -- "$iso").sha256")
 # Portable build manifest: compare the ISO checksum with Windows Get-FileHash.
 {
+  printf 'app_version=%s\n' "$app_version"
+  printf 'build_tag=%s\n' "$build_tag"
   printf 'source_commit=%s\n' "$current_commit"
   printf 'elf_sha256=%s\n' "$computed"
   printf 'iso_sha256=%s\n' "$(sha256sum "$iso" | cut -d ' ' -f 1)"
