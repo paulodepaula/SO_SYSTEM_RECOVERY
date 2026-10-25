@@ -100,7 +100,7 @@ static void build_ui(lv_display_t *display, json_object *hardware) {
     lv_obj_set_style_text_color(headline, lv_color_hex(WHITE), 0);
     lv_obj_set_style_text_font(headline, &lv_font_montserrat_28, 0);
     label(name, "DIAGNOSTICO AUTOMATICO  |  SOMENTE LEITURA", CYAN);
-    label(root, "Central de diagnostico  |  Reconhecimento automatico", CYAN);
+    label(root, "v0.5.1  |  Diagnóstico automático  |  PT-BR: á é í ó ú ã õ ç", CYAN);
     lv_obj_t *summary = lv_obj_create(root);
     panel(summary, PANEL);
     lv_obj_set_width(summary, lv_pct(100));
