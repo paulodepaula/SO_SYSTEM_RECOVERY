@@ -28,7 +28,7 @@ add_custom_command(
 )
 # The verified Montserrat built-in font avoids LVGL 8/9 generated font ABI mismatch.
 # The UI transliterates accented strings until a visually tested LVGL 9 font exists.
-add_executable(redeti-ui main.c "${LOGO_SOURCE}")
+add_executable(redeti-ui main.c input.c "${LOGO_SOURCE}")
 target_link_libraries(redeti-ui PRIVATE lvgl::lvgl PkgConfig::DRM PkgConfig::JSONC)
 target_compile_options(redeti-ui PRIVATE -Wall -Wextra -Werror=implicit-function-declaration)
 install(TARGETS redeti-ui RUNTIME DESTINATION bin)
