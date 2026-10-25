@@ -20,7 +20,7 @@ jobs:
       - name: Install ISO tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends xorriso squashfs-tools curl ca-certificates file
+          sudo apt-get install -y --no-install-recommends xorriso squashfs-tools curl ca-certificates file qemu-system-x86 socat python3-pil
       - name: Validate code before expensive build
         run: python3 -m unittest discover -s appliance/tests -v
       - name: Compile native LVGL app inside isolated Arch Linux container
@@ -54,6 +54,52 @@ jobs:
           xorriso -indev "$f" -ls /sysrescue.d
           file "$f"
           du -h "$f"
+      - name: Boot QEMU and validate real DRM dashboard before publishing ISO
+        shell: bash
+        run: |
+          set -euo pipefail
+          iso="$(find dist/out -maxdepth 1 -type f -name 'RedeTI-Recovery-OS-appliance-*.iso' -print -quit)"
+          test -s "$iso"
+          mkdir -p shots
+          qemu-system-x86_64 \
+            -machine q35,accel=tcg -cpu max -m 3072 -smp 2 \
+            -device virtio-vga -device qemu-xhci -device usb-tablet -device usb-kbd \
+            -drive "file=$iso,media=cdrom,readonly=on" -boot order=d \
+            -nic none -display none -vnc 127.0.0.1:0 \
+            -monitor unix:/tmp/recovery-qa.sock,server,nowait \
+            -pidfile /tmp/recovery-qa.pid -daemonize
+          trap 'kill "$(cat /tmp/recovery-qa.pid)" 2>/dev/null || true' EXIT
+          for time in 70 140 210; do
+            sleep 70
+            printf 'screendump %s/shots/boot-%s.ppm\n' "$PWD" "$time" |
+              socat -T 20 - UNIX-CONNECT:/tmp/recovery-qa.sock > "shots/monitor-$time.log" 2>&1 || true
+          done
+          /usr/bin/python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          good = False
+          for f in sorted(Path("shots").glob("boot-*.ppm")):
+              im=Image.open(f).convert("RGB")
+              im.thumbnail((320,240))
+              im.save(f.with_suffix(".png"))
+              px=list(im.getdata())
+              # Black SystemRescue login is not the blue/redeti dashboard.
+              blue=sum(b>30 and b>r*1.35 and b>g*1.11 for r,g,b in px)/len(px)
+              print(f.name, "blue dashboard share:", round(blue,3))
+              good = good or blue > 0.16
+          if not good:
+              raise SystemExit("Boot gate failed: no blue RedeTI dashboard observed in QEMU")
+          PY
+      - name: Preserve QEMU screenshots (even if boot fails)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: RedeTI-MVP-boot-qa
+          path: |
+            shots/*.png
+            shots/monitor-*.log
+          retention-days: 1
+          if-no-files-found: warn
       - name: Upload only latest lab ISO (expires after one day)
         uses: actions/upload-artifact@v4
         with:
