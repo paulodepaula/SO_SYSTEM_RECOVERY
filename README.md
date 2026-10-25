@@ -1,10 +1,12 @@
 # RedeTI Recovery OS
 
-**Fluxo de produto:** inserir o pendrive Ventoy, escolher uma ISO própria do RedeTI Recovery OS, iniciar automaticamente a interface gráfica, reconhecer CPU/RAM/firmware/discos no cabeçalho e apresentar os diagnósticos disponíveis abaixo.
+## Arquitetura atual: Appliance de boot direto
 
-**[Nova aplicação gráfica e receita de ISO v0.4-alpha](boot_gui/README.md)** · [Código do painel](boot_gui/ui/) · [Backend de hardware](boot_gui/app/server.py) · [Receita de ISO](boot_gui/build/compose_iso.sh)
+**Decisão de produto:** Ventoy -> kernel Linux com drivers -> **interface gráfica nativa DRM/KMS LVGL**, exibida diretamente no monitor, sem XFCE, X11, Wayland, Firefox, desktop Linux ou servidor HTTP. Reconhecimento automático de CPU, RAM, firmware, discos e partições. A instalação Windows só é declarada confirmada após verificação de evidências.
 
-**Status real:** interface e receita de construção disponíveis, mas ISO bootável personalizada **ainda não foi construída/homologada**. O código Python anterior permanece como laboratório, não como fluxo final do técnico.
+**Nova linha de desenvolvimento:** [appliance/README.md](appliance/README.md) · [Arquitetura e critérios de aceite](appliance/ARCHITECTURE.md) · [Coletor de inventário](appliance/probe.py) · [Protótipo da interface DRM](appliance/native/main.c).
+
+**Estado:** a arquitetura foi formalizada e o coletor passou em seis testes simulados locais; o protótipo nativo ainda não foi compilado/homologado no QEMU e **não existe ISO Appliance pronta**. A ISO de `boot_gui/` (XFCE + Firefox) é legado de laboratório e não atende à experiência final.
 
 ---
 
