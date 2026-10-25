@@ -32,7 +32,8 @@ add_custom_command(
   OUTPUT "${PREMIUM_SOURCE}"
   COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_LIST_DIR}/premium_assets.py" "${PREMIUM_SOURCE}"
   DEPENDS "${CMAKE_CURRENT_LIST_DIR}/premium_assets.py"
-  COMMENT "Generating original laptop and consistent LVGL line icons"
+          "${CMAKE_CURRENT_LIST_DIR}/assets/source/hero-laptop-panel.png"
+  COMMENT "Embedding supplied notebook and generating LVGL icon rasters"
 )
 # The verified Montserrat built-in font avoids LVGL 8/9 generated font ABI mismatch.
 # The UI transliterates accented strings until a visually tested LVGL 9 font exists.

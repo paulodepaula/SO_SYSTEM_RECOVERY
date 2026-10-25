@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Produce original offline RedeTI hero and consistent line icons for LVGL 9.
+"""Embed the supplied notebook and generate consistent line icons for LVGL 9.
 
 Pillow rasterizes procedural art at build time, not on the recovery target.
 The output is a C image descriptor array; no downloads or runtime decoders.
@@ -8,56 +8,13 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw
 
 ICONS = (
     "home", "list", "drive", "charge", "settings", "file", "wifi",
     "image", "eye", "power", "refresh", "play", "keyboard",
     "download", "directory", "save", "ok"
 )
-
-
-def laptop() -> Image.Image:
-    w, h = 380, 190
-    canvas = Image.new("RGBA", (w, h))
-    halo = Image.new("RGBA", (w, h))
-    hd = ImageDraw.Draw(halo)
-    hd.ellipse((62, 12, 345, 178), fill=(0, 135, 255, 100))
-    hd.ellipse((132, 8, 337, 148), fill=(0, 224, 255, 62))
-    halo = halo.filter(ImageFilter.GaussianBlur(30))
-    canvas.alpha_composite(halo)
-    d = ImageDraw.Draw(canvas)
-    # Original three-quarter perspective illustration, built from polygons.
-    d.polygon([(76, 30), (323, 22), (313, 143), (67, 152)],
-              fill=(4, 11, 27, 255), outline=(69, 178, 240, 255), width=3)
-    d.polygon([(84, 39), (314, 32), (305, 133), (76, 140)], fill=(3, 28, 64, 255))
-    # Screen's layered nocturnal blue/teal glow.
-    for y in range(43, 132):
-        t = (y - 43) / 89
-        d.line((85, y, 305, y - 7),
-               fill=(int(3 + 9*t), int(28 + 34*t), int(75 + 45*t), 255), width=2)
-    d.ellipse((158, 55, 253, 143), outline=(28, 208, 250, 140), width=2)
-    d.ellipse((183, 76, 231, 122), outline=(41, 226, 255, 230), width=3)
-    # Native recovery-style pulse rather than a borrowed logo.
-    d.line([(168, 99), (188, 99), (198, 79), (208, 117),
-            (218, 94), (250, 94)], fill=(97, 241, 255, 230), width=3, joint="curve")
-    for k in range(4):
-        y = 123 + k * 3
-        d.arc((125 - k*13, y-29, 281 + k*8, y+40), 200, 345,
-              fill=(7, 151, 242, 90-k*17), width=2)
-    d.line([(77, 31), (324, 23)], fill=(117, 220, 255, 210), width=2)
-    d.polygon([(68, 152), (313, 143), (351, 158), (109, 172)],
-              fill=(29, 72, 111, 255), outline=(90, 171, 217, 255))
-    d.polygon([(109, 172), (351, 158), (344, 165), (111, 179)],
-              fill=(8, 25, 50, 255))
-    d.line([(118, 164), (327, 153)], fill=(107, 187, 227, 255), width=1)
-    # Keyboard impression: receding slim cyan bars, legible at small scale.
-    for y, left, right in [(155, 98, 307), (159, 106, 317), (163, 117, 326)]:
-        for x in range(left, right, 16):
-            d.line((x, y, min(x+9, right), y-1), fill=(58, 133, 184, 175), width=1)
-    d.polygon([(196, 163), (245, 160), (257, 164), (207, 167)],
-              fill=(62, 135, 181, 170))
-    return canvas
 
 
 def icon(name: str) -> Image.Image:
@@ -180,9 +137,15 @@ const lv_image_dsc_t redeti_{name} = {{
 
 
 def generate(dest: Path) -> None:
-    chunks=["/* Original RedeTI art; generated deterministically from premium_assets.py. */",
+    chunks=["/* RedeTI assets; notebook supplied by user, icons generated offline. */",
             "#include <lvgl/lvgl.h>"]
-    chunks.append(emit_image("hero_laptop",laptop()))
+    # The supplied, transparent notebook is stored in Git (not downloaded).
+    hero_source=Path(__file__).resolve().parent / "assets/source/hero-laptop-panel.png"
+    with Image.open(hero_source) as original:
+        if original.size != (380,197) or original.format != "PNG":
+            raise ValueError("Expected committed 380x197 hero-laptop-panel.png")
+        hero=original.convert("RGBA")  # Also supports optimized PNG palette + tRNS.
+    chunks.append(emit_image("hero_laptop",hero))
     for name in ICONS:
         chunks.append(emit_image("icon_"+name,icon(name)))
     dest.parent.mkdir(parents=True,exist_ok=True)

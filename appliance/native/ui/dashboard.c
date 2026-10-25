@@ -1,7 +1,7 @@
 /* RedeTI Recovery OS — Visual MVP v0.6.0
  * Direct DRM/KMS + LVGL 9.6; offline, no desktop or HTTP.
  * Visual reference: appliance/design/DASHBOARD_VISUAL_SPEC_V1.md.
- * Original icon rasters and hero laptop are generated offline and embedded
+ * Original icon rasters and user-supplied hero laptop are embedded offline
  * in the native ELF. The starfield remains lightweight LVGL primitives.
  */
 #include "dashboard.h"
@@ -320,15 +320,15 @@ static void stars(lv_obj_t *parent,int width,int height)
 }
 static void laptop_art(lv_obj_t *parent,int width)
 {
-    /* Original prerendered 3/4 notebook and glow, bundled inside the ELF. */
+    /* User-provided transparent 380x197 laptop, embedded in the native ELF.
+     * Keep the artwork inside its right-hand hero column. */
     lv_obj_t *scene=box(parent,C_HERO,0,0);
     lv_obj_set_style_bg_opa(scene,LV_OPA_TRANSP,0);
     lv_obj_set_size(scene,width,197);
     lv_obj_remove_flag(scene,LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_t *illustration=lv_image_create(scene);
     lv_image_set_src(illustration,&redeti_hero_laptop);
-    /* Preserve full notebook at 1280px without crossing the text. */
-    uint32_t scale=(uint32_t)(width-8)*256U/380U;
+    uint32_t scale=(uint32_t)((width-12)*256U/380U);
     if(scale>256U)scale=256U;
     lv_image_set_scale(illustration,scale);
     lv_obj_center(illustration);
