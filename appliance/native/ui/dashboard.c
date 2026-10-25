@@ -271,19 +271,17 @@ static void update_connections(lv_timer_t *timer)
     }
     if(s_vpn)set_text(s_vpn,strcmp(vpn_state,"connected")==0?"Online":
                            strcmp(vpn_state,"connecting")==0?"Conectando":"Sem VPN");
-    if(s_status_lan) {
-        char buf[128];
-        snprintf(buf,sizeof buf,"LAN: %s",have_lan?ip:"nao conectada");
-        set_text(s_status_lan,buf);
+    /* Labels now live above values in the status tiles: avoid duplicate prefixes. */
+    if(s_status_lan)set_text(s_status_lan,have_lan?ip:"Sem conexao");
+    if(s_status_ssh) {
+        char address[80];
+        snprintf(address,sizeof address,"paulo@%s",ip);
+        set_text(s_status_ssh,strcmp(lan_state,"ready")==0?address:
+                 have_lan?"Aguardando chave":"Protegido / sem chave");
     }
-    if(s_status_ssh)set_text(s_status_ssh,strcmp(lan_state,"ready")==0?
-            "SSH LAN: paulo (chave publica pronta)":"SSH LAN: protegido / sem chave autorizada");
-    if(s_status_vpn) {
-        char buf[128];
-        snprintf(buf,sizeof buf,"VPN: %s",strcmp(vpn_state,"connected")==0?
-           str(vpn,"vpn_ip"):"nao provisionada");
-        set_text(s_status_vpn,buf);
-    }
+    if(s_status_vpn)set_text(s_status_vpn,strcmp(vpn_state,"connected")==0?
+            str(vpn,"vpn_ip"):strcmp(vpn_state,"connecting")==0?
+            "Conectando":"Nao provisionada");
     if(lan)json_object_put(lan);
     if(vpn)json_object_put(vpn);
 }
@@ -448,21 +446,30 @@ static void data_card(lv_obj_t *row,int width,const char *glyph,uint32_t tint,
     lv_obj_set_width(v,lv_pct(100));
     if(foot)txt(card,foot,14,C_MUTED);
 }
-static void row_status(lv_obj_t *parent,const char *glyph,const char *title,
-                       lv_obj_t **text)
+/* Fixed two-column status grid: title/icon row + multiline value row. */
+static void status_tile(lv_obj_t *grid,int tile_width,const char *glyph,
+                        const char *title,lv_obj_t **status)
 {
-    lv_obj_t *line=box(parent,0x0e2941,8,0);
-    lv_obj_set_width(line,lv_pct(100));
-    lv_obj_set_height(line,33);
-    lv_obj_set_style_pad_left(line,10,0);
-    lv_obj_set_style_pad_right(line,10,0);
-    flex(line,LV_FLEX_FLOW_ROW,10);
-    lv_obj_set_flex_align(line,LV_FLEX_ALIGN_START,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_START);
-    symbol(line,glyph,C_CYAN,20);
-    lv_obj_t *t=txt(line,title,14,C_MUTED);
-    lv_obj_set_width(t,82);
-    *text=txt(line,"Aguardando",14,C_WHITE);
-    lv_obj_set_flex_grow(*text,1);
+    lv_obj_t *tile=box(grid,0x102d47,10,1);
+    lv_obj_set_size(tile,tile_width,86);
+    redeti_theme_gradient(tile,0x123654,0x0b2239);
+    lv_obj_set_style_border_color(tile,lv_color_hex(0x245272),0);
+    lv_obj_set_style_pad_all(tile,8,0);
+    flex(tile,LV_FLEX_FLOW_COLUMN,4);
+
+    lv_obj_t *heading=box(tile,0x102d47,0,0);
+    lv_obj_set_style_bg_opa(heading,LV_OPA_TRANSP,0);
+    lv_obj_set_size(heading,lv_pct(100),24);
+    flex(heading,LV_FLEX_FLOW_ROW,7);
+    lv_obj_set_flex_align(heading,LV_FLEX_ALIGN_START,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_CENTER);
+    symbol(heading,glyph,C_CYAN,20);
+    txt(heading,title,14,C_MUTED);
+
+    /* Keep 14px minimum; values wrap instead of colliding with labels. */
+    *status=txt(tile,"Aguardando",14,C_WHITE);
+    lv_obj_set_width(*status,lv_pct(100));
+    lv_label_set_long_mode(*status,LV_LABEL_LONG_WRAP);
+    lv_obj_set_style_text_line_space(*status,1,0);
 }
 static lv_obj_t *section(lv_obj_t *parent,const char *title,int height)
 {
@@ -576,17 +583,24 @@ void redeti_dashboard_create(lv_display_t *display,json_object *hw)
 
     lv_obj_t *mid=box(content,C_BG,0,0);
     lv_obj_set_style_bg_opa(mid,LV_OPA_TRANSP,0);
-    lv_obj_set_size(mid,lv_pct(100),212);
-    flex(mid,LV_FLEX_FLOW_ROW,12);
-    int half=(mainw-12)/2;
-    lv_obj_t *system=section(mid,"Status do Sistema",212);
+    const int panel_height=238;
+    bool stack_mid=mainw<900;
+    lv_obj_set_size(mid,lv_pct(100),stack_mid?panel_height*2+12:panel_height);
+    flex(mid,stack_mid?LV_FLEX_FLOW_COLUMN:LV_FLEX_FLOW_ROW,12);
+    int half=stack_mid?mainw:(mainw-12)/2;
+    lv_obj_t *system=section(mid,"Status do Sistema",panel_height);
     lv_obj_set_width(system,half);
-    row_status(system,LV_SYMBOL_WIFI,"Rede",&s_status_lan);
-    row_status(system,LV_SYMBOL_HOME,"SSH",&s_status_ssh);
-    row_status(system,LV_SYMBOL_OK,"VPN",&s_status_vpn);
-    row_status(system,LV_SYMBOL_KEYBOARD,"Entrada",&s_input_state);
+    lv_obj_t *statusgrid=box(system,C_PANEL,0,0);
+    lv_obj_set_style_bg_opa(statusgrid,LV_OPA_TRANSP,0);
+    lv_obj_set_size(statusgrid,lv_pct(100),180);
+    flex(statusgrid,LV_FLEX_FLOW_ROW_WRAP,8);
+    const int tile_width=(half-24-8)/2;
+    status_tile(statusgrid,tile_width,LV_SYMBOL_WIFI,"Rede",&s_status_lan);
+    status_tile(statusgrid,tile_width,LV_SYMBOL_HOME,"SSH",&s_status_ssh);
+    status_tile(statusgrid,tile_width,LV_SYMBOL_OK,"VPN",&s_status_vpn);
+    status_tile(statusgrid,tile_width,LV_SYMBOL_KEYBOARD,"Entrada",&s_input_state);
 
-    lv_obj_t *quick=section(mid,"Acoes Rapidas",212);
+    lv_obj_t *quick=section(mid,"Acoes Rapidas",panel_height);
     lv_obj_set_width(quick,half);
     lv_obj_t *actions=box(quick,C_PANEL,0,0);
     lv_obj_set_style_bg_opa(actions,LV_OPA_TRANSP,0);
