@@ -25,3 +25,5 @@ jobs:
         run: systemd-analyze verify boot_gui/systemd/redeti-cockpit.service
       - name: Test graphical Recovery OS backend (simulated inventory)
         run: python -m unittest discover -s boot_gui/tests -v
+      - name: Test direct-boot appliance hardware recognition
+        run: python -m unittest discover -s appliance/tests -v
