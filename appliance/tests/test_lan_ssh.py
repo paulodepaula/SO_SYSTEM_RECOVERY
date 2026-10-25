@@ -82,6 +82,10 @@ class LanSSHTests(unittest.TestCase):
                        "invalid_public_key","installed"):
             self.assertIn(f'key_reason="{reason}"',script)
         self.assertIn('status "awaiting_key" "$primary_ip" "$key_reason"',script)
+        self.assertIn('classify_mount_error()',script)
+        self.assertIn('key_reason="usb_device_busy"',script)
+        self.assertIn('key_reason="usb_filesystem_error"',script)
+        self.assertIn('mount -o ro,nosuid,nodev,noexec',script)
         self.assertIn('mount -o ro,nosuid,nodev,noexec',script)
         self.assertIn('umount -- "$mountpoint"',script)
         self.assertNotIn('PasswordAuthentication yes',script)
