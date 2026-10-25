@@ -7,9 +7,9 @@
 #include "dashboard.h"
 #include "theme.h"
 #include "assets.h"
-/* Compiled-in SHA makes a stale QEMU ISO immediately recognizable. */
-#ifndef REDETI_BUILD_REV
-#define REDETI_BUILD_REV "unknown"
+/* Build identity must always come from CMake: fail instead of showing unknown. */
+#if !defined(REDETI_BUILD_REV) || !defined(REDETI_APP_VERSION) || !defined(REDETI_BUILD_TAG)
+#error "RedeTI build identity was not provided by CMake"
 #endif
 #include "../input.h"
 #include <stdio.h>
@@ -396,11 +396,15 @@ static void header(lv_obj_t *root,int width)
         status_chip(right,LV_SYMBOL_HOME,"SSH / paulo",&s_ssh,width<1500?158:189);
         status_chip(right,LV_SYMBOL_OK,"VPN",&s_vpn,width<1500?137:166);
         lv_obj_t *ver=box(right,0x062b4c,9,1);
-        lv_obj_set_size(ver,78,57);
-        flex(ver,LV_FLEX_FLOW_COLUMN,2);
-        lv_obj_set_style_pad_all(ver,6,0);
-        txt(ver,"v0.6.0",16,C_WHITE);
-        txt(ver,REDETI_BUILD_REV,14,C_CYAN);
+        /* Release, build time (UTC) and source SHA are always visible.
+         * Three compact lines identify a unique ISO without consuming
+         * a whole header row on 1280/1366 desktop modes. */
+        lv_obj_set_size(ver,140,70);
+        flex(ver,LV_FLEX_FLOW_COLUMN,1);
+        lv_obj_set_style_pad_all(ver,5,0);
+        txt(ver,REDETI_APP_VERSION,16,C_WHITE);
+        txt(ver,REDETI_BUILD_TAG,14,C_CYAN);
+        txt(ver,REDETI_BUILD_REV,14,C_MUTED);
     }
 }
 static void nav_item(lv_obj_t *side,const char *name,const char *glyph,
