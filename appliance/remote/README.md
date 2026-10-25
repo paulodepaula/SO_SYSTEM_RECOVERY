@@ -11,6 +11,39 @@ Esta versão usa **Tailscale SSH** (servidor SSH embutido no próprio Tailscale)
 
 Referências: https://tailscale.com/docs/features/tailscale-ssh · https://tailscale.com/docs/features/access-control/auth-keys · https://tailscale.com/docs/features/ephemeral-nodes
 
+### Modelo de política de acesso (ajustar à tailnet existente)
+
+Exemplo conceitual para o editor de políticas Tailscale, **substituindo o e-mail por uma identidade real autorizada** e mesclando as regras com a política existente, sem eliminá-la:
+
+```json
+{
+  "groups": {
+    "group:recovery-admins": ["tecnico-autorizado@exemplo.com"]
+  },
+  "tagOwners": {
+    "tag:redeti-recovery": ["group:recovery-admins"]
+  },
+  "grants": [
+    {
+      "src": ["group:recovery-admins"],
+      "dst": ["tag:redeti-recovery"],
+      "ip": ["tcp:22"]
+    }
+  ],
+  "ssh": [
+    {
+      "action": "check",
+      "checkPeriod": "1h",
+      "src": ["group:recovery-admins"],
+      "dst": ["tag:redeti-recovery"],
+      "users": ["redeti"]
+    }
+  ]
+}
+```
+
+As permissões são **aditivas**: se sua tailnet possui um `grants` amplo que libera `*` para `*`, é preciso revisar essa regra também para que o acesso permaneça restrito. Nunca conceda `users: ["root"]` ou `autogroup:nonroot` aos computadores Recovery. O exemplo não é uma alteração automática da tailnet.
+
 ## Provisionamento do pendrive (sem gravar no SSD do cliente)
 
 Use a **partição de dados exFAT/FAT do Ventoy** com rótulo `Ventoy`, ou outro **pendrive separado** FAT/exFAT com rótulo `REDETI_CFG`. O sistema **não monta partições internas** para buscar as credenciais; e não busca em NTFS para evitar confundir um volume Windows com o dispositivo de suporte.
