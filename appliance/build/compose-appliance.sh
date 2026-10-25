@@ -32,7 +32,10 @@ done
 mkdir -p "$recipe/build_into_srm/opt/redeti-appliance/remote"
 cp "$root/appliance/remote/provision.py" "$recipe/build_into_srm/opt/redeti-appliance/remote/provision.py"
 install -m 0755 "$root/appliance/remote/start.sh" "$recipe/build_into_srm/opt/redeti-appliance/remote/start.sh"
-# Prevent stock OpenSSH from listening on LAN even if enabled in a base ISO.
+install -m 0755 "$root/appliance/remote/lan-start.sh" "$recipe/build_into_srm/opt/redeti-appliance/remote/lan-start.sh"
+cp "$root/appliance/remote/lan.py" "$recipe/build_into_srm/opt/redeti-appliance/remote/lan.py"
+install -m 0644 "$root/appliance/remote/sshd_config" "$recipe/build_into_srm/opt/redeti-appliance/remote/sshd_config"
+# Mask the stock SSH daemon: LAN SSH uses the explicitly hardened daemon above.
 mkdir -p "$recipe/build_into_srm/etc/systemd/system"
 ln -s /dev/null "$recipe/build_into_srm/etc/systemd/system/sshd.service"
 ln -s /dev/null "$recipe/build_into_srm/etc/systemd/system/sshd.socket"
