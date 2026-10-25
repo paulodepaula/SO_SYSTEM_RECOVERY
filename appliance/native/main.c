@@ -11,7 +11,51 @@
 
 #define NAVY  0x102437
 extern const lv_image_dsc_t redeti_pd_logo;
-LV_FONT_DECLARE(redeti_font_16);
+/* Stable built-in fallback: custom lv_font_conv v1.5 glyphs were invisible
+ * on LVGL 9. Keep labels legible until the custom font is raster-tested. */
+static const lv_font_t *const redeti_text_font = &lv_font_montserrat_16;
+
+/* Transliterate UTF-8 Portuguese accents to printable ASCII for the proven
+ * built-in font. The diagnostic engine's JSON remains unchanged. */
+static void safe_label_text(lv_obj_t *widget, const char *src) {
+    char dst[1024];
+    size_t w = 0;
+    if (!src) src = "-";
+    for (size_t i = 0; src[i] && w + 2 < sizeof dst;) {
+        unsigned char x = (unsigned char)src[i];
+        if (x < 128) {
+            dst[w++] = (char)x;
+            i++;
+        } else if (x == 0xc3 && src[i + 1]) {
+            unsigned char y = (unsigned char)src[i + 1];
+            const char *replace = NULL;
+            if (y >= 0x80 && y <= 0x86) replace = "A";
+            else if (y == 0x87) replace = "C";
+            else if (y >= 0x88 && y <= 0x8b) replace = "E";
+            else if (y >= 0x8c && y <= 0x8f) replace = "I";
+            else if (y == 0x91) replace = "N";
+            else if (y >= 0x92 && y <= 0x98) replace = "O";
+            else if (y >= 0x99 && y <= 0x9c) replace = "U";
+            else if (y == 0x9d) replace = "Y";
+            else if (y >= 0xa0 && y <= 0xa6) replace = "a";
+            else if (y == 0xa7) replace = "c";
+            else if (y >= 0xa8 && y <= 0xab) replace = "e";
+            else if (y >= 0xac && y <= 0xaf) replace = "i";
+            else if (y == 0xb1) replace = "n";
+            else if (y >= 0xb2 && y <= 0xb8) replace = "o";
+            else if (y >= 0xb9 && y <= 0xbc) replace = "u";
+            else if (y >= 0xbd && y <= 0xbf) replace = "y";
+            dst[w++] = replace ? *replace : '?';
+            i += 2;
+        } else {
+            dst[w++] = '?';
+            i++;
+            while (((unsigned char)src[i] & 0xc0) == 0x80) i++;
+        }
+    }
+    dst[w] = '\0';
+    lv_label_set_text(widget, dst);
+}
 #define PANEL 0x1b3045
 #define CARD  0x233b51
 #define CYAN  0x59b2ea
@@ -37,8 +81,8 @@ static void panel(lv_obj_t *obj, uint32_t color) {
 }
 static void label(lv_obj_t *parent, const char *txt, uint32_t color) {
     lv_obj_t *value = lv_label_create(parent);
-    lv_label_set_text(value, txt ? txt : "-");
-    lv_obj_set_style_text_font(value, &redeti_font_16, 0);
+    safe_label_text(value, txt);
+    lv_obj_set_style_text_font(value, redeti_text_font, 0);
     lv_obj_set_style_text_color(value, lv_color_hex(color), 0);
     lv_obj_set_width(value, lv_pct(100));
     lv_label_set_long_mode(value, LV_LABEL_LONG_WRAP);
@@ -70,7 +114,7 @@ static void remote_status_update(lv_timer_t *timer) {
     lv_obj_t *widget = (lv_obj_t *)lv_timer_get_user_data(timer);
     json_object *state = json_object_from_file("/run/redeti/remote-status.json");
     if (!state) {
-        lv_label_set_text(widget, "VPN: aguardando inicializacao  |  SSH: inativo");
+        safe_label_text(widget, "VPN: aguardando inicializacao  |  SSH: inativo");
         return;
     }
     const char *s = field_text(state, "state");
@@ -78,13 +122,13 @@ static void remote_status_update(lv_timer_t *timer) {
         char line[160];
         snprintf(line, sizeof(line), "VPN: conectada  |  SSH: redeti@%s",
                  field_text(state, "vpn_ip"));
-        lv_label_set_text(widget, line);
+        safe_label_text(widget, line);
     } else if (strcmp(s, "awaiting_provision") == 0) {
-        lv_label_set_text(widget, "VPN: nao provisionada  |  SSH: protegido");
+        safe_label_text(widget, "VPN: nao provisionada  |  SSH: protegido");
     } else if (strcmp(s, "connecting") == 0 || strcmp(s, "starting") == 0) {
-        lv_label_set_text(widget, "VPN: conectando  |  SSH: aguardando autorizacao");
+        safe_label_text(widget, "VPN: conectando  |  SSH: aguardando autorizacao");
     } else {
-        lv_label_set_text(widget, "VPN: indisponivel  |  SSH: inativo");
+        safe_label_text(widget, "VPN: indisponivel  |  SSH: inativo");
     }
     json_object_put(state);
 }
@@ -100,7 +144,7 @@ static void build_ui(lv_display_t *display, json_object *hardware) {
     lv_obj_set_style_radius(root, 0, 0);
     lv_obj_set_style_pad_all(root, 16, 0);
     lv_obj_set_style_pad_row(root, 14, 0);
-    lv_obj_set_style_text_font(root, &redeti_font_16, 0);
+    lv_obj_set_style_text_font(root, redeti_text_font, 0);
     lv_obj_set_flex_flow(root, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_scroll_dir(root, LV_DIR_VER);
     lv_obj_set_scrollbar_mode(root, LV_SCROLLBAR_MODE_OFF);
@@ -124,12 +168,12 @@ static void build_ui(lv_display_t *display, json_object *hardware) {
     lv_obj_set_style_text_color(headline, lv_color_hex(WHITE), 0);
     lv_obj_set_style_text_font(headline, &lv_font_montserrat_28, 0);
     label(name, "DIAGNOSTICO AUTOMATICO  |  SOMENTE LEITURA", CYAN);
-    label(root, "v0.5.1  |  Diagnóstico automático  |  PT-BR: á é í ó ú ã õ ç", CYAN);
+    label(root, "v0.5.2  |  Diagnóstico automático  |  TEXTO SEGURO", CYAN);
     lv_obj_t *remote_status = lv_label_create(root);
     lv_obj_set_width(remote_status, lv_pct(100));
     lv_obj_set_style_text_color(remote_status, lv_color_hex(CYAN), 0);
-    lv_obj_set_style_text_font(remote_status, &redeti_font_16, 0);
-    lv_label_set_text(remote_status, "VPN: aguardando  |  SSH: inativo");
+    lv_obj_set_style_text_font(remote_status, redeti_text_font, 0);
+    safe_label_text(remote_status, "VPN: aguardando  |  SSH: inativo");
     lv_timer_t *remote_timer = lv_timer_create(remote_status_update, 2500, remote_status);
     remote_status_update(remote_timer);
     lv_obj_t *summary = lv_obj_create(root);
