@@ -18,7 +18,7 @@ docker run --rm --pull=missing \
   -w /project \
   archlinux:base-devel \
   bash -euc '
-    pacman -Sy --noconfirm --needed cmake ninja pkgconf libdrm json-c git python python-pillow nodejs npm ttf-dejavu
+    pacman -Sy --noconfirm --needed cmake ninja pkgconf libdrm libevdev json-c git python python-pillow nodejs npm ttf-dejavu
     /usr/bin/python3 -c "from PIL import Image"
     cmake -S /project/appliance/native -B /cache/lvgl -G Ninja -DCMAKE_BUILD_TYPE=Release -DPython3_EXECUTABLE=/usr/bin/python3
     cmake --build /cache/lvgl --parallel 2
