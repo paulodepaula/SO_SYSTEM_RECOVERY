@@ -61,6 +61,7 @@ class DashboardMVP(unittest.TestCase):
         self.assertIn('const int tile_width=(half-24-8)/2',DASHBOARD)
         self.assertIn('lv_obj_set_size(tile,tile_width,86)',DASHBOARD)
         self.assertIn('lv_label_set_long_mode(*status,LV_LABEL_LONG_WRAP)',DASHBOARD)
+        self.assertIn('value_font_size=tile_width>=220?16:14',DASHBOARD)
         self.assertIn('lv_obj_set_style_text_line_space(*status,1,0)',DASHBOARD)
         self.assertIn('bool stack_mid=mainw<900',DASHBOARD)
         for label in ('"Rede"','"SSH"','"VPN"','"Entrada"'):
