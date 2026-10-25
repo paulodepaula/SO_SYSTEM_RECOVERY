@@ -4,6 +4,7 @@
  * Prototype is NOT yet compiled or boot-validated against SystemRescue.
  */
 #include <lvgl/lvgl.h>
+#include "input.h"
 #include <json-c/json.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -155,6 +156,12 @@ static void lan_status_update(lv_timer_t *timer) {
     safe_label_text(widget, line);
     json_object_put(state);
 }
+/* Real interaction test; other diagnostic cards remain informational only. */
+static void input_test_clicked(lv_event_t *event)
+{
+    lv_obj_t *status = (lv_obj_t *)lv_event_get_user_data(event);
+    safe_label_text(status, "Entrada OK: clique ou Enter recebido no painel RedeTI.");
+}
 static void build_ui(lv_display_t *display, json_object *hardware) {
     int screen_width = lv_display_get_horizontal_resolution(display);
     if (screen_width < 360) screen_width = 360;
@@ -191,7 +198,7 @@ static void build_ui(lv_display_t *display, json_object *hardware) {
     lv_obj_set_style_text_color(headline, lv_color_hex(WHITE), 0);
     lv_obj_set_style_text_font(headline, &lv_font_montserrat_28, 0);
     label(name, "DIAGNOSTICO AUTOMATICO  |  SOMENTE LEITURA", CYAN);
-    label(root, "v0.5.3  |  Diagnóstico automático  |  SSH LAN + VPN", CYAN);
+    label(root, "v0.5.4  |  Diagnostico automatico  |  Mouse + teclado EVDEV", CYAN);
     lv_obj_t *remote_status = lv_label_create(root);
     lv_obj_set_width(remote_status, lv_pct(100));
     lv_obj_set_style_text_color(remote_status, lv_color_hex(CYAN), 0);
@@ -206,6 +213,30 @@ static void build_ui(lv_display_t *display, json_object *hardware) {
     safe_label_text(lan_status, "SSH LAN: iniciando | usuario: paulo");
     lv_timer_t *lan_timer = lv_timer_create(lan_status_update, 2500, lan_status);
     lan_status_update(lan_timer);
+
+    /* Dedicated input diagnostics, positioned before the inventory.
+     * Mouse click and keyboard Tab+Enter both produce a real response.
+     * Not-yet-implemented diagnosis cards remain non-interactive. */
+    lv_obj_t *input_status = lv_label_create(root);
+    lv_obj_set_width(input_status, lv_pct(100));
+    lv_obj_set_style_text_font(input_status, redeti_text_font, 0);
+    lv_obj_set_style_text_color(input_status, lv_color_hex(MUTED), 0);
+    safe_label_text(input_status, "Entrada: iniciando EVDEV");
+
+    lv_obj_t *test_button = lv_button_create(root);
+    lv_obj_set_size(test_button, 300, 38);
+    lv_obj_set_style_bg_color(test_button, lv_color_hex(0x245577), 0);
+    lv_obj_set_style_radius(test_button, 6, 0);
+    lv_obj_t *test_caption = lv_label_create(test_button);
+    safe_label_text(test_caption, "TESTAR MOUSE / TECLADO");
+    lv_obj_set_style_text_font(test_caption, redeti_text_font, 0);
+    lv_obj_center(test_caption);
+    lv_obj_add_event_cb(test_button, input_test_clicked, LV_EVENT_CLICKED, input_status);
+
+    lv_group_t *keyboard_group = lv_group_create();
+    lv_group_add_obj(keyboard_group, test_button);
+    lv_group_focus_obj(test_button);
+    redeti_input_start(display, keyboard_group, input_status);
     lv_obj_t *summary = lv_obj_create(root);
     panel(summary, PANEL);
     lv_obj_set_width(summary, lv_pct(100));
