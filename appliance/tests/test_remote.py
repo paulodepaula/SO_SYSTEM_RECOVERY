@@ -33,20 +33,21 @@ class RemoteBootstrapTests(unittest.TestCase):
                     ]}]
         self.assertEqual(len(module.candidates(devices)), 2)
 
-    def test_only_tailscale_ssh_is_enabled(self):
+    def test_tailscale_ssh_uses_paulo(self):
         code = (ROOT / "appliance/remote/start.sh").read_text()
         self.assertIn("useradd --create-home --user-group", code)
-        self.assertIn("passwd -l redeti", code)
-        self.assertIn("systemctl mask --runtime --now sshd.service", code)
+        self.assertIn("usermod --password '*' paulo", code)
+        self.assertNotIn("systemctl mask --runtime --now sshd.service", code)
         self.assertIn("--ssh --hostname", code)
         self.assertIn("--advertise-tags=tag:redeti-recovery", code)
-        self.assertIn("sshd.socket", code)
+        self.assertIn("useradd --create-home --user-group", code)
         self.assertIn('iptables -I INPUT 1 -i tailscale0', code)
         self.assertIn('-d "$ip/32" -p tcp --dport 22 -j ACCEPT', code)
         self.assertIn('status "firewall_blocked"', code)
         self.assertNotIn('iptables -P INPUT ACCEPT', code)
         self.assertNotIn('iptables -F', code)
         self.assertIn("--state=mem:", code)
+        self.assertIn('ssh_user":"paulo', code)
         self.assertIn("--auth-key=\"file:", code)
         self.assertNotIn("PasswordAuthentication yes", code)
         self.assertNotIn("PermitRootLogin yes", code)
@@ -72,7 +73,7 @@ class RemoteBootstrapTests(unittest.TestCase):
         self.assertIn("|| true", launch)
         self.assertIn("redeti-ui", launch)
         gui = (ROOT / "appliance/native/main.c").read_text()
-        self.assertIn('redeti@%s', gui)
+        self.assertIn('paulo@%s', gui)
         self.assertIn('remote-status.json', gui)
 
     def test_remote_scripts_shell_syntax(self):
