@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.20)
+project(redeti_recovery_appliance VERSION 0.5 LANGUAGES C)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+include(FetchContent)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(DRM REQUIRED IMPORTED_TARGET libdrm)
+pkg_check_modules(JSONC REQUIRED IMPORTED_TARGET json-c)
+
+# Reproducible upstream LVGL v9.6.0 revision; no floating master.
+set(LVGL_COMMIT "80ca777e37a2b176770726a02e07a6fb79ef0b39")
+set(LV_BUILD_CONF_PATH "${CMAKE_CURRENT_LIST_DIR}/lv_conf.h" CACHE FILEPATH "RedeTI LVGL config" FORCE)
+set(LV_BUILD_SET_CONFIG_OPTS ON CACHE BOOL "" FORCE)
+set(LV_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(LV_BUILD_DEMOS OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(lvgl GIT_REPOSITORY https://github.com/lvgl/lvgl.git GIT_TAG "${LVGL_COMMIT}" GIT_SHALLOW FALSE)
+FetchContent_MakeAvailable(lvgl)
+
+add_executable(redeti-ui main.c)
+target_link_libraries(redeti-ui PRIVATE lvgl::lvgl PkgConfig::DRM PkgConfig::JSONC)
+target_compile_options(redeti-ui PRIVATE -Wall -Wextra -Werror=implicit-function-declaration)
+install(TARGETS redeti-ui RUNTIME DESTINATION bin)
