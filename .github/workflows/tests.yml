@@ -21,5 +21,7 @@ jobs:
         run: python -m pytest -q
       - name: Validate Recovery OS launcher shell syntax
         run: bash -n boot_gui/build/launch.sh boot_gui/build/compose_iso.sh boot_gui/build/build-local.sh
+      - name: Check systemd service syntax
+        run: systemd-analyze verify boot_gui/systemd/redeti-cockpit.service
       - name: Test graphical Recovery OS backend (simulated inventory)
         run: python -m unittest discover -s boot_gui/tests -v
