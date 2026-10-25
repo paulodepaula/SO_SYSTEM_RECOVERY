@@ -306,6 +306,8 @@ static const char *ssh_key_reason(const char *token)
     if(strcmp(token,"installed")==0)return "Chave Ed25519 carregada do pendrive";
     if(strcmp(token,"waiting_usb")==0)return "USB nao encontrado: Ventoy/REDETI_CFG em FAT32/exFAT";
     if(strcmp(token,"usb_mount_failed")==0)return "Particao USB detectada, mas leitura falhou";
+    if(strcmp(token,"usb_device_busy")==0)return "Ventoy ocupado: verificando mapeamento USB compativel";
+    if(strcmp(token,"usb_filesystem_error")==0)return "Falha ao ler sistema de arquivos FAT/exFAT do USB";
     if(strcmp(token,"key_file_missing")==0)return "Falta REDETI/authorized_keys na particao USB";
     if(strcmp(token,"invalid_public_key")==0)return "Arquivo invalido: exige chave publica ssh-ed25519";
     return "Aguardando provisionamento por pendrive";
