@@ -10,6 +10,7 @@ mkdir -p "$work/cache" "$work/out"
 work="$(realpath -e -- "$work")"
 echo "Compiling LVGL v9.6 direct DRM/KMS (Arch container; no ISO)."
 docker run --rm --pull=missing \
+  --cpus 2 --memory 4g --pids-limit 256 \
   --network bridge \
   -v "$repo:/project:ro" \
   -v "$work/cache:/cache" \
