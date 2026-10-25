@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #define NAVY  0x102437
+extern const lv_image_dsc_t redeti_pd_logo;
 #define PANEL 0x1b3045
 #define CARD  0x233b51
 #define CYAN  0x59b2ea
@@ -77,8 +78,26 @@ static void build_ui(lv_display_t *display, json_object *hardware) {
     lv_obj_set_flex_flow(root, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_scroll_dir(root, LV_DIR_VER);
 
-    label(root, "PD  RedeTI Recovery OS                 SOMENTE LEITURA", WHITE);
-    label(root, "Central de diagnóstico  |  Reconhecimento automático", CYAN);
+    lv_obj_t *header = lv_obj_create(root);
+    panel(header, NAVY);
+    lv_obj_set_width(header, lv_pct(100));
+    lv_obj_set_height(header, 92);
+    lv_obj_set_flex_flow(header, LV_FLEX_FLOW_ROW);
+    lv_obj_set_style_pad_column(header, 18, 0);
+    lv_obj_t *mark = lv_image_create(header);
+    lv_image_set_src(mark, &redeti_pd_logo);
+    lv_obj_t *name = lv_obj_create(header);
+    panel(name, NAVY);
+    lv_obj_set_flex_grow(name, 1);
+    lv_obj_set_height(name, 76);
+    lv_obj_set_flex_flow(name, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_style_pad_row(name, 6, 0);
+    lv_obj_t *headline = lv_label_create(name);
+    lv_label_set_text(headline, "RedeTI Recovery OS");
+    lv_obj_set_style_text_color(headline, lv_color_hex(WHITE), 0);
+    lv_obj_set_style_text_font(headline, &lv_font_montserrat_28, 0);
+    label(name, "DIAGNOSTICO AUTOMATICO  |  SOMENTE LEITURA", CYAN);
+    label(root, "Central de diagnostico  |  Reconhecimento automatico", CYAN);
     lv_obj_t *summary = lv_obj_create(root);
     panel(summary, PANEL);
     lv_obj_set_width(summary, lv_pct(100));
