@@ -20,7 +20,7 @@ jobs:
       - name: Install build libraries (no display server)
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends build-essential cmake ninja-build pkg-config libdrm-dev libjson-c-dev git python3-pil nodejs npm fonts-dejavu-core
+          sudo apt-get install -y --no-install-recommends build-essential cmake ninja-build pkg-config libdrm-dev libevdev-dev libjson-c-dev git python3-pil nodejs npm fonts-dejavu-core
       - name: Compile LVGL DRM/KMS executable
         run: |
           /usr/bin/python3 -c 'from PIL import Image'
