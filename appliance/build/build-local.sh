@@ -25,6 +25,8 @@ if [ "${stored,,}" != "$computed" ]; then
   exit 4
 fi
 echo "Native ELF SHA256: OK"
+# Download once and then reuse small static VPN binaries. No secrets embedded.
+bash "$root/appliance/build/fetch-tailscale.sh"
 [ "$(df -Pk "$outdir" | awk 'NR==2 {print $4}')" -ge 8388608 ] || { echo "8 GiB free space required" >&2; exit 5; }
 stamp="$(date -u +%Y%m%dT%H%M%SZ)"
 iso="$outdir/RedeTI-Recovery-OS-appliance-$stamp.iso"
