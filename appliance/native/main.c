@@ -44,6 +44,8 @@ static void info_card(lv_obj_t *parent, const char *title, const char *text, int
     panel(card, CARD);
     lv_obj_set_width(card, width);
     lv_obj_set_height(card, 104);
+    lv_obj_set_flex_flow(card, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_style_pad_row(card, 8, 0);
     label(card, title, MUTED);
     label(card, text, WHITE);
 }
@@ -52,6 +54,8 @@ static void diagnostic_card(lv_obj_t *parent, const char *title, const char *sta
     panel(card, PANEL);
     lv_obj_set_width(card, width);
     lv_obj_set_height(card, 118);
+    lv_obj_set_flex_flow(card, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_style_pad_row(card, 10, 0);
     lv_obj_set_style_border_width(card, 1, 0);
     lv_obj_set_style_border_color(card, lv_color_hex(0x365269), 0);
     label(card, title, CYAN);
@@ -59,6 +63,7 @@ static void diagnostic_card(lv_obj_t *parent, const char *title, const char *sta
 }
 static void build_ui(lv_display_t *display, json_object *hardware) {
     int screen_width = lv_display_get_horizontal_resolution(display);
+    if (screen_width < 360) screen_width = 360;
     int cols = screen_width > 1000 ? 4 : (screen_width > 680 ? 2 : 1);
     int diagnostic_cols = screen_width > 1000 ? 3 : (screen_width > 680 ? 2 : 1);
     int col_width = (screen_width - 88 - 10 * (cols - 1)) / cols;
@@ -68,6 +73,7 @@ static void build_ui(lv_display_t *display, json_object *hardware) {
     lv_obj_set_style_radius(root, 0, 0);
     lv_obj_set_style_pad_all(root, 16, 0);
     lv_obj_set_style_pad_row(root, 14, 0);
+    lv_obj_set_style_text_font(root, &lv_font_montserrat_16, 0);
     lv_obj_set_flex_flow(root, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_scroll_dir(root, LV_DIR_VER);
 
@@ -124,6 +130,11 @@ int main(int argc, char **argv) {
     }
     lv_linux_drm_set_file(display, device, -1);
     lv_free(device);
+    if (!lv_display_get_horizontal_resolution(display)) {
+        fprintf(stderr, "RedeTI: DRM initialized without a usable display mode.\n");
+        json_object_put(hw);
+        return 5;
+    }
     build_ui(display, hw);
     json_object_put(hw);
     while (1) {
