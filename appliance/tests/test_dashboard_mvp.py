@@ -37,6 +37,23 @@ class DashboardMVP(unittest.TestCase):
         self.assertIn("lv_obj_remove_flag(b,LV_OBJ_FLAG_CLICKABLE)", DASHBOARD)
         self.assertIn("lv_obj_set_style_bg_color(b,lv_color_hex(0x10293f),LV_STATE_DISABLED)", DASHBOARD)
 
+    def test_premium_visuals_are_offline_and_native(self):
+        theme=(ROOT/"appliance/native/ui/theme.c").read_text()
+        art=(ROOT/"appliance/native/premium_assets.py").read_text()
+        self.assertIn("ui/theme.c",CMAKE)
+        self.assertIn("PREMIUM_SOURCE",CMAKE)
+        self.assertIn("render-mvp-1366x768",CMAKE)
+        for helper in ("redeti_theme_gradient", "redeti_theme_glow", "redeti_theme_active"):
+            self.assertIn(helper,theme)
+        self.assertIn("lv_image_set_src(illustration,&redeti_hero_laptop)",DASHBOARD)
+        self.assertIn("lv_image_set_scale(illustration,scale)",DASHBOARD)
+        self.assertIn("redeti_icon_home",DASHBOARD)
+        self.assertIn("lv_obj_set_style_image_recolor",DASHBOARD)
+        self.assertIn("LV_COLOR_FORMAT_ARGB8888",art)
+        self.assertIn("Image.Resampling.LANCZOS",art)
+        for forbidden in ("requests.get", "urllib.request", "http://", "https://", "mount(", "os.system"):
+            self.assertNotIn(forbidden,art)
+
     def test_real_state_and_no_placeholder_values(self):
         for source in ("hardware.json", "remote-status.json", "lan-ssh-status.json"):
             self.assertIn(source,MAIN+DASHBOARD)
