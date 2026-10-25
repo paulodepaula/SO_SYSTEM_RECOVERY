@@ -55,6 +55,21 @@ class DashboardMVP(unittest.TestCase):
         for forbidden in ("requests.get", "urllib.request", "http://", "https://", "mount(", "os.system"):
             self.assertNotIn(forbidden,art)
 
+    def test_status_panel_is_two_column_grid_with_readable_wrapping(self):
+        self.assertIn('lv_obj_t *statusgrid=box(system,C_PANEL,0,0)',DASHBOARD)
+        self.assertIn('flex(statusgrid,LV_FLEX_FLOW_ROW_WRAP,8)',DASHBOARD)
+        self.assertIn('const int tile_width=(half-24-8)/2',DASHBOARD)
+        self.assertIn('lv_obj_set_size(tile,tile_width,86)',DASHBOARD)
+        self.assertIn('lv_label_set_long_mode(*status,LV_LABEL_LONG_WRAP)',DASHBOARD)
+        self.assertIn('lv_obj_set_style_text_line_space(*status,1,0)',DASHBOARD)
+        self.assertIn('bool stack_mid=mainw<900',DASHBOARD)
+        for label in ('"Rede"','"SSH"','"VPN"','"Entrada"'):
+            self.assertIn('status_tile(statusgrid,tile_width',DASHBOARD)
+            self.assertIn(label,DASHBOARD)
+        self.assertNotIn('row_status(system,',DASHBOARD)
+        self.assertIn('have_lan?ip:"Sem conexao"',DASHBOARD)
+        self.assertIn('str(vpn,"vpn_ip")',DASHBOARD)
+
     def test_real_state_and_no_placeholder_values(self):
         for source in ("hardware.json", "remote-status.json", "lan-ssh-status.json"):
             self.assertIn(source,MAIN+DASHBOARD)
