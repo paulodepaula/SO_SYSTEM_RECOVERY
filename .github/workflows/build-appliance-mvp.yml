@@ -1,0 +1,66 @@
+name: Build RedeTI Recovery OS Appliance MVP ISO
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-appliance-mvp.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: redeti-appliance-mvp-iso
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install ISO tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends xorriso squashfs-tools curl ca-certificates file
+      - name: Validate code before expensive build
+        run: python3 -m unittest discover -s appliance/tests -v
+      - name: Compile native LVGL app inside isolated Arch Linux container
+        run: |
+          bash appliance/build/build-native-arch.sh
+          test -s "$HOME/RecoveryOS/native-build/out/redeti-ui"
+      - name: Download verified SystemRescue base
+        env:
+          ISO_URL: https://fastly-cdn.system-rescue.org/releases/13.02/systemrescue-13.02-amd64.iso
+          BASE_SHA256: ad4d670b72859d887c7960142a9a9d36a3e50446694a035e254442f65d6e7572
+        run: |
+          mkdir -p dist/base dist/out
+          curl --fail --location --retry 4 --retry-delay 10 --output dist/base/systemrescue-13.02-amd64.iso "$ISO_URL"
+          echo "$BASE_SHA256  dist/base/systemrescue-13.02-amd64.iso" | sha256sum --check --status
+      - name: Install upstream SystemRescue ISO customizer
+        run: |
+          curl --fail --location --retry 4 --retry-delay 5             'https://gitlab.com/systemrescue/systemrescue-sources/-/raw/main/airootfs/usr/share/sysrescue/bin/sysrescue-customize?inline=false'             --output /tmp/sysrescue-customize
+          test -s /tmp/sysrescue-customize
+          head -n 1 /tmp/sysrescue-customize | grep -q bash
+          sudo install -m 0755 /tmp/sysrescue-customize /usr/local/bin/sysrescue-customize
+      - name: Compose native Appliance ISO with optional VPN and SSH
+        run: |
+          bash appliance/build/build-local.sh             dist/base/systemrescue-13.02-amd64.iso dist/out
+          test "$(find dist/out -maxdepth 1 -name 'RedeTI-Recovery-OS-appliance-*.iso' | wc -l)" -eq 1
+      - name: Verify file integrity and boot media structure
+        run: |
+          cd dist/out
+          f="$(find . -maxdepth 1 -type f -name 'RedeTI-Recovery-OS-appliance-*.iso' -print -quit)"
+          test -s "$f"
+          sha256sum -c "$f.sha256"
+          xorriso -indev "$f" -ls /sysrescue.d
+          file "$f"
+          du -h "$f"
+      - name: Upload only latest lab ISO (expires after one day)
+        uses: actions/upload-artifact@v4
+        with:
+          name: RedeTI-Recovery-OS-appliance-MVP-v0.6.0
+          path: |
+            dist/out/RedeTI-Recovery-OS-appliance-*.iso
+            dist/out/RedeTI-Recovery-OS-appliance-*.iso.sha256
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
