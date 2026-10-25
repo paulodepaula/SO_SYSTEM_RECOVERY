@@ -1,0 +1,630 @@
+{
+  "schema": "redeti.recovery.assets-manifest.v1",
+  "description": "Planejamento de assets: somente logo existente; nenhum novo icon/hero/background esta implementado ainda",
+  "licensePolicy": "Nao incorporar capturas, logos de terceiros nem imagens sem proveniencia/licenca; manter originals e creditos",
+  "buildPolicy": "Converter SVG/PNG para assets LVGL 9 no build; sem download em runtime, sem X11",
+  "assets": [
+    {
+      "id": "logo-pd",
+      "kind": "logo",
+      "source": "assets/logo-paulo.svg",
+      "status": "available",
+      "size": [
+        160,
+        160
+      ],
+      "target": [
+        72,
+        72
+      ],
+      "runtime": "RGB565",
+      "license": "Arte ja presente no projeto; confirmar titularidade",
+      "required": true
+    },
+    {
+      "id": "background-starfield",
+      "kind": "background",
+      "source": null,
+      "status": "to-create",
+      "size": [
+        1920,
+        1080
+      ],
+      "target": "canvas fitted",
+      "runtime": "RGB565",
+      "required": true,
+      "notes": "Azul-noite estrelado, leve halo ciano, sem texto; arte original"
+    },
+    {
+      "id": "hero-laptop",
+      "kind": "illustration",
+      "source": null,
+      "status": "to-create",
+      "size": [
+        650,
+        320
+      ],
+      "target": [
+        520,
+        235
+      ],
+      "runtime": "ARGB8888",
+      "required": true,
+      "notes": "Notebook 3/4 isolado com display azul ondulado, transparente; arte original fiel a composicao"
+    },
+    {
+      "id": "hero-glow",
+      "kind": "overlay",
+      "source": null,
+      "status": "optional",
+      "size": [
+        640,
+        270
+      ],
+      "target": [
+        500,
+        230
+      ],
+      "runtime": "ARGB8888",
+      "required": false,
+      "notes": "Reflexos ciano pre-renderizados, leve e sem animacao"
+    },
+    {
+      "id": "menu-active-glow",
+      "kind": "overlay",
+      "source": null,
+      "status": "optional",
+      "size": [
+        230,
+        52
+      ],
+      "target": [
+        230,
+        52
+      ],
+      "runtime": "ARGB8888/style",
+      "required": false,
+      "notes": "Fundo azul luminoso discreto ao item ativo"
+    },
+    {
+      "id": "nav-home",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "house",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "nav-diagnostic",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "zap",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "nav-disk",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "database",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "nav-smart",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "chart-no-axes-combined",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "nav-efi",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "cpu",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "nav-windows",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "panels-top-left",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "nav-network",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "globe",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "nav-hardware",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "monitor",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "nav-logs",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "file-text",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "nav-settings",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "settings",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "nav-about",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "info",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "nav-power",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "power",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "top-lan",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "wifi",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "top-ssh",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "lock-keyhole",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "top-vpn",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "shield-check",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "hero-readonly",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "book-open-check",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "hero-secure",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "shield-check",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "hero-fast",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "zap",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "hero-start",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "play",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "hero-input",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "keyboard",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "stat-cpu",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "cpu",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "stat-ram",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "memory-stick",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "stat-firmware",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "microchip",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "stat-disk",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "hard-drive",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "action-diagnostic",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "search-check",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "action-hardware",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "monitor",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "action-disk",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "hard-drive",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "action-repair",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "wrench",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "action-backup",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "file-copy",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "action-report",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "file-output",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "module-disk",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "hard-drive",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "module-smart",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "trending-up",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "module-efi",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "cpu",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "module-windows",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "panels-top-left",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "module-registry",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "box",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    },
+    {
+      "id": "module-report",
+      "kind": "icon",
+      "source": null,
+      "status": "to-source",
+      "semantic": "file-text",
+      "sourceFamily": "SVG vector collection; pin version",
+      "license": "verify before distribution; record attribution",
+      "size": [
+        24,
+        24
+      ],
+      "runtime": "LVGL compiled raster/recolor",
+      "required": true
+    }
+  ]
+}
