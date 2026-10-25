@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../ui/dashboard.h"
+#include "../ui/assets.h"
 
 static unsigned rendered;
 static void flush(lv_display_t *d, const lv_area_t *area, uint8_t *pixels)
@@ -22,6 +23,11 @@ int main(int argc, char **argv)
     int height=argc>2?atoi(argv[2]):720;
     if(width<900||width>1920||height<720||height>1080) return 2;
 
+    /* Catch stale procedural assets before certifying a new appliance. */
+    if(redeti_hero_laptop.header.w!=380 || redeti_hero_laptop.header.h!=197) {
+        fprintf(stderr,"Wrong hero asset dimensions; rebuild generated LVGL images.\\n");
+        return 7;
+    }
     lv_init();
     lv_display_t *d=lv_display_create(width,height);
     if(!d) return 3;
