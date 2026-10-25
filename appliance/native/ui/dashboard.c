@@ -5,6 +5,7 @@
  * LVGL primitives (first MVP, no external/unlicensed photos).
  */
 #include "dashboard.h"
+#include "theme.h"
 #include "../input.h"
 #include <stdio.h>
 #include <stdint.h>
@@ -114,6 +115,7 @@ static lv_obj_t *badge_icon(lv_obj_t *parent,const char *icon,uint32_t color)
     lv_obj_t *b=box(parent,0x0a3454,10,1);
     lv_obj_set_size(b,46,46);
     lv_obj_set_style_border_color(b,lv_color_hex(color),0);
+    redeti_theme_gradient(b,0x0b3a5b,0x061e3a);
     lv_obj_t *s=symbol(b,icon,color,25);
     lv_obj_center(s);
     return b;
@@ -164,6 +166,7 @@ static void clicked_network(lv_event_t *e)
 static void style_button(lv_obj_t *b,uint32_t base)
 {
     bg(b,base,10,1);
+    redeti_theme_gradient(b,base,base==C_ACTIVE?0x063568:0x091c30);
     lv_obj_set_style_border_color(b,lv_color_hex(0x1c72ac),0);
     lv_obj_set_style_outline_color(b,lv_color_hex(C_CYAN),LV_STATE_FOCUSED);
     lv_obj_set_style_outline_width(b,2,LV_STATE_FOCUSED);
@@ -191,6 +194,7 @@ static lv_obj_t *button(lv_obj_t *parent,const char *caption,const char *glyph,
         lv_obj_set_style_bg_color(b,lv_color_hex(0x10293f),LV_STATE_DISABLED);
         lv_obj_set_style_bg_opa(b,LV_OPA_COVER,LV_STATE_DISABLED);
         lv_obj_set_style_border_color(b,lv_color_hex(C_BORDER),LV_STATE_DISABLED);
+        lv_obj_set_style_opa(b,LV_OPA_COVER,LV_STATE_DISABLED);
     }
     return b;
 }
@@ -198,6 +202,7 @@ static lv_obj_t *status_chip(lv_obj_t *parent,const char *glyph,const char *capt
 {
     lv_obj_t *chip=box(parent,0x061b31,10,1);
     lv_obj_set_size(chip,width,64);
+    redeti_theme_card(chip,0x082b49,0x05182f);
     lv_obj_set_style_pad_all(chip,6,0);
     flex(chip,LV_FLEX_FLOW_ROW,8);
     lv_obj_set_flex_align(chip,LV_FLEX_ALIGN_START,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_START);
@@ -294,6 +299,7 @@ static void header(lv_obj_t *root,int width)
 {
     lv_obj_t *h=box(root,C_HEADER,0,0);
     lv_obj_set_size(h,width,92);
+    redeti_theme_gradient(h,0x052248,0x00132c);
     lv_obj_set_style_pad_left(h,20,0);
     lv_obj_set_style_pad_right(h,20,0);
     flex(h,LV_FLEX_FLOW_ROW,18);
@@ -332,6 +338,7 @@ static void nav_item(lv_obj_t *side,const char *name,const char *glyph,
     lv_obj_set_width(b,lv_pct(100));
     lv_obj_set_height(b,46);
     style_button(b,active?C_ACTIVE:C_SIDE);
+    if(active)redeti_theme_active(b);
     if(!active)lv_obj_set_style_border_width(b,0,0);
     lv_obj_set_style_pad_left(b,10,0);
     lv_obj_set_style_pad_right(b,10,0);
@@ -350,6 +357,7 @@ static void nav_item(lv_obj_t *side,const char *name,const char *glyph,
 static void sidebar(lv_obj_t *side,bool compact)
 {
     lv_obj_set_style_pad_all(side,10,0);
+    redeti_theme_gradient(side,0x0b263e,0x061427);
     flex(side,LV_FLEX_FLOW_COLUMN,7);
     nav_item(side,"Inicio",LV_SYMBOL_HOME,true,compact,clicked_home);
     nav_item(side,"Diagnostico",LV_SYMBOL_LIST,false,compact,clicked_details);
@@ -373,6 +381,8 @@ static void hero(lv_obj_t *content,int width,bool notebook)
     lv_obj_set_width(area,lv_pct(100));
     lv_obj_set_height(area,245);
     lv_obj_set_style_border_color(area,lv_color_hex(0x09598e),0);
+    redeti_theme_gradient(area,0x0a3260,0x01172f);
+    redeti_theme_glow(area,0x008ce8,38);
     lv_obj_set_style_pad_all(area,22,0);
     flex(area,LV_FLEX_FLOW_ROW,12);
     stars(area,width,240);
@@ -404,6 +414,7 @@ static void data_card(lv_obj_t *row,int width,const char *glyph,uint32_t tint,
     lv_obj_t *card=box(row,C_CARD,14,1);
     lv_obj_set_size(card,width,147);
     lv_obj_set_style_pad_all(card,16,0);
+    redeti_theme_card(card,0x1b3955,0x0d233a);
     flex(card,LV_FLEX_FLOW_COLUMN,6);
     lv_obj_t *r=box(card,C_CARD,0,0);
     lv_obj_set_style_bg_opa(r,LV_OPA_TRANSP,0);
@@ -440,6 +451,7 @@ static lv_obj_t *section(lv_obj_t *parent,const char *title,int height)
     lv_obj_t *o=box(parent,C_PANEL,14,1);
     lv_obj_set_height(o,height);
     lv_obj_set_style_pad_all(o,12,0);
+    redeti_theme_card(o,0x0e2b46,0x071b30);
     flex(o,LV_FLEX_FLOW_COLUMN,8);
     txt(o,title,16,C_WHITE);
     return o;
@@ -449,6 +461,7 @@ static void module_item(lv_obj_t *parent,int width,const char *glyph,
 {
     lv_obj_t *m=box(parent,0x102c46,10,1);
     lv_obj_set_size(m,width,69);
+    redeti_theme_gradient(m,0x163651,0x0b273e);
     lv_obj_set_style_pad_all(m,9,0);
     flex(m,LV_FLEX_FLOW_ROW,9);
     lv_obj_set_flex_align(m,LV_FLEX_ALIGN_START,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_CENTER);
