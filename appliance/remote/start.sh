@@ -13,20 +13,20 @@ chmod 0700 "$base"
 
 status() {
   # Only fixed strings and validated IPv4 addresses are accepted below.
-  printf '{"state":"%s","ssh_user":"redeti","vpn_ip":"%s"}\n' "$1" "${2:-}" > "$base/remote-status.json.tmp"
+  printf '{"state":"%s","ssh_user":"paulo","vpn_ip":"%s"}\n' "$1" "${2:-}" > "$base/remote-status.json.tmp"
   chmod 0644 "$base/remote-status.json.tmp"
   mv -f "$base/remote-status.json.tmp" "$base/remote-status.json"
 }
 
 status "starting"
 trap 'status "bootstrap_failed"' ERR
-# Do not expose the preinstalled SystemRescue OpenSSH daemon on LAN.
-systemctl mask --runtime --now sshd.service sshd.socket >/dev/null 2>&1 || true
-if ! id redeti >/dev/null 2>&1; then
-  useradd --create-home --user-group --shell /usr/bin/bash redeti
+# Stock sshd remains masked: LAN SSH uses a separate hardened transient daemon.
+# Create the same fixed user in case VPN startup precedes the LAN bootstrap.
+if ! id paulo >/dev/null 2>&1; then
+  useradd --create-home --user-group --shell /usr/bin/bash --password '*' paulo
 fi
-# The Tailscale SSH policy authenticates users. No password-based fallback.
-passwd -l redeti >/dev/null 2>&1 || true
+# Password login is impossible; Tailscale authorizes the remote identity.
+usermod --password '*' paulo
 
 if [ ! -x "$ts" ] || [ ! -x "$daemon" ]; then
   status "vpn_binary_missing"
