@@ -12,7 +12,19 @@ expected="ad4d670b72859d887c7960142a9a9d36a3e50446694a035e254442f65d6e7572"
 [ "$(sha256sum "$base" | cut -d ' ' -f 1)" = "$expected" ] || { echo "Invalid ISO base checksum" >&2; exit 3; }
 ui="${REDETI_APPLIANCE_WORK:-$HOME/RecoveryOS/native-build}/out/redeti-ui"
 [ -s "$ui" ] && [ -f "$ui.sha256" ] || { echo "Native ELF not yet built" >&2; exit 4; }
-(cd -- "$(dirname -- "$ui")" && sha256sum -c "$(basename -- "$ui").sha256")
+# Accept both the old Docker '/out/redeti-ui' and new portable sidecars.
+# Verify the digest against the exact ELF path on Hermes, never the name in sidecar.
+stored="$(awk 'NR==1 {print $1}' "$ui.sha256")"
+if [[ ! "$stored" =~ ^[0-9a-fA-F]{64}$ ]]; then
+  echo "Invalid ELF checksum sidecar" >&2
+  exit 4
+fi
+computed="$(sha256sum -- "$ui" | cut -d ' ' -f1)"
+if [ "${stored,,}" != "$computed" ]; then
+  echo "Native ELF checksum mismatch" >&2
+  exit 4
+fi
+echo "Native ELF SHA256: OK"
 [ "$(df -Pk "$outdir" | awk 'NR==2 {print $4}')" -ge 8388608 ] || { echo "8 GiB free space required" >&2; exit 5; }
 stamp="$(date -u +%Y%m%dT%H%M%SZ)"
 iso="$outdir/RedeTI-Recovery-OS-appliance-$stamp.iso"
