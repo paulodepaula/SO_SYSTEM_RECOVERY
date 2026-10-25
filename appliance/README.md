@@ -121,3 +121,14 @@ sha256sum -c redeti-ui.sha256
 ```
 
 A compilacao da ISO ainda exige o teste separado de boot DRM/KMS no QEMU; sucesso de checksum nao equivale a homologacao de boot.
+
+
+## Acesso remoto SSH + VPN (próxima ISO experimental)
+
+A integração de **Tailscale SSH** está preparada na pasta [remote/](remote/README.md), com usuário fixo **`redeti`**, sem senha e sem `sudo` automático. Não existe login remoto aberto na LAN. Durante o boot, o serviço verifica se há uma chave efêmera de provisionamento em um pendrive FAT/exFAT explicitamente rotulado `Ventoy` ou `REDETI_CFG`, no arquivo `REDETI/ts-authkey`. O dispositivo interno do cliente nunca é pesquisado para credenciais.
+
+Sem chave autorizada ou rede, a interface funciona normalmente, mas a VPN/SSH ficam inativos. Depois de conectar, a interface exibe `VPN: conectada | SSH: redeti@100.x.x.x`. A ISO nunca inclui uma chave VPN e o estado do Tailscale é mantido em RAM.
+
+O construtor `appliance/build/build-local.sh` baixa, uma vez, a versão estática fixa do Tailscale de seu distribuidor HTTPS oficial, mantém o cache em `~/RecoveryOS/native-build/out` e inclui a ferramenta no SRM. Isso aumenta o tamanho da ISO em relação à versão sem acesso remoto, mas não cria ISOs extras. A limpeza das ISOs anteriores só ocorre depois da homologação de uma nova imagem.
+
+**Leia [o guia de provisionamento e políticas Tailscale](remote/README.md) antes de usar no campo.** Essa integração ainda precisa ser testada em QEMU com rede virtual, chave efêmera de laboratório, ACL restritiva e confirmação de que o IP LAN não aceita SSH. Nenhuma credencial real foi criada ou adicionada ao repositório.
