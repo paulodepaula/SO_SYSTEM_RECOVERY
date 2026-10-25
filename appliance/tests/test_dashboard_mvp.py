@@ -87,8 +87,17 @@ class DashboardMVP(unittest.TestCase):
         self.assertIn('message(FATAL_ERROR "Recovery UI source revision must be a complete 40-character Git SHA")',CMAKE)
         self.assertNotIn('set(REDETI_BUILD_REV "unknown")',CMAKE)
         self.assertIn('target_compile_definitions(redeti-ui PRIVATE REDETI_BUILD_REV=',CMAKE)
-        self.assertIn('txt(ver,REDETI_BUILD_REV,14,C_CYAN)',DASHBOARD)
+        self.assertIn('txt(ver,REDETI_APP_VERSION,16,C_WHITE)',DASHBOARD)
+        self.assertIn('txt(ver,REDETI_BUILD_TAG,14,C_CYAN)',DASHBOARD)
+        self.assertIn('txt(ver,REDETI_BUILD_REV,14,C_MUTED)',DASHBOARD)
         self.assertNotIn('txt(ver,"DRM",14,C_CYAN)',DASHBOARD)
+        self.assertNotIn('txt(ver,"v0.6.0"',DASHBOARD)
+        self.assertNotIn('#define REDETI_BUILD_REV "unknown"',DASHBOARD)
+        self.assertIn('project(redeti_recovery_appliance VERSION 0.6.0 LANGUAGES C)',CMAKE)
+        self.assertIn('string(TIMESTAMP REDETI_BUILD_UTC "%y%m%d-%H%M%S" UTC)',CMAKE)
+        self.assertIn('REDETI_BUILD_TAG="\u0024{REDETI_BUILD_TAG}"',CMAKE)
+        self.assertIn('REDETI_APP_VERSION="v\u0024{PROJECT_VERSION}"',CMAKE)
+        self.assertIn('lv_obj_set_size(ver,140,70)',DASHBOARD)
 
     def test_hero_uses_pinned_user_png_and_one_embedded_symbol(self):
         import hashlib
