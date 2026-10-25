@@ -5,10 +5,6 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 include(FetchContent)
 find_package(PkgConfig REQUIRED)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
-find_program(NPM_EXECUTABLE NAMES npm REQUIRED)
-find_file(REDETI_FONT_TTF NAMES DejaVuSans.ttf
-  PATHS /usr/share/fonts/TTF /usr/share/fonts/truetype/dejavu
-  REQUIRED)
 pkg_check_modules(DRM REQUIRED IMPORTED_TARGET libdrm)
 pkg_check_modules(JSONC REQUIRED IMPORTED_TARGET json-c)
 
@@ -30,21 +26,9 @@ add_custom_command(
           "${CMAKE_CURRENT_LIST_DIR}/../../assets/logo-paulo.svg"
   COMMENT "Converting original PD logo to native LVGL RGB565"
 )
-# Stock Montserrat fonts only cover ASCII. Generate a compact UTF-8 font
-# with Latin-1 accents for Brazilian Portuguese, compiled inside the executable.
-# Use standard LVGL converter (version pinned) rather than relying on OS fonts at boot.
-set(PTBR_FONT_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/redeti_font_16.c")
-add_custom_command(
-  OUTPUT "${PTBR_FONT_SOURCE}"
-  COMMAND "${NPM_EXECUTABLE}" exec --yes --package=lv_font_conv@1.5.3 -- lv_font_conv
-    --font "${REDETI_FONT_TTF}"
-    --range 0x20-0xFF --size 16 --bpp 4 --format lvgl
-    --lv-font-name redeti_font_16 --lv-include lvgl/lvgl.h
-    --output "${PTBR_FONT_SOURCE}"
-  DEPENDS "${REDETI_FONT_TTF}"
-  COMMENT "Generating built-in Brazilian Portuguese glyphs using lv_font_conv@1.5.3"
-)
-add_executable(redeti-ui main.c "${LOGO_SOURCE}" "${PTBR_FONT_SOURCE}")
+# The verified Montserrat built-in font avoids LVGL 8/9 generated font ABI mismatch.
+# The UI transliterates accented strings until a visually tested LVGL 9 font exists.
+add_executable(redeti-ui main.c "${LOGO_SOURCE}")
 target_link_libraries(redeti-ui PRIVATE lvgl::lvgl PkgConfig::DRM PkgConfig::JSONC)
 target_compile_options(redeti-ui PRIVATE -Wall -Wextra -Werror=implicit-function-declaration)
 install(TARGETS redeti-ui RUNTIME DESTINATION bin)
