@@ -31,7 +31,7 @@ class DashboardMVP(unittest.TestCase):
 
     def test_mid_size_display_keeps_laptop_and_short_vpn_status(self):
         self.assertIn("hero(content,mainw,mainw>=900)", DASHBOARD)
-        self.assertIn("width>=1180?420:275", DASHBOARD)
+        self.assertIn("width>=1180?420:width>=960?340:275", DASHBOARD)
         self.assertIn('?"Online":', DASHBOARD)
         self.assertIn('"Sem VPN"', DASHBOARD)
         self.assertIn("lv_obj_remove_flag(b,LV_OBJ_FLAG_CLICKABLE)", DASHBOARD)
@@ -79,6 +79,13 @@ class DashboardMVP(unittest.TestCase):
         self.assertIn('status_indicator(s_status_vpn_dot,vpn_ready?C_MINT',DASHBOARD)
         self.assertIn('redeti_input_start(display,s_group,s_input_state,s_input_detail,s_input_dot)',DASHBOARD)
         self.assertNotIn('192.168.1.100',DASHBOARD)
+
+    def test_dashboard_exposes_source_revision_for_qemu_homologation(self):
+        self.assertIn('REDETI_BUILD_REV',CMAKE)
+        self.assertIn('git rev-parse --short=8 HEAD',CMAKE)
+        self.assertIn('target_compile_definitions(redeti-ui PRIVATE REDETI_BUILD_REV=',CMAKE)
+        self.assertIn('txt(ver,REDETI_BUILD_REV,14,C_CYAN)',DASHBOARD)
+        self.assertNotIn('txt(ver,"DRM",14,C_CYAN)',DASHBOARD)
 
     def test_hero_uses_pinned_user_png_and_one_embedded_symbol(self):
         import hashlib
