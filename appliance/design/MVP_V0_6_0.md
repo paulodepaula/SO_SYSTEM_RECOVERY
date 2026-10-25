@@ -60,3 +60,10 @@ ls -lh ~/RecoveryOS/out/RedeTI-Recovery-OS-appliance-*.iso
 ```
 
 **Atenção:** esses comandos só devem ser executados após a compilação CI ser aprovada. A nova ISO será experimental até o teste visual. Não apagar ISO anteriormente homologada antes de testar a nova. O construtor de Appliance preserva imagens anteriores enquanto isso.
+
+## Construcao isolada da ISO no GitHub (sem usar o Hermes)
+
+O fluxo [Build RedeTI Recovery OS Appliance MVP ISO](../../.github/workflows/build-appliance-mvp.yml) monta uma unica imagem nativa a partir do mesmo builder do Hermes, em ambiente Linux temporario, com ISO-base validada por SHA-256, executavel LVGL compilado em Arch e recursos de VPN/SSH. Nao distribui credenciais. O artifact e retido por **apenas um dia**, para evitar acumular grandes imagens. A propria criacao inicial do workflow dispara um build; os futuros builds sao manuais em Actions → Run workflow.
+
+**Nao confundir build de ISO com boot homologado.** Depois de o job concluir, baixe o artifact ZIP, extraia a ISO e seu checksum, valide o SHA-256 e teste no QEMU sem disco real. A tela deve exibir v0.6.0 e os controles de mouse/teclado devem responder.
+
