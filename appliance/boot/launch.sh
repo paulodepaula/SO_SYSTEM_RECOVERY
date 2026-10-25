@@ -26,5 +26,16 @@ if command -v systemd-run >/dev/null 2>&1; then
     /usr/bin/bash /opt/redeti-appliance/remote/start.sh \
     >> /run/redeti/appliance.log 2>&1 || true
 fi
-printf '%s\n' "RedeTI: abrindo interface DRM/KMS" >> /run/redeti/appliance.log
-exec /opt/redeti-appliance/bin/redeti-ui /run/redeti/hardware.json
+printf '%s\\n' "RedeTI: abrindo interface DRM/KMS" >> /run/redeti/appliance.log
+# Capture native crashes (including SIGSEGV/ABI loader failures) in RAM.
+# Never conceal the error behind a bare SystemRescue login prompt.
+if /opt/redeti-appliance/bin/redeti-ui /run/redeti/hardware.json >> /run/redeti/ui.log 2>&1; then
+  echo "RedeTI: UI finished normally" >> /run/redeti/appliance.log
+else
+  code=$?
+  echo "$code" > /run/redeti/ui.exit
+  echo "RedeTI: Falha na interface nativa, status $code." | tee -a /run/redeti/appliance.log >&2
+  tail -n 35 /run/redeti/ui.log >&2 || true
+  echo "Consulte: /run/redeti/ui.log e /var/log/sysrescue-autorun.log" >&2
+  exit "$code"
+fi
