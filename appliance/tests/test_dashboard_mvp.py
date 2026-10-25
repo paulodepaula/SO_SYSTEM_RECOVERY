@@ -152,6 +152,20 @@ class DashboardMVP(unittest.TestCase):
         self.assertIn("paulo@%s",DASHBOARD)
         self.assertIn('Nenhum reparo foi executado',DASHBOARD)
 
+    def test_rede_menu_exposes_safe_ssh_diagnostics_without_shell(self):
+        self.assertIn('s_ssh_diagnostics_panel=section(content,"Rede | Diagnostico SSH",166)',DASHBOARD)
+        self.assertIn('lv_obj_scroll_to_view(s_ssh_diagnostics_panel,LV_ANIM_ON)',DASHBOARD)
+        self.assertIn('ssh_key_reason(str(lan,"key_reason"))',DASHBOARD)
+        self.assertIn('read_ssh_public_fingerprint(fingerprint,sizeof fingerprint)',DASHBOARD)
+        self.assertIn('fopen("/run/redeti/ssh/host_fingerprint","r")',DASHBOARD)
+        self.assertIn('strstr(line,"SHA256:")',DASHBOARD)
+        self.assertIn('Somente leitura | chave privada nunca e exibida',DASHBOARD)
+        for token in ('"waiting_usb"','"usb_mount_failed"','"key_file_missing"',
+                      '"invalid_public_key"','"installed"'):
+            self.assertIn(token,DASHBOARD)
+        self.assertNotIn('fopen("/run/redeti/ssh/ssh_host_ed25519_key"',DASHBOARD)
+        self.assertNotIn('"/home/paulo/.ssh/authorized_keys","r"',DASHBOARD)
+
     def test_navigation_has_actual_callbacks(self):
         for method in ("clicked_test", "clicked_details","clicked_home",
                        "clicked_network","lv_obj_scroll_to_view",
