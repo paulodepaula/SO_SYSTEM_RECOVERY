@@ -26,6 +26,7 @@ jobs:
           /usr/bin/python3 -c 'from PIL import Image'
           cmake -S appliance/native -B /tmp/redeti-appliance-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPython3_EXECUTABLE=/usr/bin/python3
           cmake --build /tmp/redeti-appliance-build --parallel 2
+          ctest --test-dir /tmp/redeti-appliance-build --output-on-failure
           file /tmp/redeti-appliance-build/redeti-ui
           ldd /tmp/redeti-appliance-build/redeti-ui
       - name: Fail closed without hardware evidence
