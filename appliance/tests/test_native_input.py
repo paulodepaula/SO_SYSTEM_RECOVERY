@@ -35,17 +35,17 @@ class NativeInputTests(unittest.TestCase):
         self.assertNotIn('"/dev/input/event0"', source)
 
     def test_real_interactive_button_and_keyboard_group(self):
-        main = (ROOT / "appliance/native/main.c").read_text()
-        for expected in ("lv_button_create(root)", "LV_EVENT_CLICKED",
-                         "lv_group_add_obj(keyboard_group, test_button)",
-                         "lv_group_focus_obj(test_button)",
-                         "redeti_input_start(display, keyboard_group, input_status)",
-                         "TESTAR MOUSE / TECLADO", "v0.5.4"):
+        main = (ROOT / "appliance/native/ui/dashboard.c").read_text()
+        for expected in ("lv_button_create(parent)", "LV_EVENT_CLICKED",
+                         "lv_group_add_obj(s_group,b)",
+                         "redeti_input_start(display,s_group,s_input_state)",
+                         "redeti_input_start(display,s_group,s_input_state)",
+                         "TESTAR ENTRADA", "v0.6.0"):
             self.assertIn(expected, main)
         self.assertIn("Entrada OK: clique ou Enter", main)
 
     def test_diagnostics_remain_read_only(self):
-        main = (ROOT / "appliance/native/main.c").read_text()
+        main = (ROOT / "appliance/native/ui/dashboard.c").read_text()
         self.assertIn("Nenhum reparo foi executado", main)
         self.assertNotIn("system(", main)
 
