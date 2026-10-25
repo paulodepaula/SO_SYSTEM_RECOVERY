@@ -1,5 +1,11 @@
 # RedeTI Recovery OS — Linha Appliance (sem desktop Linux)
 
+## Primeiro MVP visual v0.6.0
+
+O código do dashboard nativo foi implementado em [native/ui/dashboard.c](native/ui/dashboard.c), com a especificação, limitações e roteiro de homologação em [design/MVP_V0_6_0.md](design/MVP_V0_6_0.md). Ele contém topbar com logo PD e status LAN/SSH/VPN reais, menu lateral, hero escuro estrelado com notebook LVGL, quatro indicadores de hardware, painel de status/ações, seis módulos e inventário de discos/partições. Mouse/teclado EVDEV e boot direto DRM foram preservados.
+
+**Limites atuais:** notebook ilustrado por primitivas em vez de arte fotográfica, ícones LVGL incorporados em vez de biblioteca de SVG próprios, fonte sem acentos usando fallback seguro. SMART, EFI/BCD, registro, reparo e relatório técnico não são anunciados como implementados nem executam ações. O MVP de código não equivale a ISO homologada: executar a compilação C e testes no GitHub, depois gerar somente uma ISO experimental no Hermes e validar visualmente no QEMU.
+
 ## Interface visual premium — especificação V1
 
 A tela inicial tem agora uma **especificação visual detalhada e mensurável**, baseada na captura 1589×990 enviada como referência. O trabalho foi especificado **sem modificar o executável ou gerar outra ISO**:
