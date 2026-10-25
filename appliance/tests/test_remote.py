@@ -72,7 +72,7 @@ class RemoteBootstrapTests(unittest.TestCase):
         self.assertIn("--unit=redeti-remote", launch)
         self.assertIn("|| true", launch)
         self.assertIn("redeti-ui", launch)
-        gui = (ROOT / "appliance/native/main.c").read_text()
+        gui = (ROOT / "appliance/native/ui/dashboard.c").read_text()
         self.assertIn('paulo@%s', gui)
         self.assertIn('remote-status.json', gui)
 
