@@ -29,9 +29,17 @@ static lv_obj_t *s_lan;
 static lv_obj_t *s_ssh;
 static lv_obj_t *s_vpn;
 static lv_obj_t *s_status_lan;
+static lv_obj_t *s_status_lan_detail;
+static lv_obj_t *s_status_lan_dot;
 static lv_obj_t *s_status_ssh;
+static lv_obj_t *s_status_ssh_detail;
+static lv_obj_t *s_status_ssh_dot;
 static lv_obj_t *s_status_vpn;
+static lv_obj_t *s_status_vpn_detail;
+static lv_obj_t *s_status_vpn_dot;
 static lv_obj_t *s_input_state;
+static lv_obj_t *s_input_detail;
+static lv_obj_t *s_input_dot;
 static lv_obj_t *s_details;
 static lv_obj_t *s_overview;
 
@@ -253,6 +261,11 @@ static lv_obj_t *status_chip(lv_obj_t *parent,const char *glyph,const char *capt
     lv_obj_set_width(*result,lv_pct(100));
     return chip;
 }
+/* A coloured dot signals a measured state, never a mocked connection. */
+static void status_indicator(lv_obj_t *dot,uint32_t color)
+{
+    if(dot)lv_obj_set_style_bg_color(dot,lv_color_hex(color),0);
+}
 static void update_connections(lv_timer_t *timer)
 {
     (void)timer;
@@ -271,17 +284,26 @@ static void update_connections(lv_timer_t *timer)
     }
     if(s_vpn)set_text(s_vpn,strcmp(vpn_state,"connected")==0?"Online":
                            strcmp(vpn_state,"connecting")==0?"Conectando":"Sem VPN");
-    /* Labels now live above values in the status tiles: avoid duplicate prefixes. */
-    if(s_status_lan)set_text(s_status_lan,have_lan?ip:"Sem conexao");
-    if(s_status_ssh) {
-        char address[80];
-        snprintf(address,sizeof address,"paulo@%s",ip);
-        set_text(s_status_ssh,strcmp(lan_state,"ready")==0?address:
-                 have_lan?"Aguardando chave":"Protegido / sem chave");
-    }
-    if(s_status_vpn)set_text(s_status_vpn,strcmp(vpn_state,"connected")==0?
-            str(vpn,"vpn_ip"):strcmp(vpn_state,"connecting")==0?
-            "Conectando":"Nao provisionada");
+    /* Four rows, three columns: source | verified state | detail. */
+    bool ssh_ready=strcmp(lan_state,"ready")==0;
+    bool vpn_ready=strcmp(vpn_state,"connected")==0;
+    bool vpn_connecting=strcmp(vpn_state,"connecting")==0;
+    if(s_status_lan)set_text(s_status_lan,have_lan?"Conectada (LAN)":"Sem rede");
+    if(s_status_lan_detail)set_text(s_status_lan_detail,have_lan?ip:"-");
+    status_indicator(s_status_lan_dot,have_lan?C_MINT:0x7894ad);
+
+    if(s_status_ssh)set_text(s_status_ssh,ssh_ready?"Protegido":
+                             have_lan?"Aguardando chave":"Sem rede");
+    if(s_status_ssh_detail)set_text(s_status_ssh_detail,ssh_ready?"usuario: paulo":
+                                    have_lan?"Sem chave":"-");
+    status_indicator(s_status_ssh_dot,ssh_ready?C_MINT:
+                     have_lan?C_AMBER:0x7894ad);
+
+    if(s_status_vpn)set_text(s_status_vpn,vpn_ready?"Conectada":
+                             vpn_connecting?"Conectando":"Nao provisionada");
+    if(s_status_vpn_detail)set_text(s_status_vpn_detail,vpn_ready?str(vpn,"vpn_ip"):"-");
+    status_indicator(s_status_vpn_dot,vpn_ready?C_MINT:
+                     vpn_connecting?C_AMBER:0x7894ad);
     if(lan)json_object_put(lan);
     if(vpn)json_object_put(vpn);
 }
@@ -446,31 +468,47 @@ static void data_card(lv_obj_t *row,int width,const char *glyph,uint32_t tint,
     lv_obj_set_width(v,lv_pct(100));
     if(foot)txt(card,foot,14,C_MUTED);
 }
-/* Fixed two-column status grid: title/icon row + multiline value row. */
-static void status_tile(lv_obj_t *grid,int tile_width,const char *glyph,
-                        const char *title,lv_obj_t **status)
+/* Three aligned columns, matching the approved status reference.
+ * Left: icon and subsystem; centre: coloured dot and real state;
+ * right: contextual value aligned to the right. No mock addresses. */
+static void status_row3(lv_obj_t *parent,int row_width,const char *glyph,
+                        const char *title,lv_obj_t **state,
+                        lv_obj_t **detail,lv_obj_t **indicator)
 {
-    lv_obj_t *tile=box(grid,0x102d47,10,1);
-    lv_obj_set_size(tile,tile_width,86);
-    redeti_theme_gradient(tile,0x123654,0x0b2239);
-    lv_obj_set_style_border_color(tile,lv_color_hex(0x245272),0);
-    lv_obj_set_style_pad_all(tile,8,0);
-    flex(tile,LV_FLEX_FLOW_COLUMN,4);
+    const int label_w=row_width<480?100:112;
+    const int detail_w=row_width<480?104:130;
+    const int centre_w=row_width-20-18-label_w-detail_w;
+    lv_obj_t *row=box(parent,0x0b2742,7,0);
+    lv_obj_set_size(row,lv_pct(100),39);
+    redeti_theme_gradient(row,0x102e49,0x0b233b);
+    lv_obj_set_style_pad_left(row,10,0);
+    lv_obj_set_style_pad_right(row,10,0);
+    flex(row,LV_FLEX_FLOW_ROW,9);
+    lv_obj_set_flex_align(row,LV_FLEX_ALIGN_START,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_CENTER);
 
-    lv_obj_t *heading=box(tile,0x102d47,0,0);
-    lv_obj_set_style_bg_opa(heading,LV_OPA_TRANSP,0);
-    lv_obj_set_size(heading,lv_pct(100),24);
-    flex(heading,LV_FLEX_FLOW_ROW,7);
-    lv_obj_set_flex_align(heading,LV_FLEX_ALIGN_START,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_CENTER);
-    symbol(heading,glyph,C_CYAN,20);
-    txt(heading,title,14,C_MUTED);
+    lv_obj_t *left=box(row,C_PANEL,0,0);
+    lv_obj_set_style_bg_opa(left,LV_OPA_TRANSP,0);
+    lv_obj_set_size(left,label_w,27);
+    flex(left,LV_FLEX_FLOW_ROW,7);
+    lv_obj_set_flex_align(left,LV_FLEX_ALIGN_START,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_CENTER);
+    symbol(left,glyph,C_CYAN,20);
+    txt(left,title,14,C_MUTED);
 
-    /* Keep 14px minimum; values wrap instead of colliding with labels. */
-    const int value_font_size=tile_width>=220?16:14;
-    *status=txt(tile,"Aguardando",value_font_size,C_WHITE);
-    lv_obj_set_width(*status,lv_pct(100));
-    lv_label_set_long_mode(*status,LV_LABEL_LONG_WRAP);
-    lv_obj_set_style_text_line_space(*status,1,0);
+    lv_obj_t *centre=box(row,C_PANEL,0,0);
+    lv_obj_set_style_bg_opa(centre,LV_OPA_TRANSP,0);
+    lv_obj_set_size(centre,centre_w,27);
+    flex(centre,LV_FLEX_FLOW_ROW,9);
+    lv_obj_set_flex_align(centre,LV_FLEX_ALIGN_START,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_CENTER);
+    *indicator=box(centre,0x7894ad,LV_RADIUS_CIRCLE,0);
+    lv_obj_set_size(*indicator,10,10);
+    *state=txt(centre,"Aguardando",14,C_WHITE);
+    lv_obj_set_width(*state,centre_w-19);
+    lv_label_set_long_mode(*state,LV_LABEL_LONG_DOT);
+
+    *detail=txt(row,"-",14,C_MUTED);
+    lv_obj_set_width(*detail,detail_w);
+    lv_label_set_long_mode(*detail,LV_LABEL_LONG_DOT);
+    lv_obj_set_style_text_align(*detail,LV_TEXT_ALIGN_RIGHT,0);
 }
 static lv_obj_t *section(lv_obj_t *parent,const char *title,int height)
 {
@@ -593,13 +631,17 @@ void redeti_dashboard_create(lv_display_t *display,json_object *hw)
     lv_obj_set_width(system,half);
     lv_obj_t *statusgrid=box(system,C_PANEL,0,0);
     lv_obj_set_style_bg_opa(statusgrid,LV_OPA_TRANSP,0);
-    lv_obj_set_size(statusgrid,lv_pct(100),180);
-    flex(statusgrid,LV_FLEX_FLOW_ROW_WRAP,8);
-    const int tile_width=(half-24-8)/2;
-    status_tile(statusgrid,tile_width,LV_SYMBOL_WIFI,"Rede",&s_status_lan);
-    status_tile(statusgrid,tile_width,LV_SYMBOL_HOME,"SSH",&s_status_ssh);
-    status_tile(statusgrid,tile_width,LV_SYMBOL_OK,"VPN",&s_status_vpn);
-    status_tile(statusgrid,tile_width,LV_SYMBOL_KEYBOARD,"Entrada",&s_input_state);
+    lv_obj_set_size(statusgrid,lv_pct(100),164);
+    flex(statusgrid,LV_FLEX_FLOW_COLUMN,2);
+    const int row_width=half-24;
+    status_row3(statusgrid,row_width,LV_SYMBOL_WIFI,"Rede",
+                &s_status_lan,&s_status_lan_detail,&s_status_lan_dot);
+    status_row3(statusgrid,row_width,LV_SYMBOL_HOME,"SSH",
+                &s_status_ssh,&s_status_ssh_detail,&s_status_ssh_dot);
+    status_row3(statusgrid,row_width,LV_SYMBOL_OK,"VPN",
+                &s_status_vpn,&s_status_vpn_detail,&s_status_vpn_dot);
+    status_row3(statusgrid,row_width,LV_SYMBOL_KEYBOARD,"Entrada",
+                &s_input_state,&s_input_detail,&s_input_dot);
 
     lv_obj_t *quick=section(mid,"Acoes Rapidas",panel_height);
     lv_obj_set_width(quick,half);
@@ -634,7 +676,7 @@ void redeti_dashboard_create(lv_display_t *display,json_object *hw)
     s_notice=txt(content,"Somente leitura | Windows nao confirmado apenas por NTFS. Nenhum reparo foi executado.",14,C_MUTED);
     lv_obj_set_width(s_notice,lv_pct(100));
     if(side)sidebar(side,compact);
-    redeti_input_start(display,s_group,s_input_state);
+    redeti_input_start(display,s_group,s_input_state,s_input_detail,s_input_dot);
     update_connections(NULL);
     lv_timer_create(update_connections,3000,NULL);
 }
