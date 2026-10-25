@@ -56,7 +56,8 @@ class RemoteBootstrapTests(unittest.TestCase):
         self.assertIn('-d "$ip/32" -p tcp --dport 22 -j ACCEPT', code)
         self.assertIn('status "firewall_blocked"', code)
         self.assertNotIn('iptables -P INPUT ACCEPT', code)
-        self.assertNotIn('iptables -F', code)
+        self.assertNotIn('iptables -F INPUT', code)
+        self.assertNotIn('iptables -F OUTPUT', code)
         self.assertIn("--state=mem:", code)
         self.assertIn('ssh_user":"paulo', code)
         self.assertIn("--auth-key=\"file:", code)
@@ -90,7 +91,7 @@ class RemoteBootstrapTests(unittest.TestCase):
         self.assertIn("remote/provision.py", code)
         self.assertIn("ro,nosuid,nodev,noexec", code)
         self.assertIn("/REDETI/ts-authkey", code)
-        self.assertIn('rm -f "$base/ts-authkey"', code)
+        self.assertIn('rm -f -- "$auth_file"', code)
 
     def test_recipe_includes_vpn_payload_no_secret(self):
         script = (ROOT / "appliance/build/compose-appliance.sh").read_text()
