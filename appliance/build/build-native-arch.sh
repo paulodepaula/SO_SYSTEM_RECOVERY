@@ -5,6 +5,13 @@ set -euo pipefail
 repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 [ -f "$repo/appliance/native/CMakeLists.txt" ] || { echo "Project not found" >&2; exit 2; }
 command -v docker >/dev/null || { echo "Docker is required on Hermes" >&2; exit 2; }
+command -v git >/dev/null || { echo "Git is required for build provenance" >&2; exit 2; }
+# Never certify an ELF against a commit when tracked source changes are pending.
+git -C "$repo" diff --quiet && git -C "$repo" diff --cached --quiet || {
+  echo "Tracked changes present; commit or revert before compiling the appliance" >&2
+  exit 3
+}
+source_head="$(git -C "$repo" rev-parse --verify HEAD)"
 work="${REDETI_APPLIANCE_WORK:-$HOME/RecoveryOS/native-build}"
 mkdir -p "$work/cache" "$work/out"
 work="$(realpath -e -- "$work")"
@@ -28,5 +35,16 @@ docker run --rm --pull=missing \
     ldd /out/redeti-ui
     (cd /out && sha256sum redeti-ui > redeti-ui.sha256)
   '
+# Bind the tested executable to the exact Git commit that produced it.
+# The ISO builder refuses a stale ELF even when its SHA256 sidecar is valid.
+if [ "$(git -C "$repo" rev-parse --verify HEAD)" != "$source_head" ] ||
+   ! git -C "$repo" diff --quiet ||
+   ! git -C "$repo" diff --cached --quiet; then
+  rm -f -- "$work/out/redeti-ui.commit"
+  echo "Source changed during compilation; refusing to attest the ELF" >&2
+  exit 3
+fi
+printf '%s\\n' "$source_head" > "$work/out/redeti-ui.commit"
+echo "Compiled source commit: $source_head"
 echo "Executable: $work/out/redeti-ui"
 echo "WARNING: ABI compatibility must still be verified in SystemRescue/QEMU."
