@@ -389,7 +389,7 @@ static void header(lv_obj_t *root,int width)
         lv_obj_t *right=box(h,C_HEADER,0,0);
         lv_obj_set_style_bg_opa(right,LV_OPA_TRANSP,0);
         lv_obj_set_flex_grow(right,1);
-        lv_obj_set_height(right,65);
+        lv_obj_set_height(right,74);
         flex(right,LV_FLEX_FLOW_ROW,8);
         lv_obj_set_flex_align(right,LV_FLEX_ALIGN_END,LV_FLEX_ALIGN_CENTER,LV_FLEX_ALIGN_END);
         status_chip(right,LV_SYMBOL_WIFI,"Rede Local",&s_lan,width<1500?152:177);
