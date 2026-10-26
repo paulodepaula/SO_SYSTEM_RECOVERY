@@ -402,8 +402,11 @@ static void update_connections(lv_timer_t *timer)
     }
     if(s_vpn_diag_state) {
         char vpn_note[200];
-        snprintf(vpn_note,sizeof vpn_note,"%s | IP: %s",vpn_state_message(vpn_state),
-                 vpn_ready?str(vpn,"vpn_ip"):"-");
+        snprintf(vpn_note,sizeof vpn_note,"%s | IP: %s | SSH: %s",
+                 vpn_state_message(vpn_state),
+                 vpn_ready?str(vpn,"vpn_ip"):"-",
+                 strcmp(str(vpn,"vpn_ssh_mode"),"managed")==0?
+                 "Tailscale (ACL)":"Ed25519");
         set_text(s_vpn_diag_state,vpn_note);
     }
     if(lan)json_object_put(lan);
