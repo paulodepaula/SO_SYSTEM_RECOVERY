@@ -36,8 +36,11 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
   trusted, reviewed checkout. Not part of ISO or an automated deploy.
 - `hermes_runtime.py` — manages both private listeners in one process,
   one broker state machine, safe shutdown and cleanup on partial startup.
-  It accepts an injected issuer and operator signing secret but **does not
-  load secret files or create API keys by itself**; no standalone launcher.
+  **Key issuance is disabled by default**, including when a real issuer
+  is accidentally injected. Enabling it requires an explicit trusted
+  server-side argument `enable_key_issuance=True`; no HTTP request can
+  change that setting. Offline `smoke_local.py` opts in with a fake issuer
+  only. A live launcher and operator authentication still do not exist.
 - `smoke_local.py` — complete Hermes-side local dry-run **using the actual
   Hermes runtime** (loopback agent interface, signed operator approval via
   UNIX socket, single mock claim). Run `python3 -m
@@ -95,7 +98,8 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
 - `appliance/tests/test_enrollment_smoke_local.py` — end-to-end exercise
   of the mock issuer through both private agent and operator interfaces.
 - `appliance/tests/test_hermes_runtime.py` — shared-state lifecycle,
-  single claim, private socket ownership, denied unsafe directories and
+  single simulated claim, **default issuance denied even following signed
+  approval**, private socket ownership, denied unsafe directories and
   cleanup on a partial startup failure.
 - `appliance/tests/test_enrollment_check_authkey_lifecycle.py` — offline
   transport mocks verify that the live checker revokes keys after creation,
@@ -178,7 +182,7 @@ client is needed for Phase A tests.
 | Mocked Tailscale OAuth issuer | Implemented; offline tests |
 | OAuth credential test on Hermes | Operator confirmed PASS (token exchange only) |
 | Local end-to-end broker dry-run | Operator confirmed PASS on Hermes before shared runtime refactor; CI PASS after refactor |
-| Single-process Hermes runtime | Implemented; offline CI tests, not deployed |
+| Single-process Hermes runtime | Implemented; offline CI tests, not deployed; issuance OFF by default |
 | Real Tailscale auth-key issuance / revocation | Operator reported FAIL revocation unverified; no valid personal auth keys visible in panel; DELETE result unresolved, do not rerun smoke |
 | Private loopback HTTP agent adapter | Implemented, offline tests; not deployed |
 | Signed approval verifier / private operator UNIX socket | Implemented, offline tests; not deployed |
