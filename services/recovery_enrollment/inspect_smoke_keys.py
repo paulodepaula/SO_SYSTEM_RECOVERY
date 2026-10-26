@@ -104,9 +104,24 @@ def inventory_smoke_keys(
             raise InventoryError("oauth_scope_unavailable")
         headers = {"Authorization": "Bearer " + access_token}
         listing = transport("GET", CREATE_KEY_URL, None, headers)
+        # This GET is read-only. Report only the TYPE of an unexpected
+        # response, never its JSON content, key IDs, tokens, or descriptions.
+        # In particular, keys=null is NOT proof of an empty/clean tailnet.
+        if not isinstance(listing, dict):
+            raise InventoryError("key_listing_not_object")
+        if "keys" not in listing:
+            raise InventoryError("key_listing_missing_keys")
         ids = listing["keys"]
-        if not isinstance(ids, list) or len(ids) > 500:
-            raise InventoryError("unexpected_key_listing")
+        if ids is None:
+            raise InventoryError("key_listing_null_keys")
+        if isinstance(ids, dict):
+            raise InventoryError("key_listing_object_keys")
+        if isinstance(ids, str):
+            raise InventoryError("key_listing_string_keys")
+        if not isinstance(ids, list):
+            raise InventoryError("key_listing_unexpected_keys_type")
+        if len(ids) > 500:
+            raise InventoryError("key_listing_over_capacity")
         active = inactive = uncertain = 0
         current = now or datetime.now(timezone.utc)
         for entry in ids:
