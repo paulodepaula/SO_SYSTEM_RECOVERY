@@ -1,0 +1,7 @@
+------------------------------------------------------------
+ REDETI RECOVERY OS
+ Diagnostico e manutencao tecnica autorizada
+------------------------------------------------------------
+ Acesso restrito a equipe autorizada.
+ Autenticacao por chave publica. Nao informe senhas.
+------------------------------------------------------------
