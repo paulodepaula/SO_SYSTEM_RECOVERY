@@ -181,6 +181,8 @@ class OAuthIssuerTests(unittest.TestCase):
         self.assertEqual(issuer.issue_one_off_key(session_id="dummy"), "tskey-auth-fake")
         self.assertEqual([call[0] for call in captured], [TOKEN_URL, CREATE_KEY_URL])
         self.assertIn(b"grant_type=client_credentials", captured[0][1])
+        self.assertIn(b"scope=auth_keys", captured[0][1])
+        self.assertIn(b"tags=tag%3Aredeti-recovery", captured[0][1])
         data = json.loads(captured[1][1])
         create = data["capabilities"]["devices"]["create"]
         self.assertEqual(create["tags"], ["tag:redeti-recovery"])
