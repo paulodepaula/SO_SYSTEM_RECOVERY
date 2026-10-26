@@ -96,15 +96,14 @@ class TailscaleOAuthIssuer:
             key = response["key"]
             if not isinstance(key, str) or not key.startswith("tskey-auth-"):
                 raise RuntimeError("auth key response invalid")
-            # Fail closed if capabilities are returned and conflict with our
-            # mandatory one-use, ephemeral, single-tag constraints.
-            capabilities = response.get("capabilities")
-            if capabilities is not None:
-                created = capabilities["devices"]["create"]
-                if (created.get("reusable") is not False or
-                    created.get("ephemeral") is not True or
-                    created.get("tags") != [RECOVERY_TAG]):
-                    raise RuntimeError("unsafe key capabilities")
+            # The API returns capabilities. If missing or conflicting, do not
+            # deliver an auth key whose scope we cannot verify.
+            created = response["capabilities"]["devices"]["create"]
+            if (created.get("reusable") is not False or
+                created.get("ephemeral") is not True or
+                created.get("tags") != [RECOVERY_TAG] or
+                created.get("preauthorized") is not False):
+                raise RuntimeError("unsafe key capabilities")
             return key
         except Exception:
             # Upstream error bodies could contain credentials: never forward
