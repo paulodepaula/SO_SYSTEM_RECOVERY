@@ -9,12 +9,17 @@ socket="$base/tailscaled.sock"
 ts=/opt/redeti-appliance/bin/tailscale
 daemon=/opt/redeti-appliance/bin/tailscaled
 provision_script=/opt/redeti-appliance/remote/provision.py
+# Secure default: preserve key-only OpenSSH on tailnet until admin explicitly
+# opts in to Tailscale-managed SSH *after* verifying restrictive tailnet ACLs.
+ssh_managed=false
+vpn_ssh_mode="disabled"
 mkdir -p "$base"
 chmod 0700 "$base"
 
 status() {
   # Fixed, non-secret state codes and a validated tailnet IPv4 address only.
-  printf '{"state":"%s","ssh_user":"paulo","vpn_ip":"%s"}\n' "$1" "${2:-}" > "$base/remote-status.json.tmp"
+  printf '{"state":"%s","ssh_user":"paulo","vpn_ip":"%s","vpn_ssh_mode":"%s"}\n' \
+    "$1" "${2:-}" "$vpn_ssh_mode" > "$base/remote-status.json.tmp"
   chmod 0644 "$base/remote-status.json.tmp"
   mv -f "$base/remote-status.json.tmp" "$base/remote-status.json"
 }
@@ -93,6 +98,15 @@ with os.fdopen(fd, "w", encoding="ascii") as stream:
 PY
       then
         found=true
+        # An empty opt-in marker is *not* a credential. Its only purpose is
+        # to require a deliberate approval before switching SSH auth paths.
+        # Tailscale SSH ACLs must restrict access to paulo and approved staff.
+        marker="$keyroot/REDETI/tailscale-ssh.enable"
+        if [ -f "$marker" ] && [ ! -L "$marker" ] &&
+           [ "$(wc -c < "$marker")" -eq 0 ]; then
+          ssh_managed=true
+          vpn_ssh_mode="managed"
+        fi
       else
         invalid_seen=true
         status "invalid_auth_key"
@@ -146,13 +160,14 @@ if [ ! -S "$socket" ]; then
   exit 1
 fi
 
-# Don't activate Tailscale SSH. The LAN's hardened sshd + USB Ed25519 key is
-# reused over the private WireGuard network, without an alternate auth path.
+# Tailscale-managed SSH is opt-in only. When enabled it authenticates using
+# tailnet SSH ACLs and managed host keys on the Tailscale IP. The LAN remains
+# OpenSSH with Ed25519 keys; no private keys are persisted on customer disks.
 suffix="$(od -An -N4 -tx1 /dev/urandom | tr -d ' \n')"
 hostname="redeti-recovery-$suffix"
 if ! timeout 150 "$ts" --socket="$socket" up \
   --auth-key="file:$auth_file" \
-  --ssh=false --hostname="$hostname" --advertise-tags=tag:redeti-recovery \
+  --ssh="$ssh_managed" --hostname="$hostname" --advertise-tags=tag:redeti-recovery \
   --netfilter-mode=off --accept-routes=false --accept-dns=false \
   >> "$base/remote.log" 2>&1; then
   status "vpn_auth_failed"
