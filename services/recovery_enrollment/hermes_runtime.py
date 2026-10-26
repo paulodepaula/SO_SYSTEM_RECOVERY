@@ -53,6 +53,7 @@ class HermesBrokerRuntime:
         self._agent: _Server | None = None
         self._operator: _Server | None = None
         self._threads: list[threading.Thread] = []
+        self._running_servers: list[_Server] = []
         self._started = False
 
     @property
@@ -79,14 +80,17 @@ class HermesBrokerRuntime:
             self._agent = create_loopback_server(
                 self._broker, port=self._agent_port,
             )
-            threads = [
-                threading.Thread(target=self._operator.serve_forever,
-                                 name="redeti-operator", daemon=True),
-                threading.Thread(target=self._agent.serve_forever,
-                                 name="redeti-agent", daemon=True),
+            pairs = [
+                (self._operator, threading.Thread(
+                    target=self._operator.serve_forever,
+                    name="redeti-operator", daemon=True)),
+                (self._agent, threading.Thread(
+                    target=self._agent.serve_forever,
+                    name="redeti-agent", daemon=True)),
             ]
-            for thread in threads:
+            for server, thread in pairs:
                 thread.start()
+                self._running_servers.append(server)
                 self._threads.append(thread)
             self._started = True
         except Exception:
@@ -95,17 +99,17 @@ class HermesBrokerRuntime:
 
     def close(self) -> None:
         # shutdown() is safe only for listeners whose serve_forever() has
-        # started; otherwise it can block indefinitely.
-        if self._started:
-            for server in (self._agent, self._operator):
-                if server is not None:
-                    server.shutdown()
+        # started; otherwise it can block indefinitely. Track starts
+        # individually to handle a partially failed thread start.
+        for server in self._running_servers:
+            server.shutdown()
         for server in (self._agent, self._operator):
             if server is not None:
                 server.server_close()
         for thread in self._threads:
             thread.join(timeout=4)
         self._threads = []
+        self._running_servers = []
         self._agent = None
         self._operator = None
         self._started = False
