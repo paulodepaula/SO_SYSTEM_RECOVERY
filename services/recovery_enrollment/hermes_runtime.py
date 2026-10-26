@@ -28,6 +28,13 @@ class _Server(Protocol):
     def server_close(self) -> None: ...
 
 
+class _DisabledIssuer:
+    """Safety gate: do not mint keys until reviewed production integration."""
+
+    def issue_one_off_key(self, *, session_id: str) -> str:
+        raise RuntimeError("key issuance is disabled")
+
+
 class HermesBrokerRuntime:
     """Manage both listeners with shared state and fail-closed cleanup.
 
@@ -35,16 +42,26 @@ class HermesBrokerRuntime:
     - Operator HTTP: local UNIX socket in an owned private directory.
     - Approval and agent claim share a single EnrollmentBroker instance.
     - No background thread or listener exists until start() is called.
+    - Real key issuance is OFF BY DEFAULT; the operator must explicitly
+      enable it in reviewed code after Service Desk authorization is ready.
     - A failed start() closes already-created listeners, not leaving sockets.
     """
 
     def __init__(
         self, *, issuer: KeyIssuer, operator_mac_secret: bytes,
         socket_directory: str, agent_port: int = 0,
+        enable_key_issuance: bool = False,
     ) -> None:
         if not isinstance(operator_mac_secret, bytes) or len(operator_mac_secret) < 32:
             raise ValueError("invalid operator secret")
-        self._broker = EnrollmentBroker(issuer)
+        if type(enable_key_issuance) is not bool:
+            raise ValueError("enable_key_issuance must be boolean")
+        # Even if a real issuer is accidentally supplied, this runtime does
+        # not invoke it unless explicitly enabled by trusted server code.
+        # No untrusted HTTP request can toggle this setting.
+        self._broker = EnrollmentBroker(
+            issuer if enable_key_issuance else _DisabledIssuer()
+        )
         self._verifier = OperatorApprovalVerifier(
             self._broker, mac_secret=operator_mac_secret,
         )
