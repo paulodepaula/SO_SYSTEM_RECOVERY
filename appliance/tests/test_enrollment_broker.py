@@ -173,7 +173,7 @@ class OAuthIssuerTests(unittest.TestCase):
                 "key": "tskey-auth-fake",
                 "capabilities": {"devices": {"create": {
                     "reusable": False, "ephemeral": True,
-                    "preauthorized": False, "tags": [RECOVERY_TAG]
+                    "preauthorized": True, "tags": [RECOVERY_TAG]
                 }}},
             }
         issuer = TailscaleOAuthIssuer("test-id", "test-secret", transport=fake_transport)
@@ -188,8 +188,8 @@ class OAuthIssuerTests(unittest.TestCase):
         self.assertEqual(create["tags"], ["tag:redeti-recovery"])
         self.assertIs(create["reusable"], False)
         self.assertIs(create["ephemeral"], True)
-        self.assertIs(create["preauthorized"], False)
-        self.assertEqual(data["expirySeconds"], 86400)
+        self.assertIs(create["preauthorized"], True)
+        self.assertEqual(data["expirySeconds"], 900)
         self.assertEqual(captured[1][2]["Authorization"],
                          "Bearer test-access-token-for-mocked-issuer")
         self.assertNotIn(b"test-secret", captured[1][1])
