@@ -108,6 +108,26 @@ class InventoryTests(unittest.TestCase):
                 self.assertEqual(ops, [("POST", TOKEN_URL),
                                        ("GET", CREATE_KEY_URL)])
 
+    def test_null_keys_is_inconclusive_not_clean(self):
+        from io import StringIO
+        from contextlib import redirect_stdout
+        from unittest.mock import patch
+        from services.recovery_enrollment import inspect_smoke_keys as module
+
+        # The CLI must not claim "PASS no active keys" when the API returned
+        # null; a human must review the admin Keys panel instead.
+        observed = StringIO()
+        with patch.object(module.os, "geteuid", return_value=0), \
+             patch.object(module, "load_protected_file", return_value="test"), \
+             patch.object(module, "inventory_smoke_keys",
+                          side_effect=InventoryError("key_listing_null_keys")), \
+             redirect_stdout(observed):
+            result = module.main()
+        self.assertEqual(result, 3)
+        self.assertIn("INCONCLUSIVE", observed.getvalue())
+        self.assertIn("do not issue a new key", observed.getvalue())
+        self.assertNotIn("PASS:", observed.getvalue())
+
     def test_no_create_key_call_for_scope_failure(self):
         calls = []
         def fake(method, url, data, headers):
