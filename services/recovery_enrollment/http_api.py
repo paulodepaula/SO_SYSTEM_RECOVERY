@@ -70,6 +70,11 @@ def _handler(broker: EnrollmentBroker) -> type[BaseHTTPRequestHandler]:
             return value
 
         def do_POST(self) -> None:
+            # Operator approvals are never present on the untrusted adapter.
+            # Return a uniform 404 regardless of the supplied JSON/body.
+            if self.path.startswith("/v1/operator/"):
+                self._reply(404, {"error": "not found"})
+                return
             if "?" in self.path or not self._empty_body():
                 self._reply(400, {"error": "invalid request"})
                 return
