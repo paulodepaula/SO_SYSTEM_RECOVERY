@@ -37,7 +37,7 @@ class EnrollmentCoreTests(unittest.TestCase):
 
     def test_approval_and_claim_are_two_independent_secrets(self):
         receipt = self.broker.request(source="test-ip")
-        self.assertEqual(self.broker.state(receipt.session_id), "pending")
+        self.assertEqual(self.broker.agent_state(session_id=receipt.session_id, agent_secret=receipt.agent_secret), "pending")
         self.assertRegex(receipt.pairing_code, r"^[0-9]{8}$")
         self.assertGreaterEqual(len(receipt.agent_secret), 32)
         with self.assertRaises(EnrollmentError):
@@ -55,7 +55,7 @@ class EnrollmentCoreTests(unittest.TestCase):
         key = self.broker.claim(session_id=receipt.session_id,
                                 agent_secret=receipt.agent_secret)
         self.assertEqual(key, "tskey-auth-fake")
-        self.assertEqual(self.broker.state(receipt.session_id), "consumed")
+        self.assertEqual(self.broker.agent_state(session_id=receipt.session_id, agent_secret=receipt.agent_secret), "consumed")
         self.assertEqual(self.issuer.calls, 1)
         with self.assertRaises(EnrollmentError):
             self.broker.claim(session_id=receipt.session_id,
@@ -72,7 +72,7 @@ class EnrollmentCoreTests(unittest.TestCase):
         with self.assertRaises(EnrollmentError):
             self.broker.approve(session_id=r.session_id, pairing_code=r.pairing_code,
                                 operator_id="tech", work_order="OS-15")
-        self.assertEqual(self.broker.state(r.session_id), "expired")
+        self.assertEqual(self.broker.agent_state(session_id=r.session_id, agent_secret=r.agent_secret), "expired")
         self.assertEqual(self.issuer.calls, 0)
 
     def test_expiration_after_approval_prevents_claim(self):
@@ -83,6 +83,26 @@ class EnrollmentCoreTests(unittest.TestCase):
         with self.assertRaises(EnrollmentError):
             self.broker.claim(session_id=r.session_id, agent_secret=r.agent_secret)
         self.assertEqual(self.issuer.calls, 0)
+
+    def test_status_requires_correct_agent_proof(self):
+        r = self.broker.request(source="test")
+        with self.assertRaises(EnrollmentError):
+            self.broker.agent_state(session_id=r.session_id, agent_secret="wrong")
+        with self.assertRaises(EnrollmentError):
+            self.broker.agent_state(session_id=r.session_id, agent_secret="\N{SNOWMAN}")
+        self.assertEqual(
+            self.broker.agent_state(session_id=r.session_id,
+                                    agent_secret=r.agent_secret), "pending")
+
+    def test_global_rate_limit_prevents_distributed_requests(self):
+        issuer = FakeIssuer()
+        broker = EnrollmentBroker(issuer, clock=lambda: self.time,
+                                  max_requests_per_source=10,
+                                  max_requests_global=3)
+        for i in range(3):
+            broker.request(source="source-" + str(i))
+        with self.assertRaisesRegex(EnrollmentError, "rate limit"):
+            broker.request(source="different-source")
 
     def test_rate_limits_by_trusted_source(self):
         for i in range(6):
@@ -100,7 +120,7 @@ class EnrollmentCoreTests(unittest.TestCase):
                 self.broker.approve(session_id=r.session_id,
                                     pairing_code=r.pairing_code,
                                     operator_id=operator, work_order=order)
-        self.assertEqual(self.broker.state(r.session_id), "pending")
+        self.assertEqual(self.broker.agent_state(session_id=r.session_id, agent_secret=r.agent_secret), "pending")
 
     def test_upstream_failure_is_final_and_redacted(self):
         issuer = FakeIssuer(fail=True)
@@ -114,7 +134,7 @@ class EnrollmentCoreTests(unittest.TestCase):
         with self.assertRaises(EnrollmentError):
             broker.claim(session_id=r.session_id, agent_secret=r.agent_secret)
         self.assertEqual(issuer.calls, 1)
-        self.assertEqual(broker.state(r.session_id), "failed")
+        self.assertEqual(broker.agent_state(session_id=r.session_id, agent_secret=r.agent_secret), "failed")
 
     def test_simultaneous_claims_only_issue_one_key(self):
         r = self.broker.request(source="test")
