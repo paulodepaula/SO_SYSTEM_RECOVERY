@@ -1,0 +1,44 @@
+# REDETI Recovery OS Hermes -- STAGING ONLY, NOT PRODUCTION
+# Deliberately has no [Install] section: do not enable on boot.
+# Review/install manually only in an isolated Hermes homologation window.
+# Source checkout must be reviewed and copied to /opt/redeti-recovery.
+# NO Tailscale OAuth secrets, real issuance or Service Desk signing here.
+
+[Unit]
+Description=RedeTI Recovery OS broker (closed-mode local homologation ONLY)
+Documentation=https://github.com/paulodepaula/SO_SYSTEM_RECOVERY
+After=network.target
+ConditionPathIsDirectory=/opt/redeti-recovery/services/recovery_enrollment
+
+[Service]
+Type=exec
+DynamicUser=yes
+WorkingDirectory=/opt/redeti-recovery
+ExecStart=/usr/bin/python3 -m services.recovery_enrollment.closed_service --serve-closed --socket-directory /run/redeti-recovery --port 39081
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+UMask=0077
+RuntimeDirectory=redeti-recovery
+RuntimeDirectoryMode=0700
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX AF_INET
+IPAddressDeny=any
+IPAddressAllow=localhost
+CapabilityBoundingSet=
+AmbientCapabilities=
+LockPersonality=yes
+SystemCallArchitectures=native
+StandardOutput=journal
+StandardError=journal
+
+# Intentionally NO [Install]. Do not enable or publish; live mode is blocked.
