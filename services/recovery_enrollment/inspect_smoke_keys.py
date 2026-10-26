@@ -162,6 +162,14 @@ def main() -> int:
         sec = load_protected_file(SECRET_DIR, "oauth-client-secret")
         a, i, u = inventory_smoke_keys(cid, sec)
     except InventoryError as ex:
+        if str(ex) == "key_listing_null_keys":
+            # The Tailscale API may use JSON null for a nil/empty keys
+            # collection (as in its Go SDK). No active keys are listed,
+            # but this does NOT establish how a previously issued key
+            # disappeared or prove that DELETE succeeded.
+            print("INCONCLUSIVE: key listing null; no active keys visible to this OAuth credential")
+            print("ACTION: review redeti-recovery-smoke in Tailscale admin Keys; do not issue a new key")
+            return 3
         print("FAIL:", str(ex))
         return 1
     except Exception:
