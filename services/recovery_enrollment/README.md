@@ -23,6 +23,12 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
 - `tailscale_oauth.py` — backend-only OAuth client-credentials exchange,
   fixed HTTPS Tailscale URLs, single-use ephemeral auth keys with only
   `tag:redeti-recovery`, provider-error redaction, injectable fake transport.
+- `check_oauth.py` — read-only Hermes smoke check using root-owned `0700`
+  directory and `0600` files under `/etc/redeti-recovery`. Requests only a
+  short-lived OAuth token with `auth_keys` and `tag:redeti-recovery`, verifies
+  its scope and prints only PASS/FAIL; **never creates an auth key**.
+  Use `sudo python3 -m services.recovery_enrollment.check_oauth` from a
+  trusted, reviewed checkout. Not part of ISO or an automated deploy.
 - `http_api.py` — private 127.0.0.1-only agent POST request, GET status and
   POST claim adapter; rejects unknown/operator routes, requires bearer
   proof for status/claim and sends no-store responses. Not deployed.
@@ -42,6 +48,8 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
   exhausted rate limits and disallowed auth-key capabilities.
 - `appliance/tests/test_enrollment_http.py` — local socket tests for loopback
   binding, no-store, agent secret authentication and blocked operator paths.
+- `appliance/tests/test_enrollment_check_oauth.py` — fake API responses,
+  missing scope, credential error redaction and strict file permissions.
 - `appliance/tests/test_enrollment_operator_auth.py` and
   `test_enrollment_operator_socket.py` — signature, role, expiry, replay,
   wrong session, concurrent calls and UNIX-only socket security.
