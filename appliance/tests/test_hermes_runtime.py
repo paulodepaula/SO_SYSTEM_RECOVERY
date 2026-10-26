@@ -57,14 +57,16 @@ class HermesRuntimeTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
-    def build(self):
+    def build(self, *, enable_key_issuance=False):
         return HermesBrokerRuntime(
             issuer=self.issuer, operator_mac_secret=self.secret,
             socket_directory=self.temp.name, agent_port=0,
+            enable_key_issuance=enable_key_issuance,
         )
 
     def test_start_stop_and_shared_authorization(self):
-        runtime = self.build()
+        # Only an explicitly enabled *synthetic* issuer can mint a mock key.
+        runtime = self.build(enable_key_issuance=True)
         with self.assertRaises(RuntimeError):
             _ = runtime.agent_address
         with runtime:
@@ -123,6 +125,52 @@ class HermesRuntimeTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             _ = runtime.agent_address
         runtime.close()  # idempotent
+
+    def test_default_gate_denies_key_even_after_signed_approval(self):
+        runtime = self.build()  # key issuance defaults to OFF
+        with runtime:
+            host, port = runtime.agent_address
+            conn = http.client.HTTPConnection(host, port, timeout=3)
+            try:
+                status, session = request(conn, "POST", "/v1/bootstrap/sessions")
+                self.assertEqual(status, 201)
+                sid = session["session_id"]
+                route = "/v1/bootstrap/sessions/" + sid
+                headers = {"Authorization": "Bearer " + session["agent_secret"]}
+                assertion = sign_example_for_tests(
+                    example_claim_for_tests(
+                        sid=sid, code=session["pairing_code"],
+                        now=int(__import__("time").time())),
+                    mac_secret=self.secret,
+                )
+                op = UnixHttp(runtime.operator_socket_path)
+                try:
+                    body = json.dumps({"assertion": assertion}).encode("ascii")
+                    self.assertEqual(request(
+                        op, "POST",
+                        "/v1/operator/sessions/" + sid + "/approve",
+                        headers={"Content-Type": "application/json"},
+                        body=body)[0], 204)
+                finally:
+                    op.close()
+                self.assertEqual(request(conn, "GET", route, headers=headers),
+                                 (200, {"state": "approved"}))
+                self.assertEqual(request(conn, "POST", route + "/claim",
+                                         headers=headers)[0], 404)
+                self.assertEqual(request(conn, "GET", route, headers=headers),
+                                 (200, {"state": "failed"}))
+                # Critical: injected real/mocked issuer never called.
+                self.assertEqual(self.issuer.calls, 0)
+            finally:
+                conn.close()
+
+    def test_issuance_gate_requires_boolean(self):
+        with self.assertRaises(ValueError):
+            HermesBrokerRuntime(
+                issuer=self.issuer, operator_mac_secret=self.secret,
+                socket_directory=self.temp.name,
+                enable_key_issuance="yes",
+            )
 
     def test_bad_directory_is_fail_closed(self):
         self.folder.chmod(0o755)
