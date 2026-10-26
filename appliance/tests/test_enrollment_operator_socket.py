@@ -71,6 +71,27 @@ class OperatorSocketTests(unittest.TestCase):
         finally:
             conn.close()
 
+    def request_headers_only(self, path, content_length, content_type):
+        # For oversized/unsupported requests the server intentionally replies
+        # and closes without reading the body. Do not race that close by
+        # attempting to upload a rejected payload.
+        conn = socket.socket(socket.AF_UNIX)
+        conn.settimeout(2)
+        try:
+            conn.connect(self.socket_path)
+            headers = (
+                f"POST {path} HTTP/1.1\\r\\n"
+                "Host: localhost\\r\\n"
+                f"Content-Type: {content_type}\\r\\n"
+                f"Content-Length: {content_length}\\r\\n"
+                "Connection: close\\r\\n\\r\\n"
+            ).replace("\\r", "\r").replace("\\n", "\n")
+            conn.sendall(headers.encode("ascii"))
+            first = conn.recv(1024)
+            return int(first.split(b" ", 2)[1])
+        finally:
+            conn.close()
+
     def test_verified_operator_approval_over_private_socket(self):
         r = self.broker.request(source="127.0.0.1")
         payload = example_claim_for_tests(sid=r.session_id,
@@ -98,8 +119,8 @@ class OperatorSocketTests(unittest.TestCase):
             session_id=a.session_id, agent_secret=a.agent_secret), "pending")
 
     def test_no_http_server_routes_to_operator(self):
-        self.assertEqual(self.request("/health", b"{}")[0], 404)
-        self.assertEqual(self.request("/v1/operator/sessions/bad/approve", b"{}")[0], 404)
+        self.assertEqual(self.request("/health", b"")[0], 404)
+        self.assertEqual(self.request("/v1/operator/sessions/bad/approve", b"")[0], 404)
         self.assertEqual(self.request("/anything", b"", method="GET")[0], 404)
 
     def test_invalid_input_and_forged_auth_are_rejected(self):
@@ -108,9 +129,8 @@ class OperatorSocketTests(unittest.TestCase):
         self.assertEqual(self.request(path, b'{"assertion":"forged"}')[0], 403)
         self.assertEqual(self.request(path, b"[]")[0], 403)
         self.assertEqual(self.request(path, b'{"other":"foo"}')[0], 403)
-        self.assertEqual(self.request(path, b"{}",
-                                      content_type="text/plain")[0], 415)
-        self.assertEqual(self.request(path, b"x" * 5000)[0], 413)
+        self.assertEqual(self.request_headers_only(path, 2, "text/plain"), 415)
+        self.assertEqual(self.request_headers_only(path, 5000, "application/json"), 413)
 
     def test_socket_is_private_and_existing_path_is_not_overwritten(self):
         import os, stat
