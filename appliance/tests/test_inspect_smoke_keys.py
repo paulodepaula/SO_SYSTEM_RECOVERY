@@ -80,6 +80,34 @@ class InventoryTests(unittest.TestCase):
         with self.assertRaisesRegex(InventoryError, "unexpected_key_id"):
             inventory_smoke_keys("a", "b", transport=invalid_api, now=NOW)
 
+    def test_key_listing_shape_codes_reveal_no_sensitive_data(self):
+        # Some providers may return null, omit keys, or change the JSON
+        # response format. Never interpret those cases as an empty list.
+        cases = [
+            ({}, "key_listing_missing_keys"),
+            ({"keys": None}, "key_listing_null_keys"),
+            ({"keys": {"sensitive-key-id": "sensitive-token"}},
+             "key_listing_object_keys"),
+            ({"keys": "sensitive-token"}, "key_listing_string_keys"),
+            ({"keys": 123}, "key_listing_unexpected_keys_type"),
+            ({"keys": [{"id": "test"}] * 501}, "key_listing_over_capacity"),
+        ]
+        for listing, expected in cases:
+            with self.subTest(expected=expected):
+                ops = []
+                def fake(method, url, body, headers):
+                    ops.append((method, url))
+                    if url == TOKEN_URL:
+                        return {"access_token": "fake-access-token-long-enough",
+                                "token_type": "Bearer", "scope": "auth_keys"}
+                    return listing
+                with self.assertRaises(InventoryError) as result:
+                    inventory_smoke_keys("a", "b", transport=fake, now=NOW)
+                self.assertEqual(str(result.exception), expected)
+                self.assertNotIn("sensitive", str(result.exception))
+                self.assertEqual(ops, [("POST", TOKEN_URL),
+                                       ("GET", CREATE_KEY_URL)])
+
     def test_no_create_key_call_for_scope_failure(self):
         calls = []
         def fake(method, url, data, headers):
