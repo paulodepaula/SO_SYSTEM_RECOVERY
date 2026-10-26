@@ -91,6 +91,18 @@ class LanSSHTests(unittest.TestCase):
         self.assertNotIn('PasswordAuthentication yes',script)
         self.assertNotIn('PermitRootLogin yes',script)
 
+    def test_banner_is_packaged_and_contains_no_secrets(self):
+        config = (ROOT / "appliance/remote/sshd_config").read_text()
+        builder = (ROOT / "appliance/build/compose-appliance.sh").read_text()
+        banner = (ROOT / "appliance/remote/ssh-banner.txt").read_text()
+        self.assertIn("Banner /opt/redeti-appliance/remote/ssh-banner.txt", config)
+        self.assertIn('remote/ssh-banner.txt', builder)
+        self.assertIn("REDETI RECOVERY OS", banner)
+        self.assertIn("Acesso restrito", banner)
+        self.assertNotIn("100.", banner)
+        self.assertNotIn("tskey-", banner)
+        self.assertNotIn("PRIVATE KEY", banner)
+
     def test_boot_and_image_include_lan_ssh(self):
         launcher = (ROOT / "appliance/boot/launch.sh").read_text()
         iso = (ROOT / "appliance/build/compose-appliance.sh").read_text()
