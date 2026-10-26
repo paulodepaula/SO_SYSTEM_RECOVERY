@@ -26,6 +26,15 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
 - `http_api.py` — private 127.0.0.1-only agent POST request, GET status and
   POST claim adapter; rejects unknown/operator routes, requires bearer
   proof for status/claim and sends no-store responses. Not deployed.
+- `operator_auth.py` — validates 60-second HMAC-SHA256 approvals issued by
+  trusted Service Desk backend with exact audience, role, permission, O.S.,
+  pairing code and replay prevention. Test-only signing utility is not
+  part of a publicly callable API.
+- `operator_socket.py` — **separate AF_UNIX** HTTP approval adapter;
+  private 0700 directory / 0600 socket, no TCP listener, uniform denial
+  and no request/body logging. Not deployed.
+- `SERVICE_DESK_APPROVAL_CONTRACT.md` — exact assertion format and
+  boundary between signed Service Desk approval and Hermes broker.
 - `openapi.yaml` — endpoint contract; **operator approval remains not
   implemented** until it is integrated with authenticated Service Desk roles.
 - `appliance/tests/test_enrollment_broker.py` — fake issuance tests covering
@@ -33,6 +42,9 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
   exhausted rate limits and disallowed auth-key capabilities.
 - `appliance/tests/test_enrollment_http.py` — local socket tests for loopback
   binding, no-store, agent secret authentication and blocked operator paths.
+- `appliance/tests/test_enrollment_operator_auth.py` and
+  `test_enrollment_operator_socket.py` — signature, role, expiry, replay,
+  wrong session, concurrent calls and UNIX-only socket security.
 
 Run from repository root:
 
@@ -107,7 +119,9 @@ client is needed for Phase A tests.
 | Pairing state machine | Implemented; offline tests |
 | Mocked Tailscale OAuth issuer | Implemented; offline tests |
 | Private loopback HTTP agent adapter | Implemented, offline tests; not deployed |
-| HTTPS ingress and authenticated operator API | Not implemented |
+| Signed approval verifier / private operator UNIX socket | Implemented, offline tests; not deployed |
+| Service Desk-side signing and authenticated session integration | Not implemented |
+| HTTPS ingress and operator permissions integration | Not implemented |
 | Service Desk technician authentication | Not integrated |
 | Hermes secrets + deployment | Not implemented |
 | ISO / LVGL agent integration | Not implemented |
