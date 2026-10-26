@@ -50,10 +50,9 @@ class OperatorSocketTests(unittest.TestCase):
             self.verifier, directory=self.temp.name)
         self.worker = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.worker.start()
-        self.conn = UnixHTTP(self.server.server_address)
+        self.socket_path = self.server.server_address
 
     def tearDown(self):
-        self.conn.close()
         self.server.shutdown()
         self.server.server_close()
         self.worker.join(timeout=3)
@@ -61,10 +60,16 @@ class OperatorSocketTests(unittest.TestCase):
 
     def request(self, path, body, *, method="POST", content_type="application/json"):
         headers = {"Content-Type": content_type} if content_type else {}
-        self.conn.request(method, path, body=body, headers=headers)
-        result = self.conn.getresponse()
-        result.read()
-        return result.status, dict(result.getheaders())
+        # Each HTTP response deliberately closes the connection; open a
+        # new local AF_UNIX connection for every independent request.
+        conn = UnixHTTP(self.socket_path)
+        try:
+            conn.request(method, path, body=body, headers=headers)
+            result = conn.getresponse()
+            result.read()
+            return result.status, dict(result.getheaders())
+        finally:
+            conn.close()
 
     def test_verified_operator_approval_over_private_socket(self):
         r = self.broker.request(source="127.0.0.1")
