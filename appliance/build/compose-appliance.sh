@@ -36,6 +36,8 @@ install -m 0755 "$root/appliance/remote/lan-start.sh" "$recipe/build_into_srm/op
 cp "$root/appliance/remote/lan.py" "$recipe/build_into_srm/opt/redeti-appliance/remote/lan.py"
 install -m 0644 "$root/appliance/remote/sshd_config" "$recipe/build_into_srm/opt/redeti-appliance/remote/sshd_config"
 install -m 0644 "$root/appliance/remote/ssh-banner.txt" "$recipe/build_into_srm/opt/redeti-appliance/remote/ssh-banner.txt"
+# Read-only diagnostic for the next physical boot; never changes firewall.
+install -m 0755 "$root/appliance/remote/ssh-diagnose.py" "$recipe/build_into_srm/opt/redeti-appliance/remote/ssh-diagnose.py"
 # Mask the stock SSH daemon: LAN SSH uses the explicitly hardened daemon above.
 mkdir -p "$recipe/build_into_srm/etc/systemd/system"
 ln -s /dev/null "$recipe/build_into_srm/etc/systemd/system/sshd.service"
