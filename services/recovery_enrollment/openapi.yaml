@@ -1,0 +1,141 @@
+openapi: 3.1.0
+info:
+  title: RedeTI Recovery OS Enrollment Broker
+  version: 0.1.0
+  description: |
+    CONTRACT ONLY. HTTP server is not implemented or deployed in this phase.
+    Bootstrap is untrusted and rate-limited; approvals MUST pass through a
+    separately authenticated RedeTI Service Desk gateway with operator roles,
+    work-order permission, CSRF protection, MFA and operator audit.
+    Never log full request/response bodies, agent secrets or Tailscale keys.
+servers:
+  - url: https://enrollment.example.invalid
+    description: Placeholder only; must be replaced by a protected Hermes endpoint.
+paths:
+  /v1/bootstrap/sessions:
+    post:
+      operationId: requestEnrollment
+      summary: Request a short-lived, untrusted pairing session
+      description: |
+        HTTPS only. Determine source identity at trusted ingress (not arbitrary
+        X-Forwarded-For). Enforce global and per-source rates and reject
+        excess concurrent sessions. Return agent_secret only once, over TLS.
+      responses:
+        "201":
+          description: Created; the agent stores its secret only in RAM.
+          headers:
+            Cache-Control:
+              schema: { type: string, enum: ["no-store"] }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [session_id, pairing_code, agent_secret, expires_at]
+                properties:
+                  session_id: { type: string }
+                  pairing_code: { type: string, pattern: "^[0-9]{8}$" }
+                  agent_secret: { type: string, writeOnly: true }
+                  expires_at: { type: number }
+        "429": { description: Rate limit exceeded }
+        "503": { description: Broker unavailable }
+  /v1/bootstrap/sessions/{session_id}:
+    get:
+      operationId: getEnrollmentState
+      summary: Fetch non-secret session state
+      security:
+        - AgentProof: []
+      parameters:
+        - $ref: "#/components/parameters/SessionID"
+      responses:
+        "200":
+          description: Current state without Tailscale tokens or passwords
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [state]
+                properties:
+                  state:
+                    type: string
+                    enum: [pending, approved, issuing, consumed, failed, expired]
+        "404": { description: Session unavailable }
+  /v1/bootstrap/sessions/{session_id}/claim:
+    post:
+      operationId: claimEnrollment
+      summary: Claim one auth key once, only after technician approval
+      description: |
+        AgentSecret bearer header proves the same agent that created the session.
+        Never put this secret in query parameters or logs. Issued key is returned
+        exactly once. Network/provider failures fail closed, not silent retry.
+      security:
+        - AgentProof: []
+      parameters:
+        - $ref: "#/components/parameters/SessionID"
+      responses:
+        "200":
+          description: One-time enrollment key. NO cache, logs, traces or backups.
+          headers:
+            Cache-Control:
+              schema: { type: string, enum: ["no-store"] }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [auth_key]
+                properties:
+                  auth_key:
+                    type: string
+                    format: password
+        "404": { description: Session unavailable or not yet approved }
+        "409": { description: Already consumed/expired/failed }
+  /v1/operator/sessions/{session_id}/approve:
+    post:
+      operationId: approveEnrollment
+      summary: Human approval from authenticated Service Desk
+      description: |
+        This route is NOT public. The gateway derives operator identity from
+        authenticated session, verifies technician role + work order, requires
+        CSRF protection and logs only event names and opaque session ids.
+        Agent pairing code must be confirmed with the physical device.
+      security:
+        - OperatorSession: []
+      parameters:
+        - $ref: "#/components/parameters/SessionID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [pairing_code, work_order]
+              properties:
+                pairing_code: { type: string, pattern: "^[0-9]{8}$" }
+                work_order: { type: string, maxLength: 128 }
+      responses:
+        "204": { description: Approved }
+        "403": { description: Operator not authorized }
+        "404": { description: Session unavailable }
+        "409": { description: Expired/already handled }
+components:
+  parameters:
+    SessionID:
+      name: session_id
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 128
+  securitySchemes:
+    AgentProof:
+      type: http
+      scheme: bearer
+      description: Random per-session agent_secret (not the Tailscale auth key).
+    OperatorSession:
+      type: apiKey
+      in: cookie
+      name: redeti_session
+      description: |
+        Placeholder for RedeTI Service Desk authenticated session; integrate
+        only behind MFA/CSRF and work-order authorization. Never deploy standalone.
