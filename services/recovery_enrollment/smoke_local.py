@@ -57,6 +57,8 @@ def check() -> None:
             operator_mac_secret=mac_key,
             socket_directory=temp,
             agent_port=0,
+            # Explicitly enabled only for synthetic, offline issuer.
+            enable_key_issuance=True,
         ) as runtime:
             host, port = runtime.agent_address
             assert host == "127.0.0.1"
