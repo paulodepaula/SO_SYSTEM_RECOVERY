@@ -42,6 +42,12 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
   `redeti-recovery-smoke` keys (active/inactive/uncertain), not IDs or tokens.
   If active/uncertain: inspect/revoke by description in the Tailscale Keys
   admin panel; **never rerun the create-and-revoke test** until reviewed.
+  On `key_listing_null_keys`, the CLI now prints `INCONCLUSIVE`: the
+  upstream API returned `keys: null`, which can represent a nil/empty
+  collection in Tailscale's Go API client. No active keys are visible
+  through this credential, but this cannot establish whether the previous
+  DELETE succeeded or the 15-minute smoke key simply expired.
+  **Review the Keys admin console once and close the incident manually.**
   This check does NOT itself revoke anything and a zero count is limited to
   what the OAuth credential is allowed to see. Expired one-off auth keys may
   disappear from the API listing.
