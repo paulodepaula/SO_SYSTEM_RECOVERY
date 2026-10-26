@@ -12,14 +12,9 @@ import http.client
 import json
 import socket
 import tempfile
-import threading
 
-from .core import EnrollmentBroker
-from .http_api import create_loopback_server
-from .operator_auth import (
-    OperatorApprovalVerifier, example_claim_for_tests, sign_example_for_tests,
-)
-from .operator_socket import create_operator_socket_server
+from .hermes_runtime import HermesBrokerRuntime
+from .operator_auth import example_claim_for_tests, sign_example_for_tests
 
 
 class _FakeKeyIssuer:
@@ -53,67 +48,55 @@ def _request(conn: http.client.HTTPConnection, method: str, path: str,
 
 
 def check() -> None:
+    """Exercise the actual Hermes runtime in its safe fake-issuer mode."""
     issuer = _FakeKeyIssuer()
-    broker = EnrollmentBroker(issuer)
-    agent_server = create_loopback_server(broker, port=0)
-    assert agent_server.server_address[0] == "127.0.0.1"
-    agent_thread = threading.Thread(target=agent_server.serve_forever, daemon=True)
-    agent_thread.start()
-    try:
-        with tempfile.TemporaryDirectory() as temp:
-            verifier = OperatorApprovalVerifier(broker, mac_secret=bytes(range(32)))
-            operator_server = create_operator_socket_server(
-                verifier, directory=temp)
-            operator_thread = threading.Thread(
-                target=operator_server.serve_forever, daemon=True)
-            operator_thread.start()
+    mac_key = bytes(range(32))  # Test-only fixture, never a deployment secret.
+    with tempfile.TemporaryDirectory() as temp:
+        with HermesBrokerRuntime(
+            issuer=issuer,
+            operator_mac_secret=mac_key,
+            socket_directory=temp,
+            agent_port=0,
+        ) as runtime:
+            host, port = runtime.agent_address
+            assert host == "127.0.0.1"
+            conn = http.client.HTTPConnection(host, port, timeout=3)
             try:
-                conn = http.client.HTTPConnection(
-                    "127.0.0.1", agent_server.server_port, timeout=3)
-                try:
-                    status, session = _request(conn, "POST", "/v1/bootstrap/sessions")
-                    assert status == 201
-                    sid, proof = session["session_id"], session["agent_secret"]
-                    route = "/v1/bootstrap/sessions/" + sid
-                    headers = {"Authorization": "Bearer " + proof}
-                    assert _request(conn, "POST", route + "/claim", headers)[0] == 404
-                    assert _request(conn, "GET", route, headers) == (
-                        200, {"state": "pending"})
+                status, session = _request(conn, "POST", "/v1/bootstrap/sessions")
+                assert status == 201
+                sid, proof = session["session_id"], session["agent_secret"]
+                route = "/v1/bootstrap/sessions/" + sid
+                headers = {"Authorization": "Bearer " + proof}
+                assert _request(conn, "POST", route + "/claim", headers)[0] == 404
+                assert _request(conn, "GET", route, headers) == (
+                    200, {"state": "pending"})
 
-                    payload = example_claim_for_tests(
-                        sid=sid, code=session["pairing_code"],
-                        now=int(__import__("time").time()))
-                    assertion = sign_example_for_tests(
-                        payload, mac_secret=bytes(range(32)))
-                    operator_conn = _UnixHTTP(operator_server.server_address)
-                    try:
-                        body = json.dumps({"assertion": assertion}).encode("ascii")
-                        code, _ = _request(
-                            operator_conn, "POST",
-                            "/v1/operator/sessions/" + sid + "/approve",
-                            {"Content-Type": "application/json"}, body)
-                        assert code == 204
-                    finally:
-                        operator_conn.close()
-                    assert _request(conn, "GET", route, headers) == (
-                        200, {"state": "approved"})
-                    status, claimed = _request(
-                        conn, "POST", route + "/claim", headers)
-                    assert status == 200
-                    assert claimed.get("auth_key", "").startswith(
-                        "tskey-auth-mock-")
-                    assert _request(conn, "POST", route + "/claim", headers)[0] == 404
-                    assert issuer.calls == 1
+                payload = example_claim_for_tests(
+                    sid=sid, code=session["pairing_code"],
+                    now=int(__import__("time").time()),
+                )
+                assertion = sign_example_for_tests(
+                    payload, mac_secret=mac_key,
+                )
+                operator_conn = _UnixHTTP(runtime.operator_socket_path)
+                try:
+                    body = json.dumps({"assertion": assertion}).encode("ascii")
+                    code, _ = _request(
+                        operator_conn, "POST",
+                        "/v1/operator/sessions/" + sid + "/approve",
+                        {"Content-Type": "application/json"}, body)
+                    assert code == 204
                 finally:
-                    conn.close()
+                    operator_conn.close()
+                assert _request(conn, "GET", route, headers) == (
+                    200, {"state": "approved"})
+                status, claimed = _request(conn, "POST", route + "/claim", headers)
+                assert status == 200
+                assert claimed.get("auth_key") == "tskey-auth-mock-only-do-not-use"
+                assert _request(conn, "POST", route + "/claim", headers)[0] == 404
+                assert issuer.calls == 1
             finally:
-                operator_server.shutdown()
-                operator_server.server_close()
-                operator_thread.join(timeout=4)
-    finally:
-        agent_server.shutdown()
-        agent_server.server_close()
-        agent_thread.join(timeout=4)
+                conn.close()
 
 
 def main() -> int:
