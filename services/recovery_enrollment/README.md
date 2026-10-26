@@ -22,13 +22,19 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
   per-source rate limit, resource cap, expiry and safe event names.
 - `tailscale_oauth.py` — backend-only OAuth client-credentials exchange,
   fixed HTTPS Tailscale URLs, single-use ephemeral auth keys with only
-  `tag:redeti-recovery`, provider-error redaction, injectable fake transport.
+  `tag:redeti-recovery`, **15-minute expiry and pre-approval only after a
+  verified operator approval** (avoids a second Tailscale device-approval
+  workflow), provider-error redaction and injectable fake transport.
 - `check_oauth.py` — read-only Hermes smoke check using root-owned `0700`
   directory and `0600` files under `/etc/redeti-recovery`. Requests only a
   short-lived OAuth token with `auth_keys` and `tag:redeti-recovery`, verifies
   its scope and prints only PASS/FAIL; **never creates an auth key**.
   Use `sudo python3 -m services.recovery_enrollment.check_oauth` from a
   trusted, reviewed checkout. Not part of ISO or an automated deploy.
+- `smoke_local.py` — complete Hermes-side local dry-run (loopback agent
+  interface, signed operator approval via UNIX socket, single mock claim).
+  Run `python3 -m services.recovery_enrollment.smoke_local` from the repo root;
+  **it never loads the OAuth credentials or accesses the Tailscale API**.
 - `http_api.py` — private 127.0.0.1-only agent POST request, GET status and
   POST claim adapter; rejects unknown/operator routes, requires bearer
   proof for status/claim and sends no-store responses. Not deployed.
@@ -50,6 +56,8 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
   binding, no-store, agent secret authentication and blocked operator paths.
 - `appliance/tests/test_enrollment_check_oauth.py` — fake API responses,
   missing scope, credential error redaction and strict file permissions.
+- `appliance/tests/test_enrollment_smoke_local.py` — end-to-end exercise
+  of the mock issuer through both private agent and operator interfaces.
 - `appliance/tests/test_enrollment_operator_auth.py` and
   `test_enrollment_operator_socket.py` — signature, role, expiry, replay,
   wrong session, concurrent calls and UNIX-only socket security.
@@ -126,6 +134,9 @@ client is needed for Phase A tests.
 |---|---|
 | Pairing state machine | Implemented; offline tests |
 | Mocked Tailscale OAuth issuer | Implemented; offline tests |
+| OAuth credential test on Hermes | Operator confirmed PASS (token exchange only) |
+| Local end-to-end broker dry-run | Implemented, CI tests; field run pending |
+| Real Tailscale auth-key issuance | Not executed |
 | Private loopback HTTP agent adapter | Implemented, offline tests; not deployed |
 | Signed approval verifier / private operator UNIX socket | Implemented, offline tests; not deployed |
 | Service Desk-side signing and authenticated session integration | Not implemented |
