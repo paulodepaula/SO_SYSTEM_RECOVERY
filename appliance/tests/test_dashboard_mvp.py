@@ -155,6 +155,7 @@ class DashboardMVP(unittest.TestCase):
     def test_private_vpn_is_visible_without_displaying_secrets(self):
         self.assertIn('s_vpn_diag_state=txt(s_ssh_diagnostics_panel,',DASHBOARD)
         self.assertIn('vpn_state_message(vpn_state)',DASHBOARD)
+        self.assertIn('strcmp(str(vpn,"vpn_ssh_mode"),"managed")',DASHBOARD)
         self.assertIn('vpn_ready?str(vpn,"vpn_ip"):"-"',DASHBOARD)
         for state in ('"awaiting_provision"','"invalid_auth_key"',
                       '"vpn_auth_failed"','"firewall_unverified"'):
