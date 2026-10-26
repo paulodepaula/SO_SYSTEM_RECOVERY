@@ -122,6 +122,12 @@ class SSHDiagnosisTests(TestCase):
         self.assertNotIn("tskey", out)
         self.assertNotIn("100.", out)
 
+    def test_future_iso_bundles_read_only_diagnostic(self):
+        recipe = (ROOT / "appliance/build/compose-appliance.sh").read_text()
+        self.assertIn("remote/ssh-diagnose.py", recipe)
+        self.assertIn('install -m 0755 "$root/appliance/remote/ssh-diagnose.py"', recipe)
+        self.assertNotIn('authkey', (ROOT / "appliance/remote/ssh-diagnose.py").read_text().lower())
+
     def test_no_mutating_iptables_or_disks_in_source(self):
         code = (ROOT / "appliance/remote/ssh-diagnose.py").read_text()
         self.assertNotIn('["iptables", "-I"', code)
