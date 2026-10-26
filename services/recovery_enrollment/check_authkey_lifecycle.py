@@ -52,10 +52,19 @@ def _transport(method: str, url: str, body: bytes | None,
         raise LifecycleCheckError("destination_blocked")
     opener = urllib.request.build_opener(_NoRedirects())
     request = urllib.request.Request(url, data=body, headers=headers, method=method)
-    with opener.open(request, timeout=12) as response:
-        if response.status not in (200, 201, 204):
-            raise LifecycleCheckError("api_request_failed")
-        data = response.read(MAX_RESPONSE + 1)
+    try:
+        with opener.open(request, timeout=12) as response:
+            if response.status not in (200, 201, 204):
+                raise LifecycleCheckError("api_request_failed")
+            data = response.read(MAX_RESPONSE + 1)
+    except urllib.error.HTTPError as error:
+        # Only the numeric HTTP status is safe to expose. Provider bodies,
+        # exception strings and credentials must never appear in logs.
+        raise LifecycleCheckError(f"api_http_{error.code}") from None
+    except LifecycleCheckError:
+        raise
+    except Exception:
+        raise LifecycleCheckError("api_transport_unavailable") from None
     if len(data) > MAX_RESPONSE:
         raise LifecycleCheckError("oversized_api_response")
     if not data:
@@ -138,12 +147,21 @@ def check_lifecycle(client_id: str, client_secret: str,
                 transport("DELETE", CREATE_KEY_URL + "/" + key_id, None,
                           {"Authorization": "Bearer " + access_token})
                 revoke_verified = True
+            except LifecycleCheckError as error:
+                # Report only a sanitized HTTP status (e.g. 403/404).
+                # It is diagnostic, not proof that the key stayed active.
+                code = str(error)
+                if re.fullmatch(r"api_http_[1-5][0-9][0-9]", code):
+                    raise LifecycleCheckError(
+                        "revocation_" + code + "_review_keys_panel"
+                    ) from None
+                raise LifecycleCheckError(
+                    "revocation_unverified_review_keys_panel"
+                ) from None
             except Exception:
-                revoke_verified = False
-            if not revoke_verified:
-                # Override earlier failures; an issued auth key might remain
-                # live. Operator must check/revoke it via Tailscale Keys.
-                raise LifecycleCheckError("revocation_unverified_review_keys_panel") from None
+                raise LifecycleCheckError(
+                    "revocation_unverified_review_keys_panel"
+                ) from None
     return "real_authkey_created_and_revoked"
 
 
