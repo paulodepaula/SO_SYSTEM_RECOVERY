@@ -25,22 +25,22 @@ class ClosedServiceTests(unittest.TestCase):
                 host, port = runtime.agent_address
                 self.assertEqual(host, "127.0.0.1")
                 self.assertNotEqual(port, 0)
-                http = http.client.HTTPConnection(host, port, timeout=3)
+                connection = http.client.HTTPConnection(host, port, timeout=3)
                 try:
-                    http.request("POST", "/v1/bootstrap/sessions")
-                    result = http.getresponse()
+                    connection.request("POST", "/v1/bootstrap/sessions")
+                    result = connection.getresponse()
                     content = result.read()
                     self.assertEqual(result.status, 201)
                     data = json.loads(content)
                     self.assertRegex(data["pairing_code"], r"^[0-9]{8}$")
                     sid, secret = data["session_id"], data["agent_secret"]
-                    http.request("POST", "/v1/bootstrap/sessions/" + sid + "/claim",
-                                 headers={"Authorization": "Bearer " + secret})
-                    result = http.getresponse()
+                    connection.request("POST", "/v1/bootstrap/sessions/" + sid + "/claim",
+                                       headers={"Authorization": "Bearer " + secret})
+                    result = connection.getresponse()
                     result.read()
                     self.assertEqual(result.status, 404)
                 finally:
-                    http.close()
+                    connection.close()
 
     def test_untrusted_directory_is_rejected_before_binding(self):
         with tempfile.TemporaryDirectory() as directory:
