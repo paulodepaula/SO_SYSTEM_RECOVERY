@@ -35,6 +35,18 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
   interface, signed operator approval via UNIX socket, single mock claim).
   Run `python3 -m services.recovery_enrollment.smoke_local` from the repo root;
   **it never loads the OAuth credentials or accesses the Tailscale API**.
+- `check_authkey_lifecycle.py` — deliberate **live** API creation-and-immediate-
+  revocation check, after successful simulated E2E. On Hermes only:
+  `sudo python3 -m services.recovery_enrollment.check_authkey_lifecycle --create-and-revoke`.
+  This operation intentionally **creates one Tailscale auth key** with a
+  15-minute expiry, one-time/ephemeral, tag `tag:redeti-recovery` and
+  `preauthorized=false` (unlike production approval). It verifies the returned
+  scope and immediately **revokes the key**. It never shows/saves the
+  key or registers a node; the OAuth secret is read only from protected files.
+  A PASS confirms creation and successful API revocation. A FAIL ending
+  `review_keys_panel` means check the Tailscale admin Keys page and manually
+  revoke any surviving smoke-test key; **do not rerun until reconciled**.
+  No Service Desk authorization and no ISO/field enrollment occurs here.
 - `http_api.py` — private 127.0.0.1-only agent POST request, GET status and
   POST claim adapter; rejects unknown/operator routes, requires bearer
   proof for status/claim and sends no-store responses. Not deployed.
@@ -58,6 +70,9 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
   missing scope, credential error redaction and strict file permissions.
 - `appliance/tests/test_enrollment_smoke_local.py` — end-to-end exercise
   of the mock issuer through both private agent and operator interfaces.
+- `appliance/tests/test_enrollment_check_authkey_lifecycle.py` — offline
+  transport mocks verify that the live checker revokes keys after creation,
+  detects malformed capabilities and never blindly retries uncertain issuance.
 - `appliance/tests/test_enrollment_operator_auth.py` and
   `test_enrollment_operator_socket.py` — signature, role, expiry, replay,
   wrong session, concurrent calls and UNIX-only socket security.
@@ -136,7 +151,7 @@ client is needed for Phase A tests.
 | Mocked Tailscale OAuth issuer | Implemented; offline tests |
 | OAuth credential test on Hermes | Operator confirmed PASS (token exchange only) |
 | Local end-to-end broker dry-run | Implemented, CI tests; field run pending |
-| Real Tailscale auth-key issuance | Not executed |
+| Real Tailscale auth-key issuance / revocation | Explicit smoke checker implemented; operator test pending |
 | Private loopback HTTP agent adapter | Implemented, offline tests; not deployed |
 | Signed approval verifier / private operator UNIX socket | Implemented, offline tests; not deployed |
 | Service Desk-side signing and authenticated session integration | Not implemented |
