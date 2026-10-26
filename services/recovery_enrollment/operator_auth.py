@@ -105,6 +105,7 @@ class OperatorApprovalVerifier:
         if (type(data["version"]) is not int or data["version"] != 1
             or data["aud"] != _AUDIENCE or data["iss"] != _ISSUER
             or data["permission"] != _PERMISSION
+            or not isinstance(data["role"], str)
             or data["role"] not in _ALLOWED_ROLES
             or type(data["iat"]) is not int or type(data["exp"]) is not int
             or data["iat"] > now + 10 or data["iat"] < now - 120
