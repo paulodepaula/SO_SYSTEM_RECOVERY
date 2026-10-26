@@ -53,26 +53,26 @@ def self_test() -> bool:
     with tempfile.TemporaryDirectory() as tmp:
         # TemporaryDirectory is owned by us with mode 0700.
         with make_closed_runtime(socket_directory=tmp, port=0) as server:
-            http = http.client.HTTPConnection(*server.agent_address, timeout=3)
+            connection = http.client.HTTPConnection(*server.agent_address, timeout=3)
             try:
-                http.request("POST", "/v1/bootstrap/sessions")
-                response = http.getresponse()
+                connection.request("POST", "/v1/bootstrap/sessions")
+                response = connection.getresponse()
                 body = response.read()
                 if response.status != 201:
                     return False
                 receipt = json.loads(body)
                 session_id = receipt["session_id"]
                 secret = receipt["agent_secret"]
-                http.request(
+                connection.request(
                     "POST", f"/v1/bootstrap/sessions/{session_id}/claim",
                     headers={"Authorization": "Bearer " + secret},
                 )
-                rejected = http.getresponse()
+                rejected = connection.getresponse()
                 rejected.read()
                 if rejected.status != 404:
                     return False
             finally:
-                http.close()
+                connection.close()
             return server.agent_address[0] == "127.0.0.1"
 
 
