@@ -1,7 +1,11 @@
 # RedeTI Recovery OS — Enrollment Broker (Hermes)
 
-**Current stage: Phase A, server-only core + mocked OAuth integration.**
-No service is listening on a network port and the ISO is **unchanged**.
+**Current stage: Phase A / private HTTP adapter.** The HTTP handler exists
+but is deliberately **loopback-only**, with no operator approval endpoint
+and no standalone launcher. Nothing is deployed on Hermes, no public
+service is listening, and the ISO is **unchanged by the broker work**.
+The separate static SSH banner does not alter the VPN or the identity
+of the current ISO.
 
 ## Motivation
 
@@ -19,11 +23,16 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
 - `tailscale_oauth.py` — backend-only OAuth client-credentials exchange,
   fixed HTTPS Tailscale URLs, single-use ephemeral auth keys with only
   `tag:redeti-recovery`, provider-error redaction, injectable fake transport.
-- `openapi.yaml` — proposed HTTPS endpoint contract for **future** agent
-  and Service Desk integrations; not an implemented HTTP service.
+- `http_api.py` — private 127.0.0.1-only agent POST request, GET status and
+  POST claim adapter; rejects unknown/operator routes, requires bearer
+  proof for status/claim and sends no-store responses. Not deployed.
+- `openapi.yaml` — endpoint contract; **operator approval remains not
+  implemented** until it is integrated with authenticated Service Desk roles.
 - `appliance/tests/test_enrollment_broker.py` — fake issuance tests covering
   stolen pairing code, wrong agent secret, concurrent claims, TTL, rejection,
   exhausted rate limits and disallowed auth-key capabilities.
+- `appliance/tests/test_enrollment_http.py` — local socket tests for loopback
+  binding, no-store, agent secret authentication and blocked operator paths.
 
 Run from repository root:
 
@@ -36,9 +45,10 @@ for these tests.
 
 ## Server deployment requirements — NOT done yet
 
-1. Deploy a **dedicated backend** on Hermes, not inside the Recovery ISO or
-   the public static Pages site. Integrate technician authentication with
-   RedeTI Service Desk, MFA, roles, CSRF and work-order authorization.
+1. Integrate technician authentication with the RedeTI Service Desk,
+   MFA, roles, CSRF and work-order authorization before deploying the
+   broker. `http_api.py` has no approval route by design; approval remains
+   a trusted internal method, never a public browser endpoint.
 2. Put operator approval endpoints behind authenticated Service Desk/Access
    with explicit verification of the matching device's pairing code.
    **Do not expose `EnrollmentBroker.approve()` directly on the internet.**
@@ -96,7 +106,8 @@ client is needed for Phase A tests.
 |---|---|
 | Pairing state machine | Implemented; offline tests |
 | Mocked Tailscale OAuth issuer | Implemented; offline tests |
-| HTTPS ingress/API backend | Not implemented |
+| Private loopback HTTP agent adapter | Implemented, offline tests; not deployed |
+| HTTPS ingress and authenticated operator API | Not implemented |
 | Service Desk technician authentication | Not integrated |
 | Hermes secrets + deployment | Not implemented |
 | ISO / LVGL agent integration | Not implemented |
