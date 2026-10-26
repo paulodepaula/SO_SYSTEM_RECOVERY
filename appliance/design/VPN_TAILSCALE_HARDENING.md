@@ -7,9 +7,19 @@ webapp, acesso remoto publico ou gravacao nos discos do cliente.
 
 - SSH local **ja homologado**: usuario fixo `paulo`, somente chaves publicas
   Ed25519 de `REDETI/authorized_keys`, sem senha/root.
-- A VPN Tailscale fornece **transporte WireGuard privado**, nao uma segunda
-  autenticacao SSH. `--ssh=false` conserva o OpenSSH protegido e a mesma chave
-  de administrador para LAN e rede externa.
+- A VPN Tailscale fornece **transporte WireGuard privado**. Por padrao
+  Tailscale SSH fica desligado, mantendo OpenSSH + Ed25519 na LAN e na VPN.
+- **Apos revisar ACLs**, o tecnico pode ativar o Tailscale SSH gerenciado com
+  um arquivo vazio `REDETI/tailscale-ssh.enable` no mesmo USB Ventoy confiavel.
+  Nesse modo, somente as conexoes pela tailnet usam as identidades de
+  host e a autenticacao gerenciadas pelo Tailscale. Isso evita registros
+  manuais de chaves de host a cada boot *via VPN*, enquanto o SSH LAN continua
+  independente, exigindo Ed25519 e verificacao de host.
+- Nao ativar Tailscale SSH se a politica SSH do tailnet permitir `root`,
+  outras contas ou operadores nao autorizados. A diretiva OpenSSH
+  `PermitRootLogin no` nao controla o servidor embutido do Tailscale.
+  Usar regras especificas para `tag:redeti-recovery`, usuario `paulo`,
+  e opcionalmente reautenticacao `check` com SSO.
 - `tailscaled --state=mem:` nao grava identidade do cliente em disco. A cada
   reinicio, cria-se uma identidade temporaria nova; um token **one-off** sera
   necessario para um boot futuro. Tags e permissões devem ser revisadas no
@@ -41,18 +51,27 @@ webapp, acesso remoto publico ou gravacao nos discos do cliente.
    **A chave privada Ed25519 permanece exclusivamente no computador do tecnico.**
    Nao enviar o conteudo de `ts-authkey` aqui, a GitHub issues, logs
    ou capturas de tela.
-5. Ejetar com seguranca, iniciar Recovery OS e verificar no dashboard
+5. Se desejar a identidade SSH gerenciada na VPN, **somente apos
+   limitar as regras `ssh` e grants no Tailscale Admin Console**, criar
+   `REDETI/tailscale-ssh.enable` como arquivo vazio (zero bytes). O codigo
+   recusa arquivo simbolico ou com conteudo. Sem esse arquivo, a autenticacao
+   permanece exclusivamente via Ed25519, mesmo na VPN. Nunca incluir tokens
+   ou identidades privadas nesse marcador.
+6. Ejetar com seguranca, iniciar Recovery OS e verificar no dashboard
    `VPN conectada` e endereco `100.x.x.x`. Caso falhe, consultar o estado
    da VPN; nunca publicar a chave, nem ligar roteamento de portas.
-6. Apos sucesso, remover `REDETI/ts-authkey` do pendrive em um Windows
+7. Apos sucesso, remover `REDETI/ts-authkey` do pendrive em um Windows
    confiavel e revogar a chave no Tailscale Admin Console. Revogacao da
    auth key nao encerra a sessao ja criada: se necessario, remover tambem
    o no temporario em Machines.
-7. A partir do computador tecnico ja na mesma tailnet, testar em
+8. A partir do computador tecnico ja na mesma tailnet, testar em
    **outra rede** (por exemplo, hotspot) usando o IP exibido:
    `ssh -o IdentitiesOnly=yes -i <chave-privada-local> paulo@100.x.y.z`.
-   Antes do aceite de nova host key, comparar a fingerprint SSH mostrada
-   no painel do Recovery OS por canal confiavel.
+   Se Tailscale SSH gerenciado estiver habilitado e autorizado na policy,
+   conectar via `tailscale ssh paulo@<nome-ou-ip-tailnet>`; a distribuicao
+   de host keys usa a identidade da tailnet. No SSH convencional (LAN ou VPN
+   sem marcador), conferir a fingerprint exibida no painel e no Windows
+   antes de aceitar uma nova host key.
 
 ## Diagnostico de estado (sem dados secretos)
 
@@ -82,3 +101,18 @@ temporaria ficam em `/run/redeti/`.
 
 Nao apagar ISO anterior antes de aprovar os itens acima. Codigo na main ou
 CI verde nao equivale a VPN homologada no equipamento fisico.
+
+## Por que o erro de known_hosts se repete na LAN?
+
+O servidor OpenSSH gera host key temporaria em `/run/redeti/ssh` em cada
+boot, para nao gravar segredos em disco do cliente, ISO ou Ventoy exFAT.
+Por isso conexoes repetidas a `192.168.x.x` exigem validacao de fingerprint
+quando a chave muda. **Nao** usar `StrictHostKeyChecking=no` nem copiar a mesma
+chave privada de host para varias maquinas. Para LAN persistente entre boots,
+sera preciso uma solucao de SSH host CA com assinatura confiavel, ou armazenamento
+protegido por equipamento, a ser implementada e homologada separadamente.
+
+Tailscale SSH usa autenticacao baseada em identidade do tailnet (nao no
+`authorized_keys` do OpenSSH). Somente habilitar com politica SSH propria e
+usuarios de origem restritos. As regras OpenSSH de usuario `paulo` e
+`PermitRootLogin no` continuam valendo exclusivamente no SSH da LAN.
