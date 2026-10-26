@@ -18,3 +18,8 @@
 **/client-disks/
 **/*.qcow2
 **/*.vmdk
+
+# Python local test artifacts (never commit)
+**/__pycache__/
+**/*.py[cod]
+.pytest_cache/
