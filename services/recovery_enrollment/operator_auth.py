@@ -77,7 +77,9 @@ class OperatorApprovalVerifier:
         self._used: dict[str, int] = {}
         self._lock = threading.RLock()
 
-    def approve_signed(self, assertion: str) -> None:
+    def approve_signed(
+        self, assertion: str, *, expected_session_id: str | None = None
+    ) -> None:
         """One use only, no logs and no authorization based on unsigned JSON."""
         fail = OperatorAuthError("operator authorization denied")
         if not isinstance(assertion, str) or len(assertion) > 6000:
@@ -121,6 +123,11 @@ class OperatorApprovalVerifier:
             or not _ID.fullmatch(data["os_id"])
             or not isinstance(data["nonce"], str)
             or not _NONCE.fullmatch(data["nonce"])):
+            raise fail
+
+        if expected_session_id is not None and not hmac.compare_digest(
+            data["sid"], expected_session_id
+        ):
             raise fail
 
         with self._lock:
