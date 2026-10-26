@@ -41,6 +41,12 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
   server-side argument `enable_key_issuance=True`; no HTTP request can
   change that setting. Offline `smoke_local.py` opts in with a fake issuer
   only. A live launcher and operator authentication still do not exist.
+- `closed_service.py` — a **local-only, closed-gate** Hermes staging runner
+  with `--self-test` and `--serve-closed`; random in-memory HMAC secret,
+  no OAuth code paths, no real issuance and no remote listener. The
+  `systemd/redeti-recovery-closed.service` unit is staged for review but
+  **not installed or enabled**. See `CLOSED_HERMES_RUNBOOK.md` for gates.
+  Never route the local HTTP API through Cloudflare or any public proxy.
 - `smoke_local.py` — complete Hermes-side local dry-run **using the actual
   Hermes runtime** (loopback agent interface, signed operator approval via
   UNIX socket, single mock claim). Run `python3 -m
@@ -101,6 +107,9 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
   single simulated claim, **default issuance denied even following signed
   approval**, private socket ownership, denied unsafe directories and
   cleanup on a partial startup failure.
+- `appliance/tests/test_closed_service.py` — isolated closed-mode runner,
+  self-test, absence of OAuth imports or external listeners, private
+  socket, and staged systemd hardening checks.
 - `appliance/tests/test_enrollment_check_authkey_lifecycle.py` — offline
   transport mocks verify that the live checker revokes keys after creation,
   detects malformed capabilities and never blindly retries uncertain issuance.
@@ -183,6 +192,7 @@ client is needed for Phase A tests.
 | OAuth credential test on Hermes | Operator confirmed PASS (token exchange only) |
 | Local end-to-end broker dry-run | Operator confirmed PASS on Hermes before shared runtime refactor; CI PASS after refactor |
 | Single-process Hermes runtime | Implemented; offline CI tests, not deployed; issuance OFF by default |
+| Closed-gate local Hermes service runner | Code + systemd staging unit; CI tests; no service installed |
 | Real Tailscale auth-key issuance / revocation | Operator reported FAIL revocation unverified; no valid personal auth keys visible in panel; DELETE result unresolved, do not rerun smoke |
 | Private loopback HTTP agent adapter | Implemented, offline tests; not deployed |
 | Signed approval verifier / private operator UNIX socket | Implemented, offline tests; not deployed |
