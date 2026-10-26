@@ -81,13 +81,15 @@ class TailscaleOAuthIssuer:
                     "devices": {"create": {
                         "reusable": False,
                         "ephemeral": True,
-                        "preauthorized": False,
+                        # Operator already approved this session; avoid a
+                        # second manual device-approval step in the tailnet.
+                        "preauthorized": True,
                         "tags": [RECOVERY_TAG],
                     }}
                 },
-                # Standard Tailscale key expiry is day-based. A one-off key
-                # must be consumed during this window; broker TTL is shorter.
-                "expirySeconds": 86400,
+                # The key is usable only briefly after technician approval.
+                # A consumed one-off key cannot enroll any other device.
+                "expirySeconds": 900,
                 "description": "redeti-recovery",
             }
             response = self._send(
@@ -104,7 +106,7 @@ class TailscaleOAuthIssuer:
             if (created.get("reusable") is not False or
                 created.get("ephemeral") is not True or
                 created.get("tags") != [RECOVERY_TAG] or
-                created.get("preauthorized") is not False):
+                created.get("preauthorized") is not True):
                 raise RuntimeError("unsafe key capabilities")
             return key
         except Exception:
