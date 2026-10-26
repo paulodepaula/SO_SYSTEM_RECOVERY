@@ -1,9 +1,12 @@
 # RedeTI Recovery OS — Enrollment Broker (Hermes)
 
-**Current stage: Phase A / private HTTP adapter.** The HTTP handler exists
-but is deliberately **loopback-only**, with no operator approval endpoint
-and no standalone launcher. Nothing is deployed on Hermes, no public
-service is listening, and the ISO is **unchanged by the broker work**.
+**Current stage: Phase B / shared Hermes runtime (code only).** Both
+listeners can now run in a single process with shared authorization state:
+agent HTTP remains **127.0.0.1 only**, and operator approvals use an
+**AF_UNIX socket** inside a private directory. This is an injectable
+library, **not a deployed daemon**: there is no public endpoint, no
+Service Desk signer, no secret-loading launcher, no Cloudflare route,
+and no new ISO in this phase.
 The separate static SSH banner does not alter the VPN or the identity
 of the current ISO.
 
@@ -31,10 +34,15 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
   its scope and prints only PASS/FAIL; **never creates an auth key**.
   Use `sudo python3 -m services.recovery_enrollment.check_oauth` from a
   trusted, reviewed checkout. Not part of ISO or an automated deploy.
-- `smoke_local.py` — complete Hermes-side local dry-run (loopback agent
-  interface, signed operator approval via UNIX socket, single mock claim).
-  Run `python3 -m services.recovery_enrollment.smoke_local` from the repo root;
-  **it never loads the OAuth credentials or accesses the Tailscale API**.
+- `hermes_runtime.py` — manages both private listeners in one process,
+  one broker state machine, safe shutdown and cleanup on partial startup.
+  It accepts an injected issuer and operator signing secret but **does not
+  load secret files or create API keys by itself**; no standalone launcher.
+- `smoke_local.py` — complete Hermes-side local dry-run **using the actual
+  Hermes runtime** (loopback agent interface, signed operator approval via
+  UNIX socket, single mock claim). Run `python3 -m
+  services.recovery_enrollment.smoke_local` from the repo root;
+  **it never loads OAuth credentials or accesses the Tailscale API**.
 - `inspect_smoke_keys.py` — **read-only** reconciliation for any
   `revocation_unverified_review_keys_panel` event. Run `sudo python3 -m
   services.recovery_enrollment.inspect_smoke_keys`. Queries only OAuth token
@@ -86,6 +94,9 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
   missing scope, credential error redaction and strict file permissions.
 - `appliance/tests/test_enrollment_smoke_local.py` — end-to-end exercise
   of the mock issuer through both private agent and operator interfaces.
+- `appliance/tests/test_hermes_runtime.py` — shared-state lifecycle,
+  single claim, private socket ownership, denied unsafe directories and
+  cleanup on a partial startup failure.
 - `appliance/tests/test_enrollment_check_authkey_lifecycle.py` — offline
   transport mocks verify that the live checker revokes keys after creation,
   detects malformed capabilities and never blindly retries uncertain issuance.
@@ -166,8 +177,9 @@ client is needed for Phase A tests.
 | Pairing state machine | Implemented; offline tests |
 | Mocked Tailscale OAuth issuer | Implemented; offline tests |
 | OAuth credential test on Hermes | Operator confirmed PASS (token exchange only) |
-| Local end-to-end broker dry-run | Implemented, CI tests; field run pending |
-| Real Tailscale auth-key issuance / revocation | Explicit smoke checker implemented; operator test pending |
+| Local end-to-end broker dry-run | Operator confirmed PASS on Hermes before shared runtime refactor; CI PASS after refactor |
+| Single-process Hermes runtime | Implemented; offline CI tests, not deployed |
+| Real Tailscale auth-key issuance / revocation | Operator reported FAIL revocation unverified; no valid personal auth keys visible in panel; DELETE result unresolved, do not rerun smoke |
 | Private loopback HTTP agent adapter | Implemented, offline tests; not deployed |
 | Signed approval verifier / private operator UNIX socket | Implemented, offline tests; not deployed |
 | Service Desk-side signing and authenticated session integration | Not implemented |
