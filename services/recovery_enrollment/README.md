@@ -35,6 +35,16 @@ session. Neither the Recovery OS nor GitHub receives the OAuth client secret.
   interface, signed operator approval via UNIX socket, single mock claim).
   Run `python3 -m services.recovery_enrollment.smoke_local` from the repo root;
   **it never loads the OAuth credentials or accesses the Tailscale API**.
+- `inspect_smoke_keys.py` — **read-only** reconciliation for any
+  `revocation_unverified_review_keys_panel` event. Run `sudo python3 -m
+  services.recovery_enrollment.inspect_smoke_keys`. Queries only OAuth token
+  exchange + GET keys metadata; prints only number of matching
+  `redeti-recovery-smoke` keys (active/inactive/uncertain), not IDs or tokens.
+  If active/uncertain: inspect/revoke by description in the Tailscale Keys
+  admin panel; **never rerun the create-and-revoke test** until reviewed.
+  This check does NOT itself revoke anything and a zero count is limited to
+  what the OAuth credential is allowed to see. Expired one-off auth keys may
+  disappear from the API listing.
 - `check_authkey_lifecycle.py` — deliberate **live** API creation-and-immediate-
   revocation check, after successful simulated E2E. On Hermes only:
   `sudo python3 -m services.recovery_enrollment.check_authkey_lifecycle --create-and-revoke`.
