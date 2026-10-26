@@ -64,7 +64,9 @@ class TailscaleOAuthIssuer:
         del session_id
         oauth_data = urllib.parse.urlencode({
             "client_id": self._id, "client_secret": self._secret,
-            "grant_type": "client_credentials"
+            "grant_type": "client_credentials",
+            "scope": "auth_keys",
+            "tags": RECOVERY_TAG,
         }).encode("utf-8")
         try:
             token_response = self._send(
