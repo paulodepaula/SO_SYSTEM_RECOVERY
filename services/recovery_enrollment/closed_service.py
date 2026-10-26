@@ -36,7 +36,8 @@ class _UnavailableIssuer:
 
 def make_closed_runtime(*, socket_directory: str, port: int = 39081) -> HermesBrokerRuntime:
     """Non-network-configurable local-only runtime with throwaway RAM secret."""
-    if type(port) is not int or not 1024 <= port <= 65535:
+    # port=0 asks the OS for an ephemeral port; only offline tests use it.
+    if type(port) is not int or port != 0 and not 1024 <= port <= 65535:
         raise ValueError("invalid local port")
     return HermesBrokerRuntime(
         issuer=_UnavailableIssuer(),
@@ -52,7 +53,8 @@ def self_test() -> bool:
     with tempfile.TemporaryDirectory() as tmp:
         # TemporaryDirectory is owned by us with mode 0700.
         with make_closed_runtime(socket_directory=tmp, port=0) as server:
-            with http.client.HTTPConnection(*server.agent_address, timeout=3) as http:
+            http = http.client.HTTPConnection(*server.agent_address, timeout=3)
+            try:
                 http.request("POST", "/v1/bootstrap/sessions")
                 response = http.getresponse()
                 body = response.read()
@@ -63,12 +65,14 @@ def self_test() -> bool:
                 secret = receipt["agent_secret"]
                 http.request(
                     "POST", f"/v1/bootstrap/sessions/{session_id}/claim",
-                    headers={"Authorization": "Bearer " + secret}
+                    headers={"Authorization": "Bearer " + secret},
                 )
                 rejected = http.getresponse()
                 rejected.read()
                 if rejected.status != 404:
                     return False
+            finally:
+                http.close()
             return server.agent_address[0] == "127.0.0.1"
 
 
