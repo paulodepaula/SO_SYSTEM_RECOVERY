@@ -77,18 +77,21 @@ class EnrollmentBroker:
         approval_ttl_seconds: int = 180,
         rate_limit_window_seconds: int = 600,
         max_requests_per_source: int = 6,
+        max_requests_global: int = 100,
         max_sessions: int = 256,
         audit: Callable[[str, str], None] | None = None,
     ) -> None:
         if not 30 <= approval_ttl_seconds <= 600:
             raise ValueError("approval TTL must be between 30 and 600 seconds")
-        if max_requests_per_source < 1 or max_sessions < 1:
+        if max_requests_per_source < 1 or max_requests_global < 1 or max_sessions < 1:
             raise ValueError("limits must be positive")
         self._issuer = issuer
         self._clock = clock
         self._ttl = approval_ttl_seconds
         self._window = rate_limit_window_seconds
         self._per_source = max_requests_per_source
+        self._global_limit = max_requests_global
+        self._global_attempts: deque[float] = deque()
         self._max_sessions = max_sessions
         self._entries: dict[str, _Entry] = {}
         self._attempts: dict[str, deque[float]] = defaultdict(deque)
@@ -120,7 +123,9 @@ class EnrollmentBroker:
             attempts = self._attempts[source]
             while attempts and attempts[0] <= now - self._window:
                 attempts.popleft()
-            if len(attempts) >= self._per_source:
+            while self._global_attempts and self._global_attempts[0] <= now - self._window:
+                self._global_attempts.popleft()
+            if len(attempts) >= self._per_source or len(self._global_attempts) >= self._global_limit:
                 raise EnrollmentError("rate limit exceeded")
             # Resource cap is explicit; persistent storage is not used.
             for sid, entry in list(self._entries.items()):
@@ -131,6 +136,7 @@ class EnrollmentBroker:
             if len(self._entries) >= self._max_sessions:
                 raise EnrollmentError("enrollment capacity reached")
             attempts.append(now)
+            self._global_attempts.append(now)
             sid = secrets.token_urlsafe(24)
             code = f"{secrets.randbelow(100_000_000):08d}"
             secret = secrets.token_urlsafe(32)
@@ -145,12 +151,25 @@ class EnrollmentBroker:
             self._event("requested", sid)
             return RequestReceipt(sid, code, secret, now + self._ttl)
 
-    def state(self, session_id: str) -> str:
-        """State is non-secret. It does not indicate if a key is available."""
+    def agent_state(self, *, session_id: str, agent_secret: str) -> str:
+        """Return non-secret state only to the same bootstrap agent.
+
+        The future HTTPS adapter must require bearer proof for polling; an
+        opaque session id by itself must never authorize status disclosure.
+        """
         with self._lock:
             entry = self._entries.get(session_id)
-            if entry is None:
-                return "unknown"
+            if entry is None or not isinstance(agent_secret, str) or len(agent_secret) > 128:
+                raise EnrollmentError("session unavailable")
+            try:
+                valid = hmac.compare_digest(
+                    _digest(session_id + ":" + agent_secret),
+                    entry.secret_digest,
+                )
+            except (UnicodeError, TypeError):
+                valid = False
+            if not valid:
+                raise EnrollmentError("session unavailable")
             self._expire(entry, self._clock())
             return entry.state.value
 
@@ -198,7 +217,10 @@ class EnrollmentBroker:
                 raise EnrollmentError("session unavailable")
             if not isinstance(agent_secret, str) or len(agent_secret) > 128:
                 raise EnrollmentError("session unavailable")
-            candidate = _digest(session_id + ":" + agent_secret)
+            try:
+                candidate = _digest(session_id + ":" + agent_secret)
+            except UnicodeError:
+                raise EnrollmentError("session unavailable") from None
             if not hmac.compare_digest(candidate, entry.secret_digest):
                 self._event("rejected_claim", session_id)
                 raise EnrollmentError("session unavailable")
