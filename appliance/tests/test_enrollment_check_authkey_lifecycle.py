@@ -96,6 +96,27 @@ class LifecycleTests(unittest.TestCase):
         self.assertNotIn("secret-test", str(err.exception))
         self.assertEqual(fake.operations(), ["POST", "POST", "DELETE"])
 
+    def test_revocation_http_status_is_sanitized_and_no_retry(self):
+        # Simulated status: no real Tailscale requests or keys.
+        for status in (403, 404, 429, 500):
+            fake = FakeTransport()
+            original = fake.__call__
+            def transport(method, url, body, headers):
+                if method == "DELETE":
+                    fake.calls.append((method, url, body, headers))
+                    raise LifecycleCheckError(f"api_http_{status}")
+                return original(method, url, body, headers)
+            with self.subTest(status=status):
+                with self.assertRaises(LifecycleCheckError) as err:
+                    check_lifecycle("fake-id", "fake-secret",
+                                    transport=transport)
+                self.assertEqual(
+                    str(err.exception),
+                    f"revocation_api_http_{status}_review_keys_panel",
+                )
+                self.assertEqual(fake.operations(), ["POST", "POST", "DELETE"])
+                self.assertNotIn("fake-secret", str(err.exception))
+
     def test_no_id_no_retry_and_safe_failure(self):
         fake = FakeTransport(missing_id=True)
         with self.assertRaisesRegex(LifecycleCheckError,
