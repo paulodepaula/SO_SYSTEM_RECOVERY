@@ -1,0 +1,49 @@
+# RedeTI Recovery OS Hermes — STAGING ONLY, NOT PRODUCTION
+# This unit is a review artifact. It has no [Install] section and is not
+# installed, enabled, started, or exposed by this repository change.
+# Key issuance remains disabled by closed_service and no OAuth files are read.
+
+[Unit]
+Description=RedeTI Recovery OS Enrollment Broker (closed staging)
+Documentation=https://github.com/paulodepaula/SO_SYSTEM_RECOVERY
+After=network.target
+ConditionPathIsDirectory=/opt/redeti-recovery/services/recovery_enrollment
+
+[Service]
+Type=exec
+User=redeti-recovery
+Group=redeti-recovery
+WorkingDirectory=/opt/redeti-recovery
+ExecStart=/usr/bin/python3 -m services.recovery_enrollment.closed_service --serve-closed --socket-directory /run/redeti-recovery --port 39081
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=15
+TimeoutStopSec=15
+UMask=0077
+RuntimeDirectory=redeti-recovery
+RuntimeDirectoryMode=0700
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+DevicePolicy=closed
+CapabilityBoundingSet=
+AmbientCapabilities=
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET
+IPAddressDeny=any
+IPAddressAllow=localhost
+ReadWritePaths=/run/redeti-recovery
+StandardOutput=journal
+StandardError=journal
+
+# Intentionally no [Install]. Do not enable or publish in VPN-2 preparation.
