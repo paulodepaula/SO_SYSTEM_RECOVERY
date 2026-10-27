@@ -1,54 +1,52 @@
 # RedeTI Recovery OS — Relatório de etapa
 
-- Etapa: `VPN-1-FINAL`
-- Gerado em UTC: `2026-10-27T03:00:04Z`
-- Commit: `e8950d562e455f1945249f435b1ca133901641de`
+- Etapa: `VPN-2`
+- Gerado em UTC: `2026-10-27T11:37:13Z`
+- Commit: `a06a73e9d2a139195d950555c76a5e04d373bd8a`
 - Branch: `main`
 - Estado do repositório no momento do relatório: `clean`
 
 ## Alterações realizadas
 
-- `appliance/README.md`
-- `appliance/boot/launch.sh`
-- `appliance/build/compose-appliance.sh`
-- `appliance/remote/enrollment-agent.py`
-- `appliance/remote/enrollment_client.py`
-- `appliance/remote/start.sh`
-- `appliance/tests/test_enrollment_client.py`
-- `appliance/tests/test_remote.py`
-- `services/recovery_enrollment/README.md`
+- `appliance/tests/test_vpn2_preparation.py`
+- `services/recovery_enrollment/VPN2_DEPLOYMENT_PLAN.md`
+- `services/recovery_enrollment/systemd/redeti-recovery-broker-staging.service`
 
 ## Testes
 
-- 157 testes unittest: PASS (resultado previamente validado)
-- Pareamento, aprovação/negação, expiração, replay e falha fail-closed: PASS (simulação previamente validada)
-- Regressão SSH local, firewall, boot e splash: PASS (resultado previamente validado)
-- CTest nativo DRM/KMS: 3/3 PASS (resultado previamente validado)
-- SHA256, ISO bootável, BIOS/UEFI e conteúdo SRM: PASS (resultado previamente validado)
+- 160 testes unittest: PASS
+- systemd-analyze verify da unidade staging: PASS
+- py_compile com cache temporário e git diff --check: PASS
+- closed_service --self-test: PASS
+- smoke_local com emissor simulado: PASS
+- varredura de preparação por segredos: PASS
+- inventário read-only de serviços, portas e Docker: PASS
+- check_oauth real: BLOCKED por credenciais protegidas ausentes/sem autorização root; nenhum conteúdo lido
 
 ## Compilação
 
-- Resultado: `PASS`
-- Manifesto: `{"app_version": "v0.6.0", "build_tag": "b261027-024649", "elf_sha256": "d886dcebe40a2c292ec14c851f71fd95d6f78b9b6e34211772737f4585193a65", "iso_filename": "RedeTI-Recovery-OS-appliance-e8950d56-20261027T024658Z.iso", "iso_sha256": "913a2ffe71aedcb4d160f2b7ab484925323f121b92d1382cc472c30bba4e7552", "source_commit": "e8950d562e455f1945249f435b1ca133901641de"}`
+- Resultado: `NOT_RUN`
 
 ## ISO
 
-- Caminho: `/home/paulo/RecoveryOS/out/RedeTI-Recovery-OS-appliance-e8950d56-20261027T024658Z.iso`
-- SHA256: `913a2ffe71aedcb4d160f2b7ab484925323f121b92d1382cc472c30bba4e7552`
-- Sidecar verificado: `True`
+- Caminho: `N/A`
+- SHA256: `N/A`
+- Sidecar verificado: `False`
 
 ## Falhas
 
-- Enrollment Broker ainda não está implantado como serviço de produção
-- OAuth Tailscale real e emissão/revogação de auth key não foram executados
-- SSH remoto pela VPN permanece não homologado; timeout de banner anterior sem validação física
+- Unidade systemd não instalada, habilitada ou iniciada
+- HTTPS/Cloudflare não publicado
+- Service Desk real não integrado
+- OAuth real e emissão de chaves não executados
 
 ## Pendências
 
-- Autorização específica para integrar Service Desk autenticado, MFA/RBAC/CSRF e ingress HTTPS
-- Autorização específica para usar credencial OAuth restrita auth_keys/tag:redeti-recovery em ambiente controlado
-- Homologação física do pareamento, Tailscale, TCP/22, banner SSH, comando remoto e encerramento
-- Publicação no GitHub, se desejada, depende de autorização separada
+- Autorizar criação do usuário/grupo redeti-recovery e instalação da unidade
+- Autorizar integração HTTPS com hostname/TLS/proxy e confirmar conflito com portas 80/443 existentes
+- Integrar Service Desk com MFA/RBAC/CSRF, RECOVERY_VPN_APPROVE e assinatura backend
+- Disponibilizar OAuth client restrito auth_keys/tag:redeti-recovery no secret manager, sem expor o conteúdo
+- Executar janela controlada de ativação e rollback, sem alterar firewall/Tailscale/Cloudflare fora do escopo aprovado
 
 ## Publicação e segurança
 
