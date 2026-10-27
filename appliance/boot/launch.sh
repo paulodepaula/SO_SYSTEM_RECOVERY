@@ -4,6 +4,16 @@
 set -euo pipefail
 umask 077
 install -d -m 0700 /run/redeti
+# Graphical framebuffer splash begins in userspace; kernel messages may appear
+# before framebuffer initialization on some BIOS/UEFI devices.
+/usr/bin/python3 /opt/redeti-appliance/splash.py \
+  >/run/redeti/splash.log 2>&1 &
+redeti_splash_pid=$!
+redeti_stop_splash() {
+  kill "$redeti_splash_pid" 2>/dev/null || true
+  wait "$redeti_splash_pid" 2>/dev/null || true
+}
+trap redeti_stop_splash EXIT
 printf '%s\n' "RedeTI: reconhecendo hardware (somente leitura)" > /run/redeti/appliance.log
 /usr/bin/python3 /opt/redeti-appliance/probe.py --output /run/redeti/hardware.json \
   >> /run/redeti/appliance.log 2>&1
@@ -26,6 +36,7 @@ if command -v systemd-run >/dev/null 2>&1; then
     /usr/bin/bash /opt/redeti-appliance/remote/start.sh \
     >> /run/redeti/appliance.log 2>&1 || true
 fi
+redeti_stop_splash
 printf '%s\n' "RedeTI: abrindo interface DRM/KMS" >> /run/redeti/appliance.log
 # Capture native crashes (including SIGSEGV/ABI loader failures) in RAM.
 # Never conceal the error behind a bare SystemRescue login prompt.

@@ -21,6 +21,10 @@ mkdir -p "$recipe/iso_add/sysrescue.d" "$recipe/build_into_srm/opt/redeti-applia
 cp "$root/appliance/boot/900-redeti-appliance.yaml" "$recipe/iso_add/sysrescue.d/"
 cp "$root/appliance/probe.py" "$recipe/build_into_srm/opt/redeti-appliance/probe.py"
 cp "$root/appliance/boot/launch.sh" "$recipe/build_into_srm/opt/redeti-appliance/launch.sh"
+# Customize BIOS Syslinux and UEFI GRUB in the unpacked ISO.
+mkdir -p "$recipe/iso_patch_and_script"
+install -m 0755 "$root/appliance/boot/customize-boot.sh" "$recipe/iso_patch_and_script/10-redeti-boot"
+install -m 0755 "$root/appliance/boot/splash.py" "$recipe/build_into_srm/opt/redeti-appliance/splash.py"
 install -m 0755 "$binary" "$recipe/build_into_srm/opt/redeti-appliance/bin/redeti-ui"
 # Ship static Tailscale binaries and remote scripts; NEVER bundle auth keys.
 tsout="${REDETI_APPLIANCE_WORK:-$HOME/RecoveryOS/native-build}/out"
