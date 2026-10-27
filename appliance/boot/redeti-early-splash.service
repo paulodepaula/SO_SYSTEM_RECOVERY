@@ -1,0 +1,18 @@
+[Unit]
+Description=RedeTI early framebuffer splash
+DefaultDependencies=no
+After=systemd-udev-trigger.service dev-fb0.device
+Before=sysinit.target systemd-udev-settle.service
+ConditionPathExists=/dev/fb0
+
+[Service]
+Type=simple
+ExecStartPre=/usr/bin/install -d -m 0700 /run/redeti
+ExecStart=/usr/bin/python3 /opt/redeti-appliance/splash.py
+StandardOutput=null
+StandardError=append:/run/redeti/splash.log
+Restart=no
+TimeoutStopSec=1
+
+[Install]
+WantedBy=sysinit.target

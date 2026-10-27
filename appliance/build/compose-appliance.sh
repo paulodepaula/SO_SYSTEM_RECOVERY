@@ -43,7 +43,13 @@ install -m 0644 "$root/appliance/remote/ssh-banner.txt" "$recipe/build_into_srm/
 # Read-only diagnostic for the next physical boot; never changes firewall.
 install -m 0755 "$root/appliance/remote/ssh-diagnose.py" "$recipe/build_into_srm/opt/redeti-appliance/remote/ssh-diagnose.py"
 # Mask the stock SSH daemon: LAN SSH uses the explicitly hardened daemon above.
-mkdir -p "$recipe/build_into_srm/etc/systemd/system"
+mkdir -p "$recipe/build_into_srm/etc/systemd/system/sysinit.target.wants"
 ln -s /dev/null "$recipe/build_into_srm/etc/systemd/system/sshd.service"
 ln -s /dev/null "$recipe/build_into_srm/etc/systemd/system/sshd.socket"
+# Start the lightweight framebuffer splash in the first real userspace target.
+# The initramfs has no Python/renderer and is intentionally left unchanged.
+install -m 0644 "$root/appliance/boot/redeti-early-splash.service" \
+  "$recipe/build_into_srm/etc/systemd/system/redeti-early-splash.service"
+ln -s ../redeti-early-splash.service \
+  "$recipe/build_into_srm/etc/systemd/system/sysinit.target.wants/redeti-early-splash.service"
 sysrescue-customize --auto --source="$source_iso" --dest="$output" --recipe-dir="$recipe"

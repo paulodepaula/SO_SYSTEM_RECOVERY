@@ -105,6 +105,23 @@ class ApplianceBuildSafetyTests(unittest.TestCase):
         self.assertIn("Falha na interface nativa", launch)
         self.assertIn("tail -n 35", launch)
 
+    def test_early_splash_is_first_userspace_service_with_fallback(self):
+        compose = (ROOT / "appliance/build/compose-appliance.sh").read_text()
+        launch = (ROOT / "appliance/boot/launch.sh").read_text()
+        unit = (ROOT / "appliance/boot/redeti-early-splash.service").read_text()
+        self.assertIn("sysinit.target.wants", compose)
+        self.assertIn("redeti-early-splash.service", compose)
+        self.assertIn("DefaultDependencies=no", unit)
+        self.assertIn("Before=sysinit.target", unit)
+        self.assertIn("ConditionPathExists=/dev/fb0", unit)
+        self.assertIn("systemctl is-active --quiet redeti-early-splash.service", launch)
+        self.assertIn("systemctl stop redeti-early-splash.service", launch)
+
+    def test_initramfs_is_not_modified_for_python_splash(self):
+        compose = (ROOT / "appliance/build/compose-appliance.sh").read_text()
+        self.assertNotIn("build_into_initramfs", compose)
+        self.assertNotIn("mkinitcpio", compose.lower())
+
     def test_shell_scripts_have_valid_syntax(self):
         for name in ("appliance/build/build-native-arch.sh", "appliance/build/compose-appliance.sh",
                      "appliance/build/build-local.sh", "appliance/boot/launch.sh"):

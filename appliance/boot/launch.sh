@@ -4,14 +4,20 @@
 set -euo pipefail
 umask 077
 install -d -m 0700 /run/redeti
-# Graphical framebuffer splash begins in userspace; kernel messages may appear
-# before framebuffer initialization on some BIOS/UEFI devices.
-/usr/bin/python3 /opt/redeti-appliance/splash.py \
-  >/run/redeti/splash.log 2>&1 &
-redeti_splash_pid=$!
+# The early systemd unit normally owns the splash. Keep a late fallback for
+# images/boots where the unit was skipped or framebuffer appeared late.
+redeti_splash_pid=""
+if ! systemctl is-active --quiet redeti-early-splash.service 2>/dev/null; then
+  /usr/bin/python3 /opt/redeti-appliance/splash.py \
+    >/run/redeti/splash.log 2>&1 &
+  redeti_splash_pid=$!
+fi
 redeti_stop_splash() {
-  kill "$redeti_splash_pid" 2>/dev/null || true
-  wait "$redeti_splash_pid" 2>/dev/null || true
+  if [ -n "$redeti_splash_pid" ]; then
+    kill "$redeti_splash_pid" 2>/dev/null || true
+    wait "$redeti_splash_pid" 2>/dev/null || true
+  fi
+  systemctl stop redeti-early-splash.service 2>/dev/null || true
 }
 trap redeti_stop_splash EXIT
 printf '%s\n' "RedeTI: reconhecendo hardware (somente leitura)" > /run/redeti/appliance.log

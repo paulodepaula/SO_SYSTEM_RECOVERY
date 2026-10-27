@@ -63,6 +63,22 @@ BIOS / UEFI → kernel Linux e drivers mínimos
             → Central exclusiva RedeTI, sem desktop
 ```
 
+### Splash antecipado
+
+O splash gráfico é iniciado pela unidade `redeti-early-splash.service`, ligada a
+`sysinit.target` no primeiro userspace real, antes do `autorun` que inicia o
+inventário e a interface DRM/KMS. O `launch.sh` encerra essa unidade antes de
+abrir `redeti-ui` e mantém um fallback caso o framebuffer só apareça depois ou
+não exista.
+
+O initramfs Archiso (`inspect/sysresccd.img`) foi inspecionado: seu `init` usa
+`busybox/ash` e não contém Python nem o renderer necessário. Por isso o splash
+não é injetado no initramfs; mensagens do kernel e da montagem inicial podem
+continuar visíveis em alguns BIOS/UEFI. Esta é uma limitação conhecida e não
+deve ser confundida com falha do splash no userspace. A unidade usa somente
+`/dev/fb0`, não grava armazenamento, não depende de rede e falha fechado para
+o efeito visual sem interromper o boot técnico.
+
 O código da receita de build da ISO Appliance está disponível, mas **a ISO nativa ainda não foi produzida nem testada em boot real**. A antiga ISO da pasta `boot_gui/` continua baseada em XFCE/Firefox e **não atende** ao novo objetivo. Não é adequado retirar o desktop da ISO antiga antes de compilar e testar uma interface DRM funcional.
 
 ### Próximos bloqueios para homologar o primeiro boot direto
