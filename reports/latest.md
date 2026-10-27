@@ -1,7 +1,7 @@
 # RedeTI Recovery OS — Relatório de etapa
 
-- Etapa: `VPN-1`
-- Gerado em UTC: `2026-10-27T02:48:11Z`
+- Etapa: `VPN-1-FINAL`
+- Gerado em UTC: `2026-10-27T03:00:04Z`
 - Commit: `e8950d562e455f1945249f435b1ca133901641de`
 - Branch: `main`
 - Estado do repositório no momento do relatório: `clean`
@@ -20,14 +20,11 @@
 
 ## Testes
 
-- 157 testes unittest: PASS
-- Pareamento simulado válido/inválido: PASS
-- Aprovação/negação permanece fechada sem Service Desk real: PASS
-- Expiração, limite de polling e reutilização de credencial: PASS
-- Falha de rede/broker e reconexão fail-closed: PASS
-- Revogação/encerramento e limpeza em RAM: PASS
-- Regressão SSH local, firewall, boot e splash: PASS
-- CTest nativo DRM/KMS: 3/3 PASS
+- 157 testes unittest: PASS (resultado previamente validado)
+- Pareamento, aprovação/negação, expiração, replay e falha fail-closed: PASS (simulação previamente validada)
+- Regressão SSH local, firewall, boot e splash: PASS (resultado previamente validado)
+- CTest nativo DRM/KMS: 3/3 PASS (resultado previamente validado)
+- SHA256, ISO bootável, BIOS/UEFI e conteúdo SRM: PASS (resultado previamente validado)
 
 ## Compilação
 
@@ -42,16 +39,16 @@
 
 ## Falhas
 
-- Aprovação Service Desk autenticada e ingress HTTPS ainda não integrados
-- Emissão/revogação Tailscale real não executada
-- SSH remoto pela tailnet não homologado; timeout de banner anterior permanece pendente
+- Enrollment Broker ainda não está implantado como serviço de produção
+- OAuth Tailscale real e emissão/revogação de auth key não foram executados
+- SSH remoto pela VPN permanece não homologado; timeout de banner anterior sem validação física
 
 ## Pendências
 
-- Configurar endpoint HTTPS revisado no Hermes, fora da ISO padrão
-- Validar OAuth auth_keys/tag:redeti-recovery em ambiente controlado, com autorização específica
-- Homologar conexão Tailscale, TCP/22, banner, chave/ACL e comando remoto em hardware físico
-- Confirmar revogação/encerramento de sessão e descarte no fluxo real
+- Autorização específica para integrar Service Desk autenticado, MFA/RBAC/CSRF e ingress HTTPS
+- Autorização específica para usar credencial OAuth restrita auth_keys/tag:redeti-recovery em ambiente controlado
+- Homologação física do pareamento, Tailscale, TCP/22, banner SSH, comando remoto e encerramento
+- Publicação no GitHub, se desejada, depende de autorização separada
 
 ## Publicação e segurança
 
