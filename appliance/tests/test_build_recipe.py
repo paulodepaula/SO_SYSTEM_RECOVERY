@@ -36,6 +36,15 @@ class ApplianceBuildSafetyTests(unittest.TestCase):
         self.assertIn("sha256sum", script)
         self.assertNotIn("prune-recovery-isos.sh", script)
 
+    def test_build_generates_local_sanitized_report(self):
+        script = (ROOT / "appliance/build/build-local.sh").read_text()
+        report = (ROOT / "scripts/generate-recovery-report.py").read_text()
+        self.assertIn("generate-recovery-report.py", script)
+        self.assertIn("latest.md", report)
+        self.assertIn("latest.json", report)
+        self.assertIn("LOCAL_ONLY_AUTHORIZATION_REQUIRED", report)
+        self.assertIn("credentials_included", report)
+
     def test_arch_builder_emits_portable_checksum(self):
         script = (ROOT / "appliance/build/build-native-arch.sh").read_text()
         self.assertIn("(cd /out && sha256sum redeti-ui > redeti-ui.sha256)", script)

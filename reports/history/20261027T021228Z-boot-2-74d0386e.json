@@ -1,0 +1,50 @@
+{
+  "schema": "redeti.recovery.build-report.v1",
+  "generated_at_utc": "2026-10-27T02:12:28Z",
+  "stage": "BOOT-2",
+  "commit": "74d0386e1acb18ba5565710d308ecec307117e8d",
+  "branch": "main",
+  "repository_status": "dirty",
+  "changes": [
+    "appliance/README.md",
+    "appliance/boot/launch.sh",
+    "appliance/boot/redeti-early-splash.service",
+    "appliance/build/compose-appliance.sh",
+    "appliance/tests/test_build_recipe.py",
+    "appliance/tests/test_splash.py"
+  ],
+  "tests": [
+    "149 testes unittest aprovados",
+    "Sintaxe shell/Python e systemd-analyze verify aprovados",
+    "CTest nativo 3/3 aprovado",
+    "SHA256 da ISO e sidecar verificados",
+    "Conteúdo SRM e registros BIOS/UEFI inspecionados"
+  ],
+  "compilation": {
+    "result": "PASS",
+    "manifest": {
+      "app_version": "v0.6.0",
+      "build_tag": "b261027-020117",
+      "source_commit": "74d0386e1acb18ba5565710d308ecec307117e8d",
+      "elf_sha256": "925a33973a5649616ab99ae54e3712a9fa7e2f17f9754c84a311f29de116fd0e",
+      "iso_sha256": "c10467b53af65e346cf7ea433946cc3f8918c87a3757b24b19c21a5018caf25d",
+      "iso_filename": "RedeTI-Recovery-OS-appliance-74d0386e-20261027T020126Z.iso"
+    }
+  },
+  "iso": {
+    "path": "/home/paulo/RecoveryOS/out/RedeTI-Recovery-OS-appliance-74d0386e-20261027T020126Z.iso",
+    "sha256": "c10467b53af65e346cf7ea433946cc3f8918c87a3757b24b19c21a5018caf25d",
+    "sidecar_verified": true
+  },
+  "failures": [],
+  "pending": [
+    "Homologação física BIOS/Legacy e UEFI",
+    "Validação visual DRM/KMS em hardware real"
+  ],
+  "publication": "LOCAL_ONLY_AUTHORIZATION_REQUIRED",
+  "safety": {
+    "credentials_included": false,
+    "customer_data_included": false,
+    "iso_published_automatically": false
+  }
+}

@@ -71,6 +71,21 @@ xorriso -indev "$iso" -ls /sysrescue.d >/dev/null 2>&1
   printf 'iso_sha256=%s\n' "$(sha256sum "$iso" | cut -d ' ' -f 1)"
   printf 'iso_filename=%s\n' "$(basename -- "$iso")"
 } > "$iso.buildinfo"
+report_args=(
+  --repo-root "$root"
+  --stage "${REDETI_REPORT_STAGE:-BOOT-2}"
+  --commit "$current_commit"
+  --iso "$iso"
+  --compile-result PASS
+  --test "Native ELF checksum and source commit verified"
+  --test "ISO structure and BIOS/UEFI records checked with xorriso"
+  --pending "Homologação física BIOS/Legacy e UEFI"
+  --pending "Validação visual DRM/KMS em hardware real"
+)
+if [ -n "${REDETI_REPORT_SINCE:-}" ]; then
+  report_args+=(--since "$REDETI_REPORT_SINCE")
+fi
+python3 "$root/scripts/generate-recovery-report.py" "${report_args[@]}"
 echo "ISO created: $iso"
 echo "Source revision: $current_commit"
 echo "ISO SHA256: $(sha256sum "$iso" | cut -d ' ' -f 1)"
