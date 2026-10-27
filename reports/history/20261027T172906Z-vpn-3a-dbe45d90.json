@@ -1,0 +1,45 @@
+{
+  "schema": "redeti.recovery.build-report.v1",
+  "generated_at_utc": "2026-10-27T17:29:06Z",
+  "stage": "VPN-3A",
+  "commit": "dbe45d90504400aef42903f12491f2e2d40cb041",
+  "branch": "main",
+  "repository_status": "dirty",
+  "changes": [
+    "reports/history/20261027T115952Z-vpn-3-7043c220.json",
+    "reports/latest.json",
+    "reports/latest.md"
+  ],
+  "tests": [
+    "Par Ed25519 exclusivo do Hermes-Agent criado sem sobrescrever chave existente: PASS",
+    "Permissão da chave privada 0600: PASS",
+    "Fingerprint público calculado sem expor a chave privada: PASS",
+    "Ventoy não montado e nenhum arquivo autorizado alterado: PASS",
+    "Conexão SSH e diagnóstico remoto: NOT_RUN até confirmação presencial do fingerprint e provisionamento manual"
+  ],
+  "compilation": {
+    "result": "NOT_RUN",
+    "manifest": {}
+  },
+  "iso": {
+    "path": null,
+    "sha256": null,
+    "sidecar_verified": false
+  },
+  "failures": [
+    "Provisionamento manual da chave pública no Ventoy ainda não executado",
+    "Fingerprint do host ainda não foi confirmado presencialmente nesta execução"
+  ],
+  "pending": [
+    "Copiar somente a linha pública para o arquivo REDETI do Ventoy, preservando no máximo quatro entradas e sem opções adicionais",
+    "Confirmar presencialmente o fingerprint ED25519 atual de 192.168.200.119",
+    "Após as duas confirmações, autorizar a conexão SSH read-only e executar somente os comandos VPN-3",
+    "Não executar tailscale up, alterar firewall, emitir chaves ou modificar o Ventoy além da linha pública autorizada"
+  ],
+  "publication": "LOCAL_ONLY_AUTHORIZATION_REQUIRED",
+  "safety": {
+    "credentials_included": false,
+    "customer_data_included": false,
+    "iso_published_automatically": false
+  }
+}
