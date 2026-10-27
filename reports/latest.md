@@ -1,59 +1,52 @@
-# RedeTI Recovery OS — Relatório VPN-3A
+# RedeTI Recovery OS — Relatório de etapa
 
-- Etapa: `VPN-3A`
-- Gerado em UTC: `2026-10-27T17:47:13Z`
-- Projeto validado: `SO_SYSTEM_RECOVERY`
+- Etapa: `VPN-3B`
+- Gerado em UTC: `2026-10-27T17:58:47Z`
+- Commit: `0360fea637b64797faf68989fe65b507aafa5053`
 - Branch: `main`
-- Commit de referência: `0f563af29b13e6ea37e1f1eb944c8ae404fbf425`
-- Escopo: preparação de credencial e diagnóstico remoto somente após gates de segurança.
+- Estado do repositório no momento do relatório: `clean`
 
-## Credencial SSH
+## Alterações realizadas
 
-- Chave dedicada Ed25519 do Hermes-Agent: já existente; não foi sobrescrita.
-- Fingerprint público: `SHA256:X0aMPVMJg8KQ23FTkpIINTbPwTVIDPo6G+AOiMLBpn0`.
-- Permissão da chave privada: `0600`.
-- A chave privada não foi exibida, copiada para o repositório, incluída em relatório ou enviada ao Recovery OS.
-- A linha pública foi exibida apenas ao operador para provisionamento manual no Ventoy.
+- `reports/latest.json`
+- `reports/latest.md`
 
-## Identidade do host
+## Testes
 
-- Host `192.168.200.119`: TCP/22 alcançável.
-- Fingerprint ED25519 observado novamente por `ssh-keyscan`, sem aceitar ou gravar em `known_hosts`: `SHA256:KFDorjY+RQyd1ji2Iudu+Nw6u/COVOAdkMaqDTvpxQw`.
-- O valor coincide com a observação anterior, mas permanece **NÃO CONFIRMADO** até comparação presencial no próprio Recovery OS.
-- Nenhum `StrictHostKeyChecking=no` foi usado.
-- Nenhuma conexão SSH autenticada foi iniciada.
+- Par Ed25519 do Hermes-Agent presente, fingerprint local calculado sem expor privada: PASS
+- Permissão da chave privada 0600: PASS
+- Mídia Ventoy/REDETI e arquivo de provisionamento: NOT_OBSERVED; nenhum mount removível presente
+- Fingerprint ED25519 da rede coletado sem aceitar/gravar host key: PASS; confirmação presencial pendente
+- Conexão SSH, ssh-diagnose.py e consultas /run/redeti: NOT_RUN por bloqueio de identidade/provisionamento
+- Nenhuma alteração em ACL, OAuth, firewall, serviço de produção ou ISO: PASS
 
-## Provisionamento
+## Compilação
 
-- Ventoy não foi montado pelo Hermes.
-- `REDETI/authorized_keys` não foi alterado pelo Hermes.
-- Chaves existentes e limite de quatro entradas não foram modificados.
-- Pendência: operador deve inserir manualmente somente a linha pública fornecida, sem opções SSH adicionais.
+- Resultado: `NOT_RUN`
 
-## Diagnóstico remoto
+## ISO
 
-- Autenticação SSH: `NOT_RUN`.
-- Estado real do daemon Tailscale: `NOT_OBSERVED`.
-- Estado real do registro VPN: `NOT_OBSERVED`.
-- Arquivos `/run/redeti/remote-status.json` e `/run/redeti/lan-ssh-status.json`: `NOT_READ`.
-- `systemctl`, `ss` e `ssh-diagnose.py --read-only` no Recovery OS: `NOT_RUN`.
-- `tailscale up`, alteração de firewall e emissão/renovação/revogação de chaves: não executados.
+- Caminho: `N/A`
+- SHA256: `N/A`
+- Sidecar verificado: `False`
 
-## Resultado
+## Falhas
 
-- Estado VPN-3A: `BLOCKED_AGUARDANDO_CONFIRMACAO_E_PROVISIONAMENTO`.
-- Não há causa comprovada para a falha de registro Tailscale nesta etapa.
-- A conectividade TCP/22 não é considerada sucesso de SSH.
+- Provisionamento da chave pública não confirmado: Ventoy não está montado e arquivo autorizado não foi localizado
+- Fingerprint do host não confirmado por canal confiável; known_hosts permanece sem entrada
+- Estado de redeti-remote, redeti-tailscaled, SSH local, Tailscale e /run/redeti permanece NOT_OBSERVED
+- Causa específica da falha de registro Tailscale permanece não comprovada
 
-## Próximo passo obrigatório
+## Pendências
 
-1. Confirmar presencialmente que o fingerprint exibido no Recovery OS é exatamente o fingerprint observado nesta execução.
-2. Inserir manualmente a linha pública dedicada no arquivo `REDETI/authorized_keys`, preservando as entradas existentes e o limite de quatro chaves.
-3. Informar a conclusão desses dois gates.
-4. Só então executar SSH com verificação normal de host e os comandos read-only da VPN-3.
+- Montar ou disponibilizar o Ventoy por canal local autorizado e confirmar a linha pública sem alterar outras entradas
+- Confirmar presencialmente o fingerprint ED25519 atual de 192.168.200.119
+- Após ambas as confirmações, autorizar conexão SSH read-only com a chave exclusiva e executar apenas os comandos VPN-3
+- Não executar tailscale up, alterar firewall/ACL/OAuth, emitir chaves ou gerar ISO nesta etapa
 
-## Segurança e publicação
+## Publicação e segurança
 
-- Nenhuma chave privada, token, auth key, credencial ou log bruto foi armazenado neste relatório.
-- Nenhum arquivo do Ventoy, firewall, Tailscale ou serviço foi alterado.
-- Resultado destinado à publicação no Git conforme autorização do operador.
+- Relatório registrado somente localmente.
+- Publicação no GitHub requer autorização explícita.
+- Nenhuma ISO é publicada automaticamente.
+- O relatório não contém credenciais, tokens ou dados de clientes.
