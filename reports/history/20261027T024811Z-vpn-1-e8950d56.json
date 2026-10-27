@@ -1,0 +1,62 @@
+{
+  "schema": "redeti.recovery.build-report.v1",
+  "generated_at_utc": "2026-10-27T02:48:11Z",
+  "stage": "VPN-1",
+  "commit": "e8950d562e455f1945249f435b1ca133901641de",
+  "branch": "main",
+  "repository_status": "clean",
+  "changes": [
+    "appliance/README.md",
+    "appliance/boot/launch.sh",
+    "appliance/build/compose-appliance.sh",
+    "appliance/remote/enrollment-agent.py",
+    "appliance/remote/enrollment_client.py",
+    "appliance/remote/start.sh",
+    "appliance/tests/test_enrollment_client.py",
+    "appliance/tests/test_remote.py",
+    "services/recovery_enrollment/README.md"
+  ],
+  "tests": [
+    "157 testes unittest: PASS",
+    "Pareamento simulado válido/inválido: PASS",
+    "Aprovação/negação permanece fechada sem Service Desk real: PASS",
+    "Expiração, limite de polling e reutilização de credencial: PASS",
+    "Falha de rede/broker e reconexão fail-closed: PASS",
+    "Revogação/encerramento e limpeza em RAM: PASS",
+    "Regressão SSH local, firewall, boot e splash: PASS",
+    "CTest nativo DRM/KMS: 3/3 PASS"
+  ],
+  "compilation": {
+    "result": "PASS",
+    "manifest": {
+      "app_version": "v0.6.0",
+      "build_tag": "b261027-024649",
+      "source_commit": "e8950d562e455f1945249f435b1ca133901641de",
+      "elf_sha256": "d886dcebe40a2c292ec14c851f71fd95d6f78b9b6e34211772737f4585193a65",
+      "iso_sha256": "913a2ffe71aedcb4d160f2b7ab484925323f121b92d1382cc472c30bba4e7552",
+      "iso_filename": "RedeTI-Recovery-OS-appliance-e8950d56-20261027T024658Z.iso"
+    }
+  },
+  "iso": {
+    "path": "/home/paulo/RecoveryOS/out/RedeTI-Recovery-OS-appliance-e8950d56-20261027T024658Z.iso",
+    "sha256": "913a2ffe71aedcb4d160f2b7ab484925323f121b92d1382cc472c30bba4e7552",
+    "sidecar_verified": true
+  },
+  "failures": [
+    "Aprovação Service Desk autenticada e ingress HTTPS ainda não integrados",
+    "Emissão/revogação Tailscale real não executada",
+    "SSH remoto pela tailnet não homologado; timeout de banner anterior permanece pendente"
+  ],
+  "pending": [
+    "Configurar endpoint HTTPS revisado no Hermes, fora da ISO padrão",
+    "Validar OAuth auth_keys/tag:redeti-recovery em ambiente controlado, com autorização específica",
+    "Homologar conexão Tailscale, TCP/22, banner, chave/ACL e comando remoto em hardware físico",
+    "Confirmar revogação/encerramento de sessão e descarte no fluxo real"
+  ],
+  "publication": "LOCAL_ONLY_AUTHORIZATION_REQUIRED",
+  "safety": {
+    "credentials_included": false,
+    "customer_data_included": false,
+    "iso_published_automatically": false
+  }
+}

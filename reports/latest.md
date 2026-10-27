@@ -1,7 +1,7 @@
 # RedeTI Recovery OS — Relatório de etapa
 
-- Etapa: `BOOT-2`
-- Gerado em UTC: `2026-10-27T02:47:11Z`
+- Etapa: `VPN-1`
+- Gerado em UTC: `2026-10-27T02:48:11Z`
 - Commit: `e8950d562e455f1945249f435b1ca133901641de`
 - Branch: `main`
 - Estado do repositório no momento do relatório: `clean`
@@ -20,8 +20,14 @@
 
 ## Testes
 
-- Native ELF checksum and source commit verified
-- ISO structure and BIOS/UEFI records checked with xorriso
+- 157 testes unittest: PASS
+- Pareamento simulado válido/inválido: PASS
+- Aprovação/negação permanece fechada sem Service Desk real: PASS
+- Expiração, limite de polling e reutilização de credencial: PASS
+- Falha de rede/broker e reconexão fail-closed: PASS
+- Revogação/encerramento e limpeza em RAM: PASS
+- Regressão SSH local, firewall, boot e splash: PASS
+- CTest nativo DRM/KMS: 3/3 PASS
 
 ## Compilação
 
@@ -36,12 +42,16 @@
 
 ## Falhas
 
-- Nenhuma falha registrada.
+- Aprovação Service Desk autenticada e ingress HTTPS ainda não integrados
+- Emissão/revogação Tailscale real não executada
+- SSH remoto pela tailnet não homologado; timeout de banner anterior permanece pendente
 
 ## Pendências
 
-- Homologação física BIOS/Legacy e UEFI
-- Validação visual DRM/KMS em hardware real
+- Configurar endpoint HTTPS revisado no Hermes, fora da ISO padrão
+- Validar OAuth auth_keys/tag:redeti-recovery em ambiente controlado, com autorização específica
+- Homologar conexão Tailscale, TCP/22, banner, chave/ACL e comando remoto em hardware físico
+- Confirmar revogação/encerramento de sessão e descarte no fluxo real
 
 ## Publicação e segurança
 
