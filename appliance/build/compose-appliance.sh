@@ -36,6 +36,8 @@ done
 mkdir -p "$recipe/build_into_srm/opt/redeti-appliance/remote"
 cp "$root/appliance/remote/provision.py" "$recipe/build_into_srm/opt/redeti-appliance/remote/provision.py"
 install -m 0755 "$root/appliance/remote/start.sh" "$recipe/build_into_srm/opt/redeti-appliance/remote/start.sh"
+install -m 0755 "$root/appliance/remote/enrollment-agent.py" "$recipe/build_into_srm/opt/redeti-appliance/remote/enrollment-agent.py"
+install -m 0644 "$root/appliance/remote/enrollment_client.py" "$recipe/build_into_srm/opt/redeti-appliance/remote/enrollment_client.py"
 install -m 0755 "$root/appliance/remote/lan-start.sh" "$recipe/build_into_srm/opt/redeti-appliance/remote/lan-start.sh"
 cp "$root/appliance/remote/lan.py" "$recipe/build_into_srm/opt/redeti-appliance/remote/lan.py"
 install -m 0644 "$root/appliance/remote/sshd_config" "$recipe/build_into_srm/opt/redeti-appliance/remote/sshd_config"

@@ -10,6 +10,12 @@ and no new ISO in this phase.
 The separate static SSH banner does not alter the VPN or the identity
 of the current ISO.
 
+The Recovery-side optional enrollment client is now packaged separately in
+`appliance/remote/enrollment_client.py` and `enrollment-agent.py`. It remains
+disabled unless a reviewed image supplies an HTTPS enrollment URL. This does
+not constitute Service Desk integration, real OAuth issuance, Tailscale SSH
+homologation, or field approval.
+
 ## Motivation
 
 A one-off Tailscale auth key stored in Ventoy works only for one new device.

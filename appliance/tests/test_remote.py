@@ -97,6 +97,19 @@ class RemoteBootstrapTests(unittest.TestCase):
         self.assertNotIn('ts-authkey"',iso)
         self.assertIn('Tailscale binaries and remote scripts',iso)
 
+    def test_central_enrollment_is_optional_and_uses_tmpfs_handoff(self):
+        launch = (ROOT / "appliance/boot/launch.sh").read_text()
+        vpn = (ROOT / "appliance/remote/start.sh").read_text()
+        compose = (ROOT / "appliance/build/compose-appliance.sh").read_text()
+        self.assertIn("/etc/redeti/enrollment-url", launch)
+        self.assertIn("enrollment-agent.py", launch)
+        self.assertIn('grep -Eq \'^tskey-auth-', vpn)
+        self.assertIn('rm -f -- "$auth_file"', vpn)
+        self.assertIn("enrollment_client.py", compose)
+        self.assertIn("enrollment-agent.py", compose)
+        self.assertNotIn("https://", launch)
+        self.assertNotIn("tskey-auth-", launch)
+
     def test_no_disk_mounting_without_usb_validation(self):
         code = (ROOT / "appliance/remote/start.sh").read_text()
         self.assertIn("remote/provision.py", code)

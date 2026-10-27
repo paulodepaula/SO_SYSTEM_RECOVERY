@@ -38,6 +38,13 @@ if command -v systemd-run >/dev/null 2>&1; then
   systemd-run --quiet --collect --unit=redeti-lan-ssh \
     /usr/bin/bash /opt/redeti-appliance/remote/lan-start.sh \
     >> /run/redeti/appliance.log 2>&1 || true
+  # Central enrollment is opt-in by image configuration. The ISO never ships
+  # an endpoint or credential; without this file the USB contingency remains.
+  if [ -f /etc/redeti/enrollment-url ] && [ ! -L /etc/redeti/enrollment-url ]; then
+    systemd-run --quiet --collect --unit=redeti-enrollment-agent \
+      /usr/bin/python3 /opt/redeti-appliance/remote/enrollment-agent.py \
+      >> /run/redeti/appliance.log 2>&1 || true
+  fi
   systemd-run --quiet --collect --unit=redeti-remote \
     /usr/bin/bash /opt/redeti-appliance/remote/start.sh \
     >> /run/redeti/appliance.log 2>&1 || true

@@ -185,6 +185,23 @@ A receita mantem `nofirewall: false`, ou seja, **firewall SystemRescue ativo**. 
 
 Isso nao garante que Tailscale SSH ja esteja operacional na ISO que esta rodando. E necessario provisionar a chave, conectar rede na VM e validar as regras da tailnet. Com `-nic none` no QEMU, a VPN nao conecta e nenhuma regra e aplicada.
 
+### Enrollment centralizado VPN-1 (opt-in)
+
+O cliente `remote/enrollment_client.py` implementa o fluxo local de pareamento
+com estados `SEM_REDE`, `AGUARDANDO_AUTORIZACAO`, `AUTORIZADO`, `CONECTANDO`,
+`CONECTADO`, `FALHA` e `SESSAO_ENCERRADA`. O agente opcional
+`remote/enrollment-agent.py` somente e iniciado quando a imagem de implantacao
+fornece `/etc/redeti/enrollment-url`; essa URL deve ser HTTPS, sem credenciais
+ou query string. A ISO padrao nao contem essa configuracao e continua usando o
+fallback USB existente.
+
+O codigo de pareamento e o estado publico sao gravados apenas em `/run/redeti`.
+O segredo de sessao e a auth key Tailscale ficam somente em RAM; a auth key,
+quando recebida, e entregue uma vez a `remote/start.sh` em `/run/redeti` e
+removida pelo fluxo Tailscale. OAuth, Service Desk e emissao real continuam
+bloqueados ate a homologacao das gates do Hermes. A implementacao nao autoriza
+por si so Tailscale SSH gerenciado nem prova SSH remoto.
+
 Consulte [remote/README.md](remote/README.md) para o provisionamento e controle de acesso. **Nunca desative o firewall por completo somente para ativar o SSH.**
 
 ## v0.5.4 — mouse e teclado diretos no QEMU e hardware físico

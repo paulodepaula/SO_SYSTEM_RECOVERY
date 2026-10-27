@@ -62,7 +62,23 @@ trap cleanup EXIT
 
 found=false
 invalid_seen=false
+# Central Hermes enrollment, when explicitly configured, writes this one-use
+# key into tmpfs. Validate it without printing it; otherwise use the existing
+# read-only USB contingency below.
+if [ -f "$auth_file" ] && [ ! -L "$auth_file" ] &&
+   grep -Eq '^tskey-auth-[A-Za-z0-9_-]{10,240}$' "$auth_file" &&
+   [ "$(wc -l < "$auth_file")" -eq 1 ]; then
+  found=true
+else
+  rm -f -- "$auth_file"
+fi
 for attempt in $(seq 1 15); do
+  if [ "$found" != true ] && [ -f "$auth_file" ] && [ ! -L "$auth_file" ] &&
+     grep -Eq '^tskey-auth-[A-Za-z0-9_-]{10,240}$' "$auth_file" &&
+     [ "$(wc -l < "$auth_file")" -eq 1 ]; then
+    found=true
+  fi
+  if [ "$found" = true ]; then break; fi
   # source candidates are restricted to USB Ventoy/REDETI_CFG FAT/exFAT and
   # validated device-mapper aliases, not customer SATA/NVMe partitions.
   mapfile -t sources < <(python3 "$provision_script" sources 2>/dev/null || true)
