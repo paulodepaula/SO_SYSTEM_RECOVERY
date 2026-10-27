@@ -1,45 +1,70 @@
 {
-  "schema": "redeti.recovery.build-report.v1",
-  "generated_at_utc": "2026-10-27T17:29:06Z",
+  "schema": "redeti.recovery.vpn-report.v1",
+  "generated_at_utc": "2026-10-27T17:47:13Z",
   "stage": "VPN-3A",
-  "commit": "dbe45d90504400aef42903f12491f2e2d40cb041",
+  "project": "SO_SYSTEM_RECOVERY",
+  "commit_before_report": "0f563af29b13e6ea37e1f1eb944c8ae404fbf425",
   "branch": "main",
-  "repository_status": "dirty",
-  "changes": [
-    "reports/history/20261027T115952Z-vpn-3-7043c220.json",
-    "reports/latest.json",
-    "reports/latest.md"
-  ],
+  "scope": "read_only_ssh_provisioning_preparation",
+  "overall_state": "BLOCKED_AWAITING_FINGERPRINT_AND_MANUAL_PROVISIONING",
+  "ssh_key": {
+    "dedicated_key_present": true,
+    "overwritten_existing_key": false,
+    "private_mode": "0600",
+    "public_fingerprint": "SHA256:X0aMPVMJg8KQ23FTkpIINTbPwTVIDPo6G+AOiMLBpn0",
+    "private_key_published": false
+  },
+  "host": {
+    "target": "192.168.200.119",
+    "tcp_22_reachable": true,
+    "observed_ed25519_fingerprint": "SHA256:KFDorjY+RQyd1ji2Iudu+Nw6u/COVOAdkMaqDTvpxQw",
+    "fingerprint_physically_confirmed": false,
+    "known_hosts_modified": false,
+    "strict_host_key_checking_disabled": false
+  },
+  "provisioning": {
+    "ventoy_mounted_by_hermes": false,
+    "authorized_keys_modified": false,
+    "existing_keys_preserved": true,
+    "manual_operator_action_required": true
+  },
+  "remote_diagnostics": {
+    "ssh_authentication": "NOT_RUN",
+    "tailscale_daemon": "NOT_OBSERVED",
+    "vpn_registration": "NOT_OBSERVED",
+    "status_files": "NOT_READ",
+    "ssh_diagnose": "NOT_RUN",
+    "tailscale_up_executed": false,
+    "firewall_modified": false,
+    "real_keys_issued_or_revoked": false
+  },
   "tests": [
-    "Par Ed25519 exclusivo do Hermes-Agent criado sem sobrescrever chave existente: PASS",
-    "Permissão da chave privada 0600: PASS",
-    "Fingerprint público calculado sem expor a chave privada: PASS",
-    "Ventoy não montado e nenhum arquivo autorizado alterado: PASS",
-    "Conexão SSH e diagnóstico remoto: NOT_RUN até confirmação presencial do fingerprint e provisionamento manual"
+    "dedicated Ed25519 key fingerprint and mode: PASS",
+    "TCP/22 reachability: PASS",
+    "host fingerprint acceptance: NOT_RUN pending physical confirmation",
+    "SSH authentication: NOT_RUN pending manual provisioning"
   ],
-  "compilation": {
-    "result": "NOT_RUN",
-    "manifest": {}
+  "cause": {
+    "confirmed": [
+      "Remote diagnostic gates are incomplete: manual public-key provisioning and physical host-fingerprint confirmation are pending"
+    ],
+    "unverified": [
+      "Tailscale auth key validity or expiry",
+      "tag and ACL authorization",
+      "Recovery OS daemon/bootstrap state",
+      "Recovery OS DNS, clock and firewall state"
+    ]
   },
-  "iso": {
-    "path": null,
-    "sha256": null,
-    "sidecar_verified": false
-  },
-  "failures": [
-    "Provisionamento manual da chave pública no Ventoy ainda não executado",
-    "Fingerprint do host ainda não foi confirmado presencialmente nesta execução"
+  "changes": [
+    "reports/latest.md",
+    "reports/latest.json"
   ],
-  "pending": [
-    "Copiar somente a linha pública para o arquivo REDETI do Ventoy, preservando no máximo quatro entradas e sem opções adicionais",
-    "Confirmar presencialmente o fingerprint ED25519 atual de 192.168.200.119",
-    "Após as duas confirmações, autorizar a conexão SSH read-only e executar somente os comandos VPN-3",
-    "Não executar tailscale up, alterar firewall, emitir chaves ou modificar o Ventoy além da linha pública autorizada"
-  ],
-  "publication": "LOCAL_ONLY_AUTHORIZATION_REQUIRED",
+  "publication": "AUTHORIZED_GIT_PUBLICATION",
   "safety": {
     "credentials_included": false,
-    "customer_data_included": false,
-    "iso_published_automatically": false
+    "private_key_included": false,
+    "raw_logs_included": false,
+    "ventoy_changed": false,
+    "recovery_services_changed": false
   }
 }
