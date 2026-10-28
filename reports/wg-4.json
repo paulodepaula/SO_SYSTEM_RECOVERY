@@ -1,0 +1,67 @@
+{
+  "schema": "redeti.recovery.wg-report.v1",
+  "generated_at_utc": "2026-10-28T22:41:19Z",
+  "stage": "WG-4",
+  "project": "SO_SYSTEM_RECOVERY",
+  "target": {
+    "label": "Cidade Verde",
+    "model": "RB3011UiAS",
+    "routeros": "7.20.8",
+    "api_ssl_port": 8729,
+    "api_ssl_certificate": "none",
+    "certificates_present": false,
+    "tcp_8729_nat_redirect_identified": false,
+    "public_fixed_ip_available": true
+  },
+  "overall_state": "READY_FOR_AUTHORIZED_TLS_CHANGE",
+  "execution": {
+    "mikrotik_modified": false,
+    "certificate_created": false,
+    "api_ssl_changed": false,
+    "firewall_changed": false,
+    "nat_changed": false,
+    "vpn_changed": false,
+    "wireguard_created": false,
+    "mcp_changed": false
+  },
+  "plan": {
+    "certificate_identity": "SAN DNS preferred, SAN IP when IP is the actual MCP endpoint",
+    "certificate_usage": "tls-server",
+    "validity": "reviewed bounded lifetime",
+    "api_ssl_validation": [
+      "certificate chain",
+      "hostname/SAN",
+      "TLS 1.2",
+      "TLS 1.3 when supported",
+      "no anonymous ADH cipher"
+    ],
+    "service_restriction": "approved administrative CIDRs only",
+    "nat_change": false,
+    "existing_vpn_preserved": true
+  },
+  "backup": {
+    "binary_backup_required": true,
+    "sanitized_export_required": true,
+    "backup_created_in_this_stage": false
+  },
+  "mcp": {
+    "current_ssl_verify": false,
+    "current_hostname_verify": false,
+    "strict_validation_required_after_server_fix": true,
+    "custom_ca_support_requires_runtime_library_check": true
+  },
+  "post_fix": {
+    "read_only_inventory": "PENDING_TLS_CORRECTION",
+    "wireguard_interface_created": false,
+    "wireguard_inventory_started": false
+  },
+  "authorization_required": [
+    "create/import CA and server certificate",
+    "assign certificate to api-ssl",
+    "restrict api-ssl service address",
+    "add narrowly scoped TCP/8729 input rules if needed",
+    "install CA in Hermes trust store",
+    "enable strict MCP TLS/hostname validation"
+  ],
+  "report_secrets": false
+}
