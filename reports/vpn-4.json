@@ -1,0 +1,76 @@
+{
+  "schema": "redeti.recovery.vpn-report.v1",
+  "generated_at_utc": "2026-10-28T21:16:00Z",
+  "stage": "VPN-4",
+  "source_commit": "df3cabd7941f5f49be3f438e539239f23ef6406e",
+  "overall_state": "BLOCKED_PHYSICAL_EVIDENCE_REQUIRED",
+  "physical_status_supplied": {
+    "vpn_state": "vpn_auth_failed",
+    "connectivity": "failed",
+    "failure_code": "authentication",
+    "registration_stage": "registration",
+    "vpn_ssh_mode": "managed",
+    "diagnostic_complete": "read_only"
+  },
+  "registration_mechanism": {
+    "route": "ventoy_auth_key",
+    "confirmed": true,
+    "reason": "managed mode is enabled only after USB marker detection; default ISO has no enrollment endpoint"
+  },
+  "provisioning_contract": {
+    "path": "REDETI/ts-authkey",
+    "format": "single ASCII line matching tskey-auth-[A-Za-z0-9_-]{10,240}",
+    "runtime_storage": "tmpfs mode 0600",
+    "secret_value_exposed": false
+  },
+  "classification": {
+    "proven": [
+      "registration reached authentication stage",
+      "managed mode was enabled",
+      "status classified failure_code=authentication"
+    ],
+    "not_proven": [
+      "auth key expired",
+      "auth key revoked or already consumed",
+      "tag permission rejected",
+      "tailnet ACL rejected registration",
+      "transient control-plane failure"
+    ]
+  },
+  "ssh_lan": {
+    "tcp22": "PASS",
+    "authentication": "NOT_RUN",
+    "host_key_verification": "BLOCKED_MISMATCH",
+    "known_hosts_modified": false
+  },
+  "local_credentials": {
+    "directory_present": true,
+    "directory_mode": "0700",
+    "directory_owner": "root:root",
+    "oauth_client_id_present": false,
+    "oauth_client_secret_present": false,
+    "oauth_checker": "BLOCKED_NON_ROOT",
+    "values_exposed": false
+  },
+  "offline_validation": {
+    "tests": 54,
+    "failures": 0,
+    "python_compile": "PASS",
+    "shell_syntax": "PASS"
+  },
+  "safe_actions": {
+    "tailscale_up": false,
+    "auth_key_created": false,
+    "auth_key_revoked": false,
+    "acl_modified": false,
+    "firewall_modified": false,
+    "ventoy_modified": false,
+    "production_services_modified": false
+  },
+  "minimal_correction": "Provision a fresh short-lived authorized Ventoy auth key, preserving the managed-mode marker; no new ISO required.",
+  "pending": [
+    "sanitized physical tailscaled journal category",
+    "independent tailnet read-only confirmation of tag and ACL policy",
+    "host fingerprint confirmation before SSH authentication"
+  ]
+}
