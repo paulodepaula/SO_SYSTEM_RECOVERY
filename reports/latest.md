@@ -1,76 +1,64 @@
-# RedeTI Recovery OS — Relatório VPN-3D
+# RedeTI Recovery OS — Relatório VPN-3E
 
-- Etapa: `VPN-3D — saída pública para diagnóstico SSH`
-- Gerado em UTC: `2026-10-27T23:19:01Z`
+- Etapa: `VPN-3E — revisão e preparação da ISO`
+- Gerado em UTC: `2026-10-28T16:55:29Z`
 - Projeto: `SO_SYSTEM_RECOVERY`
 - Branch: `main`
-- Commit de referência: `40087f3`
-- Estado: `IMPLEMENTADO_LOCALMENTE_AGUARDANDO_REVISAO`
-- Publicação Git: `NÃO REALIZADA — autorização de push não fornecida`
+- Commit-fonte VPN-3D: `bae00e66c6837cac5c4ef5e1806c3245e330da21`
+- Estado: `READY_FOR_ISO_BUILD`
+- Publicação deste relatório: `PENDENTE_NESTE_COMMIT`
 
-## Resultado
+## Resultado da revisão
 
-Foi implementada uma saída separada e sanitizada para o operador `paulo`.
+A implementação VPN-3D está integrada ao processo de composição da ISO.
 
-- `/run/redeti` continua privado, `root:root`, modo `0700`.
-- O socket `/run/redeti/tailscaled.sock` não é exposto.
-- Nova árvore pública: `/run/redeti-status`, criada como `root:root`, modo `0755`.
-- Arquivos públicos são temporários, escritos atomicamente e modo `0644`.
-- `redeti-status` lê somente `vpn-status.json` e imprime campos allowlisted:
-  `vpn_state`, `connectivity`, `failure_code`, `registration_stage`,
-  `vpn_ssh_mode` e `diagnostic_complete=read_only`.
-- Não são publicados IPs, tokens, auth keys, OAuth, URLs secretas, logs ou estado integral da tailnet.
-- `ssh-diagnose.py` passou a ler as saídas públicas sanitizadas de VPN e SSH, sem acessar os JSONs privados.
-- Falhas de provisionamento, tag, autenticação e conectividade possuem códigos distintos quando comprovadas pela evidência local; caso contrário, o estado é genérico.
-- A lógica de diagnóstico não executa `tailscale up`, não altera firewall e não consulta o socket administrativo.
+- `appliance/build/compose-appliance.sh` instala `appliance/remote/redeti-status` como `/usr/local/bin/redeti-status`.
+- Permissão de instalação do comando: `0755`.
+- O processo mantém o socket administrativo da VPN fora da área pública.
+- O diagnóstico publica somente campos allowlisted e permanece somente leitura.
+- A composição recusa sobrescrever uma ISO existente.
 
-## Independência do early splash
+## Testes e segurança
 
-- `redeti-early-splash.service` não é requisito do processo privilegiado de VPN.
-- O teste confirmou que a publicação de status não depende do splash.
-- A sequência existente do `launch.sh`, incluindo parada do splash antes do dashboard nativo e fallback sem framebuffer, permaneceu coberta pelos testes.
-- Não houve boot físico nem teste em ISO nesta etapa.
+Resultados já validados no commit-fonte VPN-3D:
 
-## Testes executados
+- Suíte offline: `165` aprovados, `0` falhas.
+- Sintaxe shell: `PASS`.
+- Compilação Python em memória: `PASS`.
+- Sanitização e permissões do `redeti-status`: `PASS`.
+- Não exposição de socket, tokens, auth keys ou logs brutos: `PASS`.
+- Regressões de boot, splash, firewall, SSH e VPN: `PASS`.
+- Varredura dos arquivos da VPN-3D: sem credenciais, tokens reais, chaves privadas ou dados de clientes.
 
-Comando:
+Os testes não foram repetidos nesta revisão, conforme solicitado; foi utilizada a evidência aprovada existente.
 
-```text
-python3 -m unittest discover -s appliance/tests -v
-```
+## Proveniência do commit e manifesto
 
-Resultado: **165 testes aprovados**.
+A cadeia de compilação está preparada para exigir o mesmo commit em todas as camadas:
 
-Validações adicionais:
+- O build nativo registra `source_commit`.
+- `redeti-ui.commit` é comparado ao `HEAD` atual.
+- `build-local.sh` recusa ELF produzido por commit diferente.
+- O manifesto da ISO registra o `source_commit` atual.
+- O nome da ISO incorpora a revisão curta do commit.
 
-```text
-bash -n appliance/remote/start.sh appliance/remote/lan-start.sh appliance/build/compose-appliance.sh
-python3 -m py_compile appliance/remote/ssh-diagnose.py appliance/remote/redeti-status
-git diff --check
-```
+Verificação estática da cadeia: `PASS`.
 
-Todos concluídos com sucesso.
+## Gates da ISO
 
-## Arquivos alterados
+- Compilação da ISO: `NOT_RUN` — requer autorização específica.
+- QEMU: `NOT_RUN` — proibido nesta etapa.
+- Boot físico: `NOT_RUN`.
+- Homologação física: `NOT_RUN`.
+- Alteração de serviços, firewall ou Tailscale do Hermes: `NÃO REALIZADA`.
+- Acesso ou alteração de discos de clientes: `NÃO REALIZADA`.
 
-- `appliance/remote/start.sh`
-- `appliance/remote/lan-start.sh`
-- `appliance/remote/ssh-diagnose.py`
-- `appliance/remote/redeti-status`
-- `appliance/build/compose-appliance.sh`
-- `appliance/remote/SSH_DIAGNOSTICS.md`
-- `appliance/tests/test_redeti_status.py`
+## Bloqueios técnicos
 
-## Segurança e escopo
+Nenhum bloqueio técnico identificado para iniciar a compilação autorizada.
 
-- Nenhum `chmod 777` foi usado.
-- Nenhuma ACL foi criada ou alterada.
-- Nenhum OAuth, token ou auth key foi modificado.
-- Nenhum arquivo do Recovery OS físico foi alterado.
-- Nenhum serviço físico foi reiniciado.
-- Nenhuma ISO foi gerada ou publicada.
-- Nenhum segredo apareceu nos relatórios ou nos testes.
+A compilação futura ainda deverá gerar o artefato, sidecar SHA-256, manifesto final, inspeção BIOS/UEFI/SRM e relatório de build. Esses gates não podem ser declarados como PASS antes da compilação real.
 
-## Próxima etapa
+## Publicação
 
-Uma nova ISO é necessária para levar a implementação ao Recovery OS físico. Antes disso, revisar o diff e autorizar separadamente a geração/teste da ISO. O push Git também permanece pendente de autorização explícita.
+Este relatório e o JSON correspondente são os únicos arquivos autorizados para atualização nesta etapa. Nenhum código-fonte será alterado ou republicado.

@@ -1,68 +1,66 @@
 {
   "schema": "redeti.recovery.vpn-report.v1",
-  "generated_at_utc": "2026-10-27T23:19:01Z",
-  "stage": "VPN-3D",
+  "generated_at_utc": "2026-10-28T16:55:29Z",
+  "stage": "VPN-3E",
   "project": "SO_SYSTEM_RECOVERY",
   "branch": "main",
-  "commit_before_report": "40087f3",
-  "overall_state": "IMPLEMENTED_LOCALLY_AWAITING_REVIEW",
-  "publication": "NOT_PUSHED_PUSH_AUTHORIZATION_NOT_PROVIDED",
+  "source_commit": "bae00e66c6837cac5c4ef5e1806c3245e330da21",
+  "overall_state": "READY_FOR_ISO_BUILD",
+  "publication": "REPORT_ONLY_UPDATE_PENDING",
   "implementation": {
-    "private_runtime_dir": "/run/redeti",
-    "private_runtime_mode": "0700",
-    "public_runtime_dir": "/run/redeti-status",
-    "public_runtime_mode": "0755",
-    "public_files_mode": "0644",
-    "admin_socket_exposed": false,
-    "redeti_status_command": true,
-    "ssh_diagnose_reads_public_status": true,
+    "vpn3d_integrated_into_iso_composer": true,
+    "redeti_status_source": "appliance/remote/redeti-status",
+    "redeti_status_iso_path": "/usr/local/bin/redeti-status",
+    "redeti_status_install_mode": "0755",
     "fixed_allowlisted_fields_only": true,
-    "failure_categories": [
-      "provisioning",
-      "tag_authorization",
-      "authentication",
-      "connectivity"
-    ],
-    "fallback_generic_failure": true
+    "admin_socket_exposed": false,
+    "iso_overwrite_protection": true
   },
   "security": {
-    "chmod_777": false,
-    "acl_changed": false,
-    "oauth_changed": false,
-    "tokens_or_auth_keys_changed": false,
-    "tailscale_socket_exposed": false,
-    "physical_recovery_os_changed": false,
+    "credential_scan": "PASS",
+    "private_key_scan": "PASS",
+    "customer_data_scan": "PASS",
     "raw_logs_published": false,
-    "secrets_in_report": false
-  },
-  "early_splash": {
-    "vpn_status_depends_on_splash": false,
-    "launch_fallback_regression_tests": "PASS",
-    "physical_boot_test": "NOT_RUN"
+    "tokens_or_auth_keys_published": false,
+    "firewall_changed": false,
+    "tailscale_changed": false,
+    "customer_disks_touched": false
   },
   "tests": {
+    "evidence_source": "VPN-3D approved offline validation",
+    "repeated_in_this_review": false,
     "command": "python3 -m unittest discover -s appliance/tests -v",
     "passed": 165,
     "failed": 0,
     "shell_syntax": "PASS",
-    "python_compile": "PASS",
-    "git_diff_check": "PASS"
+    "python_compile_in_memory": "PASS",
+    "sanitization_and_permissions": "PASS",
+    "regression_boot_splash_ssh_vpn": "PASS"
   },
-  "files_changed": [
-    "appliance/remote/start.sh",
-    "appliance/remote/lan-start.sh",
-    "appliance/remote/ssh-diagnose.py",
-    "appliance/remote/redeti-status",
-    "appliance/build/compose-appliance.sh",
-    "appliance/remote/SSH_DIAGNOSTICS.md",
-    "appliance/tests/test_redeti_status.py",
+  "provenance": {
+    "native_build_records_source_commit": true,
+    "native_commit_attestation_checked": true,
+    "stale_elf_rejected": true,
+    "iso_manifest_records_current_commit": true,
+    "iso_filename_contains_revision": true,
+    "static_verification": "PASS"
+  },
+  "iso": {
+    "compilation": "NOT_RUN",
+    "generated": false,
+    "qemu": "NOT_RUN",
+    "physical_boot": "NOT_RUN",
+    "physical_homologation": "NOT_RUN"
+  },
+  "remaining_gates": [
+    "explicit authorization for ISO compilation",
+    "real ISO sidecar SHA-256 and build manifest",
+    "BIOS/UEFI/SRM inspection after build",
+    "physical homologation authorization"
+  ],
+  "report_files": [
     "reports/latest.md",
     "reports/latest.json"
   ],
-  "iso": {
-    "new_iso_required": true,
-    "generated": false,
-    "physical_validation": "NOT_RUN"
-  },
-  "next_action": "Review diff, authorize ISO generation/validation separately, and authorize Git push separately"
+  "code_publication_in_this_step": false
 }
