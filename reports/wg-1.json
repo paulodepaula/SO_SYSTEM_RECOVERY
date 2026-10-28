@@ -1,0 +1,87 @@
+{
+  "schema": "redeti.recovery.wg-report.v1",
+  "generated_at_utc": "2026-10-28T21:24:00Z",
+  "stage": "WG-1",
+  "project": "SO_SYSTEM_RECOVERY",
+  "overall_state": "BLOCKED_INVENTORY_TLS",
+  "feasibility": "VIABLE_WITH_PREREQUISITES",
+  "target_profile": "cidade-verde",
+  "read_only_inventory": {
+    "attempted": true,
+    "result": "BLOCKED_TLS_HANDSHAKE",
+    "error_class": "SSLError",
+    "routeros_identity": "NOT_OBSERVED",
+    "model": "NOT_OBSERVED",
+    "effective_version": "NOT_OBSERVED",
+    "interfaces": "NOT_OBSERVED",
+    "addresses": "NOT_OBSERVED",
+    "routes": "NOT_OBSERVED",
+    "firewall": "NOT_OBSERVED",
+    "nat": "NOT_OBSERVED",
+    "logs": "NOT_OBSERVED"
+  },
+  "available_metadata": {
+    "declared_routeros_major": "7",
+    "declared_api_ssl": true,
+    "declared_api_ssl_port": 8729,
+    "secret_returned": false
+  },
+  "mcp_read_only_paths_confirmed": [
+    "/interface",
+    "/ip/address",
+    "/ip/route",
+    "/ip/firewall/filter",
+    "/ip/firewall/nat",
+    "/system/identity",
+    "/system/resource",
+    "/system/routerboard"
+  ],
+  "proposed_design": {
+    "interface": "wg-redeti-recovery",
+    "candidate_subnet": "10.255.254.0/29",
+    "mikrotik_tunnel_ip": "10.255.254.1/29",
+    "hermes_tunnel_ip": "10.255.254.2/32",
+    "recovery_tunnel_ip": "10.255.254.3/32",
+    "lan_routes_announced": false,
+    "mikrotik_admin_allowed_from_wg": false,
+    "peer_to_peer_only": true,
+    "allowed_service": "TCP/22 Hermes to Recovery only"
+  },
+  "keys": {
+    "real_keys_generated": false,
+    "private_keys_in_iso": false,
+    "private_keys_in_report": false,
+    "per_session_rotation": "required",
+    "recovery_private_key_storage": "tmpfs runtime only"
+  },
+  "commands": {
+    "routeros_commands_executed": false,
+    "routeros_commands_proposed": true,
+    "writes": false,
+    "reboots": false
+  },
+  "tests": {
+    "wireguard_live_handshake": "NOT_RUN",
+    "existing_vpn_regression": "NOT_RUN",
+    "lan_isolation": "NOT_RUN",
+    "router_admin_isolation": "NOT_RUN"
+  },
+  "rollback": {
+    "planned": true,
+    "pre_change_backup_required": true,
+    "existing_vpns_preserved": true
+  },
+  "risks": [
+    "TLS/API-SSL handshake blocks actual inventory",
+    "effective RouterOS version and hardware capacity unverified",
+    "UDP port availability unverified",
+    "private subnet conflict unverified",
+    "current firewall/NAT ordering unverified",
+    "tailnet source policy unverified"
+  ],
+  "publication": {
+    "report_only": true,
+    "iso_published": false,
+    "secrets_published": false
+  }
+}
