@@ -1,64 +1,68 @@
-# RedeTI Recovery OS — Relatório VPN-3E
+# RedeTI Recovery OS — Relatório VPN-3F
 
-- Etapa: `VPN-3E — revisão e preparação da ISO`
-- Gerado em UTC: `2026-10-28T16:55:29Z`
+- Etapa: `VPN-3F — compilação da ISO com diagnóstico VPN seguro`
+- Gerado em UTC: `2026-10-28T17:02:05Z`
 - Projeto: `SO_SYSTEM_RECOVERY`
 - Branch: `main`
-- Commit-fonte VPN-3D: `bae00e66c6837cac5c4ef5e1806c3245e330da21`
-- Estado: `READY_FOR_ISO_BUILD`
-- Publicação deste relatório: `PENDENTE_NESTE_COMMIT`
+- Commit-fonte: `dcaefc45bc2892d33d9e7f967b34e62144550526`
+- Estado: `READY_FOR_PHYSICAL_TEST`
 
-## Resultado da revisão
+## Compilação
 
-A implementação VPN-3D está integrada ao processo de composição da ISO.
+- Resultado: `PASS`
+- Interface nativa: LVGL v9.6 direct DRM/KMS
+- Versão exibida: `v0.6.0`
+- Build tag: `b261028-165935`
+- ELF: `/home/paulo/RecoveryOS/native-build/out/redeti-ui`
+- ELF SHA-256: `a5e2fa3c4a79b6c16299c8643f94808b5bd38a74ab62ee37affa8de5fa4e810c`
+- Testes CTest nativos: `3/3 PASS`
 
-- `appliance/build/compose-appliance.sh` instala `appliance/remote/redeti-status` como `/usr/local/bin/redeti-status`.
-- Permissão de instalação do comando: `0755`.
-- O processo mantém o socket administrativo da VPN fora da área pública.
-- O diagnóstico publica somente campos allowlisted e permanece somente leitura.
-- A composição recusa sobrescrever uma ISO existente.
+## ISO gerada
 
-## Testes e segurança
+- Caminho: `/home/paulo/RecoveryOS/out/RedeTI-Recovery-OS-appliance-dcaefc45-20261028T165954Z.iso`
+- ISO SHA-256: `3ee8e5e679caae1af1288277257628a37ffc8a89e88f9115f213bd6bab42c392`
+- Sidecar: `/home/paulo/RecoveryOS/out/RedeTI-Recovery-OS-appliance-dcaefc45-20261028T165954Z.iso.sha256`
+- Verificação do sidecar: `PASS`
+- Manifesto: `/home/paulo/RecoveryOS/out/RedeTI-Recovery-OS-appliance-dcaefc45-20261028T165954Z.iso.buildinfo`
+- Proveniência código/ELF/manifesto: `PASS`
 
-Resultados já validados no commit-fonte VPN-3D:
+## Conteúdo e boot
 
-- Suíte offline: `165` aprovados, `0` falhas.
-- Sintaxe shell: `PASS`.
-- Compilação Python em memória: `PASS`.
-- Sanitização e permissões do `redeti-status`: `PASS`.
-- Não exposição de socket, tokens, auth keys ou logs brutos: `PASS`.
-- Regressões de boot, splash, firewall, SSH e VPN: `PASS`.
-- Varredura dos arquivos da VPN-3D: sem credenciais, tokens reais, chaves privadas ou dados de clientes.
+- `/usr/local/bin/redeti-status` presente no `customize.srm`: `PASS`
+- Permissão empacotada: `0755`: `PASS`
+- `customize.srm` identificado como SquashFS válido: `PASS`
+- Entrada BIOS El Torito: `PASS`
+- Entrada UEFI El Torito: `PASS`
+- Estrutura SystemRescue e `/sysrescue.d`: `PASS`
+- ISO anterior preservada: `PASS`
 
-Os testes não foram repetidos nesta revisão, conforme solicitado; foi utilizada a evidência aprovada existente.
+## Segurança
 
-## Proveniência do commit e manifesto
+- `/run/redeti`: protegido com modo `0700`: `PASS`
+- Socket administrativo `tailscaled.sock`: não exposto pela saída pública: `PASS`
+- Status público separado em `/run/redeti-status`: `PASS`
+- Campos do `redeti-status` allowlisted e somente leitura: `PASS`
+- Credenciais, tokens e chaves privadas na ISO: `NÃO ENCONTRADOS`
+- Dados de clientes na ISO/relatório: `NÃO ENCONTRADOS`
+- Firewall, Tailscale e serviços de produção: não alterados
+- Discos de clientes: não acessados
 
-A cadeia de compilação está preparada para exigir o mesmo commit em todas as camadas:
+## Validações não executadas
 
-- O build nativo registra `source_commit`.
-- `redeti-ui.commit` é comparado ao `HEAD` atual.
-- `build-local.sh` recusa ELF produzido por commit diferente.
-- O manifesto da ISO registra o `source_commit` atual.
-- O nome da ISO incorpora a revisão curta do commit.
-
-Verificação estática da cadeia: `PASS`.
-
-## Gates da ISO
-
-- Compilação da ISO: `NOT_RUN` — requer autorização específica.
-- QEMU: `NOT_RUN` — proibido nesta etapa.
-- Boot físico: `NOT_RUN`.
-- Homologação física: `NOT_RUN`.
-- Alteração de serviços, firewall ou Tailscale do Hermes: `NÃO REALIZADA`.
-- Acesso ou alteração de discos de clientes: `NÃO REALIZADA`.
-
-## Bloqueios técnicos
-
-Nenhum bloqueio técnico identificado para iniciar a compilação autorizada.
-
-A compilação futura ainda deverá gerar o artefato, sidecar SHA-256, manifesto final, inspeção BIOS/UEFI/SRM e relatório de build. Esses gates não podem ser declarados como PASS antes da compilação real.
+- QEMU: `NOT_RUN` por restrição explícita
+- Inicialização da ISO no Hermes: `NOT_RUN`
+- Boot físico BIOS/Legacy: `NOT_RUN`
+- Boot físico UEFI: `NOT_RUN`
+- Validação visual DRM/KMS em hardware real: `NOT_RUN`
 
 ## Publicação
 
-Este relatório e o JSON correspondente são os únicos arquivos autorizados para atualização nesta etapa. Nenhum código-fonte será alterado ou republicado.
+- ISO não publicada automaticamente.
+- Este relatório, `reports/latest.json` e o histórico sanitizado serão publicados no GitHub conforme autorização.
+- Nenhum código-fonte adicional foi alterado nesta etapa.
+
+## Resultado final
+
+`READY_FOR_PHYSICAL_TEST`
+
+A ISO está compilada, identificada pelo commit correto, com SHA-256 e sidecar verificados. A próxima etapa é a homologação física autorizada; não foi executada no Hermes.

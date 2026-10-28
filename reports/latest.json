@@ -1,66 +1,65 @@
 {
-  "schema": "redeti.recovery.vpn-report.v1",
-  "generated_at_utc": "2026-10-28T16:55:29Z",
-  "stage": "VPN-3E",
-  "project": "SO_SYSTEM_RECOVERY",
+  "schema": "redeti.recovery.build-report.v1",
+  "generated_at_utc": "2026-10-28T17:02:05Z",
+  "stage": "VPN-3F",
+  "commit": "dcaefc45bc2892d33d9e7f967b34e62144550526",
   "branch": "main",
-  "source_commit": "bae00e66c6837cac5c4ef5e1806c3245e330da21",
-  "overall_state": "READY_FOR_ISO_BUILD",
-  "publication": "REPORT_ONLY_UPDATE_PENDING",
-  "implementation": {
-    "vpn3d_integrated_into_iso_composer": true,
-    "redeti_status_source": "appliance/remote/redeti-status",
-    "redeti_status_iso_path": "/usr/local/bin/redeti-status",
-    "redeti_status_install_mode": "0755",
-    "fixed_allowlisted_fields_only": true,
-    "admin_socket_exposed": false,
-    "iso_overwrite_protection": true
-  },
-  "security": {
-    "credential_scan": "PASS",
-    "private_key_scan": "PASS",
-    "customer_data_scan": "PASS",
-    "raw_logs_published": false,
-    "tokens_or_auth_keys_published": false,
-    "firewall_changed": false,
-    "tailscale_changed": false,
-    "customer_disks_touched": false
-  },
-  "tests": {
-    "evidence_source": "VPN-3D approved offline validation",
-    "repeated_in_this_review": false,
-    "command": "python3 -m unittest discover -s appliance/tests -v",
-    "passed": 165,
-    "failed": 0,
-    "shell_syntax": "PASS",
-    "python_compile_in_memory": "PASS",
-    "sanitization_and_permissions": "PASS",
-    "regression_boot_splash_ssh_vpn": "PASS"
-  },
-  "provenance": {
-    "native_build_records_source_commit": true,
-    "native_commit_attestation_checked": true,
-    "stale_elf_rejected": true,
-    "iso_manifest_records_current_commit": true,
-    "iso_filename_contains_revision": true,
-    "static_verification": "PASS"
+  "overall_state": "READY_FOR_PHYSICAL_TEST",
+  "compilation": {
+    "result": "PASS",
+    "native_ui": "LVGL v9.6 direct DRM/KMS",
+    "app_version": "v0.6.0",
+    "build_tag": "b261028-165935",
+    "native_ctest_passed": 3,
+    "native_ctest_failed": 0,
+    "elf_path": "/home/paulo/RecoveryOS/native-build/out/redeti-ui",
+    "elf_sha256": "a5e2fa3c4a79b6c16299c8643f94808b5bd38a74ab62ee37affa8de5fa4e810c"
   },
   "iso": {
-    "compilation": "NOT_RUN",
-    "generated": false,
-    "qemu": "NOT_RUN",
-    "physical_boot": "NOT_RUN",
-    "physical_homologation": "NOT_RUN"
+    "path": "/home/paulo/RecoveryOS/out/RedeTI-Recovery-OS-appliance-dcaefc45-20261028T165954Z.iso",
+    "sha256": "3ee8e5e679caae1af1288277257628a37ffc8a89e88f9115f213bd6bab42c392",
+    "sidecar_path": "/home/paulo/RecoveryOS/out/RedeTI-Recovery-OS-appliance-dcaefc45-20261028T165954Z.iso.sha256",
+    "sidecar_verified": true,
+    "manifest_path": "/home/paulo/RecoveryOS/out/RedeTI-Recovery-OS-appliance-dcaefc45-20261028T165954Z.iso.buildinfo",
+    "source_commit_match": true,
+    "older_iso_preserved": true
   },
-  "remaining_gates": [
-    "explicit authorization for ISO compilation",
-    "real ISO sidecar SHA-256 and build manifest",
-    "BIOS/UEFI/SRM inspection after build",
-    "physical homologation authorization"
-  ],
-  "report_files": [
-    "reports/latest.md",
-    "reports/latest.json"
-  ],
-  "code_publication_in_this_step": false
+  "packaging": {
+    "customize_srm": "PASS",
+    "customize_srm_squashfs": "PASS",
+    "redeti_status_path": "/usr/local/bin/redeti-status",
+    "redeti_status_present": true,
+    "redeti_status_mode": "0755",
+    "systemrescue_tree": "PASS",
+    "bios_el_torito": "PASS",
+    "uefi_el_torito": "PASS"
+  },
+  "security": {
+    "runtime_private_dir_mode": "0700",
+    "public_status_allowlisted": true,
+    "admin_socket_exposed": false,
+    "credentials_in_iso": false,
+    "tokens_in_iso": false,
+    "private_keys_in_iso": false,
+    "customer_data_in_iso_or_report": false,
+    "firewall_changed": false,
+    "tailscale_changed": false,
+    "production_services_changed": false,
+    "customer_disks_accessed": false
+  },
+  "validation": {
+    "native_ctest": "PASS",
+    "elf_checksum": "PASS",
+    "iso_sidecar": "PASS",
+    "manifest": "PASS",
+    "bios_uefi_structure": "PASS",
+    "qemu": "NOT_RUN",
+    "hermes_iso_boot": "NOT_RUN",
+    "physical_bios_boot": "NOT_RUN",
+    "physical_uefi_boot": "NOT_RUN",
+    "physical_drm_kms": "NOT_RUN"
+  },
+  "publication": "REPORT_ONLY_PENDING_PUSH",
+  "code_changes_in_vpn3f": false,
+  "final_state": "READY_FOR_PHYSICAL_TEST"
 }

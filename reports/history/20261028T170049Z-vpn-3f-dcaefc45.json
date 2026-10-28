@@ -1,0 +1,43 @@
+{
+  "schema": "redeti.recovery.build-report.v1",
+  "generated_at_utc": "2026-10-28T17:00:49Z",
+  "stage": "VPN-3F",
+  "commit": "dcaefc45bc2892d33d9e7f967b34e62144550526",
+  "branch": "main",
+  "repository_status": "clean",
+  "changes": [
+    "reports/latest.json",
+    "reports/latest.md"
+  ],
+  "tests": [
+    "Native ELF checksum and source commit verified",
+    "ISO structure and BIOS/UEFI records checked with xorriso"
+  ],
+  "compilation": {
+    "result": "PASS",
+    "manifest": {
+      "app_version": "v0.6.0",
+      "build_tag": "b261028-165935",
+      "source_commit": "dcaefc45bc2892d33d9e7f967b34e62144550526",
+      "elf_sha256": "a5e2fa3c4a79b6c16299c8643f94808b5bd38a74ab62ee37affa8de5fa4e810c",
+      "iso_sha256": "3ee8e5e679caae1af1288277257628a37ffc8a89e88f9115f213bd6bab42c392",
+      "iso_filename": "RedeTI-Recovery-OS-appliance-dcaefc45-20261028T165954Z.iso"
+    }
+  },
+  "iso": {
+    "path": "/home/paulo/RecoveryOS/out/RedeTI-Recovery-OS-appliance-dcaefc45-20261028T165954Z.iso",
+    "sha256": "3ee8e5e679caae1af1288277257628a37ffc8a89e88f9115f213bd6bab42c392",
+    "sidecar_verified": true
+  },
+  "failures": [],
+  "pending": [
+    "Homologação física BIOS/Legacy e UEFI",
+    "Validação visual DRM/KMS em hardware real"
+  ],
+  "publication": "LOCAL_ONLY_AUTHORIZATION_REQUIRED",
+  "safety": {
+    "credentials_included": false,
+    "customer_data_included": false,
+    "iso_published_automatically": false
+  }
+}
