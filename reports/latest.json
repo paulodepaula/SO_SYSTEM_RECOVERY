@@ -1,75 +1,66 @@
 {
-  "schema": "redeti.recovery.ssh-report.v1",
-  "generated_at_utc": "2026-10-28T21:05:30Z",
-  "stage": "SSH-4",
+  "schema": "redeti.recovery.build-report.v1",
+  "generated_at_utc": "2026-10-28T21:12:52Z",
+  "stage": "SSH-5",
   "project": "SO_SYSTEM_RECOVERY",
   "branch": "main",
-  "base_published_commit": "a266b181db485045746849715c576c412ec49daf",
-  "overall_state": "LOCAL_FIX_PREPARED_PHYSICAL_EVIDENCE_REQUIRED",
-  "symptom": {
-    "tcp22": "PASS",
-    "host_identity": "VALIDATED_WHEN_OBSERVED",
-    "hermes_key_provisioned_on_ventoy": true,
-    "ssh_authentication": "BLOCKED_PERMISSION_DENIED_PUBLICKEY",
-    "remote_diagnostics_executed": false
-  },
-  "root_cause": {
-    "file": "appliance/remote/lan-start.sh",
-    "issue": "blocking_systemd_run_prevented_usb_key_provisioning_loop",
-    "blocking_call_before_key_loop": true,
-    "evidence": "sshd_-D_started_without_no_block_before_key_loaded_loop"
-  },
-  "local_fix": {
-    "file": "appliance/remote/lan-start.sh",
-    "change": "add_systemd_run_no_block",
-    "regression_test_file": "appliance/tests/test_lan_ssh.py",
-    "code_published_to_github_in_this_step": false
-  },
-  "source_flow": {
-    "accepted_labels": ["Ventoy", "REDETI_CFG"],
-    "accepted_filesystems": ["exfat", "vfat"],
-    "source_file": "REDETI/authorized_keys",
-    "destination_file": "/home/paulo/.ssh/authorized_keys",
-    "authorized_keys_file_config": "/home/paulo/.ssh/authorized_keys",
-    "max_keys": 4,
-    "key_type": "ssh-ed25519",
-    "destination_mode": "0600",
-    "destination_owner": "paulo:paulo",
-    "ssh_user": "paulo",
-    "password_authentication": false,
-    "root_login": false
+  "published_commit": "df3cabd7941f5f49be3f438e539239f23ef6406e",
+  "overall_state": "READY_FOR_PHYSICAL_TEST",
+  "integration": {
+    "ssh4_no_block": true,
+    "ssh4_two_key_regression": true,
+    "vpn3d_redeti_status_packaged": true,
+    "redeti_status_iso_path": "/usr/local/bin/redeti-status"
   },
   "tests": {
-    "red_reproduction": "PASS",
-    "focused_regression": "PASS",
-    "two_distinct_public_keys_simulation": "PASS",
     "full_suite_command": "python3 -m unittest discover -s appliance/tests -v",
-    "passed": 166,
+    "passed": 167,
     "failed": 0,
+    "native_ctest_passed": 3,
+    "native_ctest_failed": 0,
     "shell_syntax": "PASS",
-    "git_diff_check": "PASS"
+    "git_diff_check": "PASS",
+    "two_public_keys_simulation": "PASS",
+    "secret_scan": "PASS"
   },
-  "physical_evidence": {
-    "authorized_session": "NOT_AVAILABLE",
-    "ssh_config_runtime": "NOT_RUN",
-    "authorized_keys_runtime": "NOT_RUN",
-    "service_journal": "NOT_RUN",
-    "redeti_status": "NOT_RUN",
-    "physical_fix_validated": false
+  "build": {
+    "result": "PASS",
+    "app_version": "v0.6.0",
+    "build_tag": "b261028-211103",
+    "source_commit": "df3cabd7941f5f49be3f438e539239f23ef6406e",
+    "elf_sha256": "ca74b3e84856ff514ccfff3016e4a1c299935ab192f51f846870e7d312efd4d3"
+  },
+  "iso": {
+    "path": "/home/paulo/RecoveryOS/out/RedeTI-Recovery-OS-appliance-df3cabd7-20261028T211115Z.iso",
+    "sha256": "31c77c7da645b2623a12f2de675c1f327d7ad9be41a96380276fe805519020bc",
+    "sidecar_verified": true,
+    "manifest_verified": true,
+    "bios_el_torito": "PASS",
+    "uefi_el_torito": "PASS",
+    "systemrescue_srm": "PASS",
+    "redeti_status_present": true,
+    "redeti_status_mode": "0755",
+    "ssh4_no_block_present": true,
+    "version_build_revision_embedded": true,
+    "previous_isos_preserved": true
   },
   "safety": {
-    "physical_recovery_os_changed": false,
-    "ventoy_changed": false,
-    "iso_generated": false,
+    "credentials_in_iso": false,
+    "customer_data_in_iso": false,
     "qemu_run": false,
+    "hermes_iso_boot": false,
+    "physical_boot": false,
+    "ventoy_modified_automatically": false,
     "firewall_changed": false,
+    "tailscale_changed": false,
+    "production_services_changed": false,
     "customer_disks_accessed": false,
-    "credentials_published": false
+    "iso_published_to_github": false
   },
-  "publication": {
-    "scope": "sanitized_reports_only",
-    "code_push": false,
-    "report_files": ["reports/latest.md", "reports/latest.json"]
-  },
-  "next_gate": "authorize_new_iso_generation_then_repeat_physical_ssh_test"
+  "pending": [
+    "physical BIOS/Legacy homologation",
+    "physical UEFI homologation",
+    "physical DRM/KMS visual validation"
+  ],
+  "final_state": "READY_FOR_PHYSICAL_TEST"
 }

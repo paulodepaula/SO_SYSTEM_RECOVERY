@@ -1,0 +1,43 @@
+{
+  "schema": "redeti.recovery.build-report.v1",
+  "generated_at_utc": "2026-10-28T21:12:20Z",
+  "stage": "SSH-5",
+  "commit": "df3cabd7941f5f49be3f438e539239f23ef6406e",
+  "branch": "main",
+  "repository_status": "clean",
+  "changes": [
+    "appliance/remote/lan-start.sh",
+    "appliance/tests/test_lan_ssh.py"
+  ],
+  "tests": [
+    "Native ELF checksum and source commit verified",
+    "ISO structure and BIOS/UEFI records checked with xorriso"
+  ],
+  "compilation": {
+    "result": "PASS",
+    "manifest": {
+      "app_version": "v0.6.0",
+      "build_tag": "b261028-211103",
+      "source_commit": "df3cabd7941f5f49be3f438e539239f23ef6406e",
+      "elf_sha256": "ca74b3e84856ff514ccfff3016e4a1c299935ab192f51f846870e7d312efd4d3",
+      "iso_sha256": "31c77c7da645b2623a12f2de675c1f327d7ad9be41a96380276fe805519020bc",
+      "iso_filename": "RedeTI-Recovery-OS-appliance-df3cabd7-20261028T211115Z.iso"
+    }
+  },
+  "iso": {
+    "path": "/home/paulo/RecoveryOS/out/RedeTI-Recovery-OS-appliance-df3cabd7-20261028T211115Z.iso",
+    "sha256": "31c77c7da645b2623a12f2de675c1f327d7ad9be41a96380276fe805519020bc",
+    "sidecar_verified": true
+  },
+  "failures": [],
+  "pending": [
+    "Homologação física BIOS/Legacy e UEFI",
+    "Validação visual DRM/KMS em hardware real"
+  ],
+  "publication": "LOCAL_ONLY_AUTHORIZATION_REQUIRED",
+  "safety": {
+    "credentials_included": false,
+    "customer_data_included": false,
+    "iso_published_automatically": false
+  }
+}
