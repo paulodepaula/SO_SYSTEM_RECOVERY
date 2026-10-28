@@ -1,0 +1,53 @@
+{
+  "schema": "redeti.recovery.wg-report.v1",
+  "generated_at_utc": "2026-10-28T22:55:00Z",
+  "stage": "WG-6",
+  "project": "SO_SYSTEM_RECOVERY",
+  "target": {
+    "model": "RB3011UiAS",
+    "routeros": "7.20.8",
+    "endpoint": "164.163.166.19",
+    "api_ssl_port": 8729,
+    "api_ssl_certificate": "none",
+    "wireguard_existing_preserved": true
+  },
+  "overall_state": "BLOCKED_PENDING_AUTHORIZED_TLS_CHANGE",
+  "ready_for_tls_change": false,
+  "execution": {
+    "routeros_backup_created": false,
+    "routeros_export_created": false,
+    "ca_created": false,
+    "server_certificate_created": false,
+    "api_ssl_changed": false,
+    "mcp_changed": false,
+    "firewall_changed": false,
+    "vpn_changed": false,
+    "wireguard_changed": false,
+    "recovery_os_changed": false
+  },
+  "certificate_plan": {
+    "ca_name": "redeti-ca-cidade-verde",
+    "server_name": "redeti-api-cidade-verde",
+    "san_ip": "164.163.166.19",
+    "key_usage": "tls-server",
+    "ca_private_key_transfer": false,
+    "public_ca_transfer_only": true
+  },
+  "mcp_plan": {
+    "use_ssl": true,
+    "ssl_verify": true,
+    "ssl_verify_hostname": true,
+    "custom_ca_support_requires_runtime_library_check": true,
+    "production_mcp_changed": false
+  },
+  "tests_pending": [
+    "TLS 1.2 chain and SAN validation",
+    "TLS 1.3 validation when supported",
+    "anonymous ADH cipher rejection",
+    "MCP read-only health",
+    "read-only RouterOS inventory"
+  ],
+  "rollback_prepared": true,
+  "secrets_published": false,
+  "next_step": "Obtain explicit authorization for backup/certificate/API-SSL change, execute in a protected RouterOS session, then install only the public CA and enable strict MCP validation before repeating read-only inventory."
+}
