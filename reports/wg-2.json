@@ -1,0 +1,65 @@
+{
+  "schema": "redeti.recovery.wg-report.v1",
+  "generated_at_utc": "2026-10-28T21:29:00Z",
+  "stage": "WG-2",
+  "project": "SO_SYSTEM_RECOVERY",
+  "profile": "cidade-verde",
+  "overall_state": "BLOCKED_ROUTEROS_CERTIFICATE_FIX_REQUIRED",
+  "connector": {
+    "server": "mikrotik_server.py",
+    "credential_value_exposed": false,
+    "host": "164.163.166.19",
+    "port": 8729,
+    "use_ssl": true,
+    "plaintext_login": true,
+    "ssl_verify_configured": false,
+    "ssl_verify_hostname_configured": false
+  },
+  "network_tests": {
+    "tcp_8729": "PASS",
+    "tls12_default_policy": "FAIL_REMOTE_ALERT_40",
+    "tls13_default_policy": "FAIL_REMOTE_ALERT_40",
+    "tls12_relaxed_client_only": "PASS_INSECURE_DIAGNOSTIC_ONLY",
+    "relaxed_cipher": "ADH-AES256-SHA256",
+    "peer_certificate": "ABSENT",
+    "server_temp_key": "DH-2048"
+  },
+  "cause": {
+    "proven": "Endpoint does not present a usable server certificate and only completes with anonymous DH when client policy is weakened.",
+    "most_likely": [
+      "RouterOS api-ssl has no valid assigned server certificate",
+      "assigned certificate/key is invalid or unavailable",
+      "public NAT/proxy reaches an unintended TLS service"
+    ],
+    "not_proven": [
+      "exact RouterOS certificate object state",
+      "public NAT target service",
+      "intermediate TLS proxy presence"
+    ]
+  },
+  "actions": {
+    "routeros_modified": false,
+    "api_without_tls_enabled": false,
+    "verify_disabled_as_solution": false,
+    "curl_k_used": false,
+    "routeros_auth_attempted": false,
+    "wireguard_created": false
+  },
+  "proposed_fix": {
+    "requires_routeros_authorization": true,
+    "inspect": [
+      "/ip service print detail where name=api-ssl",
+      "/certificate print detail",
+      "/ip firewall nat print detail"
+    ],
+    "assign_valid_tls_server_certificate": true,
+    "mcp_after_fix": [
+      "ssl_verify=true",
+      "ssl_verify_hostname=true",
+      "use_ssl=true",
+      "trust approved CA or public chain"
+    ]
+  },
+  "next_step": "Fix or validate the RouterOS API-SSL server certificate and public NAT target in an authorized RouterOS session, then repeat read-only MCP inventory.",
+  "report_secrets": false
+}
