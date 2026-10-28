@@ -1,0 +1,66 @@
+{
+  "schema": "redeti.recovery.wg-report.v1",
+  "generated_at_utc": "2026-10-28T22:48:00Z",
+  "stage": "WG-5",
+  "project": "SO_SYSTEM_RECOVERY",
+  "target": {
+    "model": "RB3011UiAS",
+    "routeros": "7.20.8",
+    "wan": "PPPOE-CONECT",
+    "existing_wireguard": "wg-escritorio",
+    "existing_wireguard_udp_port": 13231,
+    "api_ssl_port": 8729,
+    "winbox_port": 8899,
+    "api_ssl_certificate": "none",
+    "candidate_recovery_subnet": "10.255.254.0/29"
+  },
+  "overall_state": "READY_FOR_SEPARATE_AUTHORIZED_STAGING",
+  "execution": {
+    "read_only_mcp_attempt": "BLOCKED_TLS_HANDSHAKE",
+    "routeros_changes": false,
+    "firewall_changes": false,
+    "nat_changes": false,
+    "route_changes": false,
+    "vpn_changes": false,
+    "wireguard_interface_created": false,
+    "real_keys_generated": false,
+    "recovery_os_modified": false
+  },
+  "inventory_gates": {
+    "ipv6_filter": "NOT_OBSERVED",
+    "interface_lists": "NOT_OBSERVED",
+    "raw": "NOT_OBSERVED",
+    "mangle": "NOT_OBSERVED",
+    "full_nat_order": "NOT_OBSERVED",
+    "operator_source": "NOT_OBSERVED",
+    "additional_security_mechanisms": "NOT_OBSERVED"
+  },
+  "proposed_management_protection": {
+    "services": [8729, 8899],
+    "source_allowlist_required": true,
+    "ipv4_and_ipv6_review_required": true,
+    "existing_wg_escritorio_preserved": true,
+    "existing_l2tp_preserved": true
+  },
+  "proposed_wireguard": {
+    "interface": "wg-redeti-recovery",
+    "udp_port": "PENDING_FREE_PORT_CHECK",
+    "subnet": "10.255.254.0/29",
+    "mikrotik_ip": "10.255.254.1/29",
+    "hermes_ip": "10.255.254.2/32",
+    "recovery_ip": "10.255.254.3/32",
+    "allowed_flow": "Hermes to Recovery TCP/22 only",
+    "lan_routes_announced": false,
+    "mikrotik_management_from_peer": false,
+    "nat_between_peers": false
+  },
+  "safety": {
+    "backup_required": true,
+    "safe_mode_required": true,
+    "alternate_admin_session_required": true,
+    "rollback_planned": true,
+    "existing_services_preserved": true,
+    "report_secrets": false
+  },
+  "next_gate": "Fix API-SSL certificate and MCP strict validation, then collect complete read-only IPv4/IPv6/raw/mangle/interface-list inventory before any staging write."
+}
