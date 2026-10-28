@@ -15,15 +15,16 @@ import socket
 import subprocess
 import sys
 
-_STATUS = Path("/run/redeti/remote-status.json")
-_SSH_STATUS = Path("/run/redeti/lan-ssh-status.json")
+_STATUS = Path("/run/redeti-status/vpn-status.json")
+_SSH_STATUS = Path("/run/redeti-status/ssh-status.json")
 _BANNER = Path("/opt/redeti-appliance/remote/ssh-banner.txt")
 
 _VPN_STATES = frozenset({
     "starting", "bootstrap_failed", "vpn_binary_missing",
     "firewall_unverified", "unsafe_runtime_storage", "firewall_blocked",
     "invalid_auth_key", "awaiting_provision", "connecting",
-    "vpn_daemon_failed", "vpn_auth_failed", "vpn_no_ip", "connected",
+    "vpn_daemon_failed", "vpn_auth_failed", "vpn_tag_failed",
+    "vpn_connectivity_failed", "vpn_no_ip", "connected",
 })
 _LAN_STATES = frozenset({
     "starting", "invalid_user_home", "sshd_missing",

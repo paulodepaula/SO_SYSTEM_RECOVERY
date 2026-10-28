@@ -6,6 +6,8 @@ umask 077
 
 base=/run/redeti
 socket="$base/tailscaled.sock"
+public_base=/run/redeti-status
+public_status_file="$public_base/vpn-status.json"
 ts=/opt/redeti-appliance/bin/tailscale
 daemon=/opt/redeti-appliance/bin/tailscaled
 provision_script=/opt/redeti-appliance/remote/provision.py
@@ -15,6 +17,29 @@ ssh_managed=false
 vpn_ssh_mode="disabled"
 mkdir -p "$base"
 chmod 0700 "$base"
+install -d -o root -g root -m 0755 "$public_base"
+
+public_status() {
+  local state="$1" connectivity=failed failure_code=registration_failed registration_stage=registration
+  case "$state" in
+    starting|bootstrap_failed) connectivity=starting; failure_code=none; registration_stage=bootstrap ;;
+    awaiting_provision) connectivity=not_configured; failure_code=provisioning_missing; registration_stage=provisioning ;;
+    invalid_auth_key) failure_code=provisioning_invalid; registration_stage=provisioning ;;
+    connecting) connectivity=connecting; failure_code=none; registration_stage=connecting ;;
+    firewall_unverified|unsafe_runtime_storage|firewall_blocked) failure_code=connectivity_firewall; registration_stage=preflight ;;
+    vpn_binary_missing) failure_code=connectivity_daemon; registration_stage=daemon ;;
+    vpn_daemon_failed) failure_code=connectivity_daemon; registration_stage=daemon ;;
+    vpn_auth_failed) failure_code=authentication ;;
+    vpn_tag_failed) failure_code=tag_authorization ;;
+    vpn_connectivity_failed) failure_code=connectivity ;;
+    vpn_no_ip) failure_code=connectivity_no_ip ;;
+    connected) connectivity=connected; failure_code=none; registration_stage=registered ;;
+  esac
+  printf '{"state":"%s","connectivity":"%s","failure_code":"%s","registration_stage":"%s","vpn_ssh_mode":"%s"}\n' \
+    "$state" "$connectivity" "$failure_code" "$registration_stage" "$vpn_ssh_mode" > "$public_status_file.tmp"
+  chmod 0644 "$public_status_file.tmp"
+  mv -f "$public_status_file.tmp" "$public_status_file"
+}
 
 status() {
   # Fixed, non-secret state codes and a validated tailnet IPv4 address only.
@@ -22,6 +47,7 @@ status() {
     "$1" "${2:-}" "$vpn_ssh_mode" > "$base/remote-status.json.tmp"
   chmod 0644 "$base/remote-status.json.tmp"
   mv -f "$base/remote-status.json.tmp" "$base/remote-status.json"
+  public_status "$1"
 }
 status "starting"
 trap 'status "bootstrap_failed"' ERR
@@ -186,7 +212,13 @@ if ! timeout 150 "$ts" --socket="$socket" up \
   --ssh="$ssh_managed" --hostname="$hostname" --advertise-tags=tag:redeti-recovery \
   --netfilter-mode=off --accept-routes=false --accept-dns=false \
   >> "$base/remote.log" 2>&1; then
-  status "vpn_auth_failed"
+  if grep -Eiq 'tag|advertise-tags|not authorized' "$base/remote.log"; then
+    status "vpn_tag_failed"
+  elif grep -Eiq 'auth|unauthori[sz]ed|expired|invalid.*key' "$base/remote.log"; then
+    status "vpn_auth_failed"
+  else
+    status "vpn_connectivity_failed"
+  fi
   exit 1
 fi
 rm -f -- "$auth_file"

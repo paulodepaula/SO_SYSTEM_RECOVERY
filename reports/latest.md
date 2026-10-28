@@ -1,52 +1,76 @@
-# RedeTI Recovery OS — Relatório de etapa
+# RedeTI Recovery OS — Relatório VPN-3D
 
-- Etapa: `VPN-3B`
-- Gerado em UTC: `2026-10-27T17:58:47Z`
-- Commit: `0360fea637b64797faf68989fe65b507aafa5053`
+- Etapa: `VPN-3D — saída pública para diagnóstico SSH`
+- Gerado em UTC: `2026-10-27T23:19:01Z`
+- Projeto: `SO_SYSTEM_RECOVERY`
 - Branch: `main`
-- Estado do repositório no momento do relatório: `clean`
+- Commit de referência: `40087f3`
+- Estado: `IMPLEMENTADO_LOCALMENTE_AGUARDANDO_REVISAO`
+- Publicação Git: `NÃO REALIZADA — autorização de push não fornecida`
 
-## Alterações realizadas
+## Resultado
 
-- `reports/latest.json`
-- `reports/latest.md`
+Foi implementada uma saída separada e sanitizada para o operador `paulo`.
 
-## Testes
+- `/run/redeti` continua privado, `root:root`, modo `0700`.
+- O socket `/run/redeti/tailscaled.sock` não é exposto.
+- Nova árvore pública: `/run/redeti-status`, criada como `root:root`, modo `0755`.
+- Arquivos públicos são temporários, escritos atomicamente e modo `0644`.
+- `redeti-status` lê somente `vpn-status.json` e imprime campos allowlisted:
+  `vpn_state`, `connectivity`, `failure_code`, `registration_stage`,
+  `vpn_ssh_mode` e `diagnostic_complete=read_only`.
+- Não são publicados IPs, tokens, auth keys, OAuth, URLs secretas, logs ou estado integral da tailnet.
+- `ssh-diagnose.py` passou a ler as saídas públicas sanitizadas de VPN e SSH, sem acessar os JSONs privados.
+- Falhas de provisionamento, tag, autenticação e conectividade possuem códigos distintos quando comprovadas pela evidência local; caso contrário, o estado é genérico.
+- A lógica de diagnóstico não executa `tailscale up`, não altera firewall e não consulta o socket administrativo.
 
-- Par Ed25519 do Hermes-Agent presente, fingerprint local calculado sem expor privada: PASS
-- Permissão da chave privada 0600: PASS
-- Mídia Ventoy/REDETI e arquivo de provisionamento: NOT_OBSERVED; nenhum mount removível presente
-- Fingerprint ED25519 da rede coletado sem aceitar/gravar host key: PASS; confirmação presencial pendente
-- Conexão SSH, ssh-diagnose.py e consultas /run/redeti: NOT_RUN por bloqueio de identidade/provisionamento
-- Nenhuma alteração em ACL, OAuth, firewall, serviço de produção ou ISO: PASS
+## Independência do early splash
 
-## Compilação
+- `redeti-early-splash.service` não é requisito do processo privilegiado de VPN.
+- O teste confirmou que a publicação de status não depende do splash.
+- A sequência existente do `launch.sh`, incluindo parada do splash antes do dashboard nativo e fallback sem framebuffer, permaneceu coberta pelos testes.
+- Não houve boot físico nem teste em ISO nesta etapa.
 
-- Resultado: `NOT_RUN`
+## Testes executados
 
-## ISO
+Comando:
 
-- Caminho: `N/A`
-- SHA256: `N/A`
-- Sidecar verificado: `False`
+```text
+python3 -m unittest discover -s appliance/tests -v
+```
 
-## Falhas
+Resultado: **165 testes aprovados**.
 
-- Provisionamento da chave pública não confirmado: Ventoy não está montado e arquivo autorizado não foi localizado
-- Fingerprint do host não confirmado por canal confiável; known_hosts permanece sem entrada
-- Estado de redeti-remote, redeti-tailscaled, SSH local, Tailscale e /run/redeti permanece NOT_OBSERVED
-- Causa específica da falha de registro Tailscale permanece não comprovada
+Validações adicionais:
 
-## Pendências
+```text
+bash -n appliance/remote/start.sh appliance/remote/lan-start.sh appliance/build/compose-appliance.sh
+python3 -m py_compile appliance/remote/ssh-diagnose.py appliance/remote/redeti-status
+git diff --check
+```
 
-- Montar ou disponibilizar o Ventoy por canal local autorizado e confirmar a linha pública sem alterar outras entradas
-- Confirmar presencialmente o fingerprint ED25519 atual de 192.168.200.119
-- Após ambas as confirmações, autorizar conexão SSH read-only com a chave exclusiva e executar apenas os comandos VPN-3
-- Não executar tailscale up, alterar firewall/ACL/OAuth, emitir chaves ou gerar ISO nesta etapa
+Todos concluídos com sucesso.
 
-## Publicação e segurança
+## Arquivos alterados
 
-- Relatório registrado somente localmente.
-- Publicação no GitHub requer autorização explícita.
-- Nenhuma ISO é publicada automaticamente.
-- O relatório não contém credenciais, tokens ou dados de clientes.
+- `appliance/remote/start.sh`
+- `appliance/remote/lan-start.sh`
+- `appliance/remote/ssh-diagnose.py`
+- `appliance/remote/redeti-status`
+- `appliance/build/compose-appliance.sh`
+- `appliance/remote/SSH_DIAGNOSTICS.md`
+- `appliance/tests/test_redeti_status.py`
+
+## Segurança e escopo
+
+- Nenhum `chmod 777` foi usado.
+- Nenhuma ACL foi criada ou alterada.
+- Nenhum OAuth, token ou auth key foi modificado.
+- Nenhum arquivo do Recovery OS físico foi alterado.
+- Nenhum serviço físico foi reiniciado.
+- Nenhuma ISO foi gerada ou publicada.
+- Nenhum segredo apareceu nos relatórios ou nos testes.
+
+## Próxima etapa
+
+Uma nova ISO é necessária para levar a implementação ao Recovery OS físico. Antes disso, revisar o diff e autorizar separadamente a geração/teste da ISO. O push Git também permanece pendente de autorização explícita.

@@ -5,10 +5,13 @@ set -euo pipefail
 umask 077
 BASE=/run/redeti
 DIR="$BASE/ssh"
+PUBLIC_BASE=/run/redeti-status
+PUBLIC_STATUS="$PUBLIC_BASE/ssh-status.json"
 ROOT=/opt/redeti-appliance/remote
 CONFIG="$ROOT/sshd_config"
 mkdir -p "$DIR"
 chmod 0700 "$BASE" "$DIR"
+install -d -o root -g root -m 0755 "$PUBLIC_BASE"
 
 status() {
   # All status and reason values are fixed tokens. No keys/secrets are logged.
@@ -16,6 +19,9 @@ status() {
     "$1" "${2:-}" "${3:-unknown}" > "$BASE/lan-ssh-status.json.tmp"
   chmod 0644 "$BASE/lan-ssh-status.json.tmp"
   mv -f "$BASE/lan-ssh-status.json.tmp" "$BASE/lan-ssh-status.json"
+  printf '{"state":"%s","key_reason":"%s"}\n' "$1" "${3:-unknown}" > "$PUBLIC_STATUS.tmp"
+  chmod 0644 "$PUBLIC_STATUS.tmp"
+  mv -f "$PUBLIC_STATUS.tmp" "$PUBLIC_STATUS"
 }
 
 status "starting"

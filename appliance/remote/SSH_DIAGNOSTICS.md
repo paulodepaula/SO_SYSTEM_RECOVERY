@@ -60,6 +60,27 @@ somente se houver procedimento local autorizado.
 de `tailscale status --json`: esses arquivos podem conter detalhes de rede
 e autenticação. O script deliberadamente só divulga códigos fixos.
 
+## Saída pública para o operador
+
+O processo privilegiado também publica uma visão mínima em
+`/run/redeti-status/vpn-status.json`, fora de `/run/redeti`. O diretório
+privado continua `root:root` com `0700` e o socket administrativo não é
+exposto ao usuário `paulo`. A saída pública não contém IP, token, auth key,
+OAuth, URL de autenticação, log ou estado completo da tailnet.
+
+Comando destinado à consulta SSH somente leitura:
+
+```bash
+redeti-status
+```
+
+Ele mostra somente `vpn_state`, `connectivity`, `failure_code`,
+`registration_stage`, `vpn_ssh_mode` e o marcador fixo
+`diagnostic_complete=read_only`. Os códigos `provisioning_*`,
+`tag_authorization`, `authentication` e `connectivity*` distinguem falhas
+somente quando a evidência local permite essa classificação; caso contrário,
+é usado `registration_failed`.
+
 ## Teste do lado Windows (após uma nova conexão VPN autorizada)
 
 1. Confirme o IP Tailscale da máquina em sua tela local (não use IP antigo).

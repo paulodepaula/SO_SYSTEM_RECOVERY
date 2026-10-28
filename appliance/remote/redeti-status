@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+"""Read-only, sanitized VPN status for the unprivileged Recovery OS operator."""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+import sys
+
+_DEFAULT = Path("/run/redeti-status/vpn-status.json")
+_MAX_BYTES = 2048
+_FIELDS = (
+    ("vpn_state", "state"),
+    ("connectivity", "connectivity"),
+    ("failure_code", "failure_code"),
+    ("registration_stage", "registration_stage"),
+    ("vpn_ssh_mode", "vpn_ssh_mode"),
+)
+_ALLOW = {
+    "state": frozenset({
+        "starting", "bootstrap_failed", "vpn_binary_missing",
+        "firewall_unverified", "unsafe_runtime_storage", "firewall_blocked",
+        "invalid_auth_key", "awaiting_provision", "connecting",
+        "vpn_daemon_failed", "vpn_auth_failed", "vpn_tag_failed",
+        "vpn_connectivity_failed", "vpn_no_ip", "connected",
+    }),
+    "connectivity": frozenset({
+        "starting", "not_configured", "connecting", "connected", "failed",
+    }),
+    "failure_code": frozenset({
+        "none", "provisioning_missing", "provisioning_invalid",
+        "connectivity_firewall", "connectivity_daemon", "authentication",
+        "tag_authorization", "connectivity", "connectivity_no_ip",
+        "registration_failed",
+    }),
+    "registration_stage": frozenset({
+        "bootstrap", "provisioning", "preflight", "connecting", "daemon",
+        "registration", "registered",
+    }),
+    "vpn_ssh_mode": frozenset({"native", "managed", "disabled", "unknown"}),
+}
+
+
+def _read(path: Path) -> dict[str, str] | None:
+    try:
+        if path.is_symlink() or path.stat().st_size > _MAX_BYTES:
+            return None
+        data = json.loads(path.read_bytes())
+    except (OSError, ValueError, TypeError, UnicodeError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    return {key: value for _, key in _FIELDS if isinstance(value := data.get(key), str)
+            and value in _ALLOW[key]}
+
+
+def render(path: Path = _DEFAULT) -> list[str]:
+    data = _read(path)
+    if data is None:
+        return ["vpn_state=unavailable"] + [f"{name}=unavailable" for name, _ in _FIELDS[1:]]
+    return [f"{name}={data.get(key, 'unavailable')}" for name, key in _FIELDS]
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = sys.argv[1:] if argv is None else argv
+    if args:
+        print("BLOCKED: no arguments permitted")
+        return 2
+    print("\n".join(render()))
+    print("diagnostic_complete=read_only")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

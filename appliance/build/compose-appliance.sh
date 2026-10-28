@@ -17,7 +17,8 @@ file "$binary" | grep -Eq 'ELF 64-bit LSB .*x86-64' || { echo "Not an x86-64 ELF
 scratch="$(mktemp -d)"
 trap 'rm -rf -- "$scratch"' EXIT
 recipe="$scratch/recipe"
-mkdir -p "$recipe/iso_add/sysrescue.d" "$recipe/build_into_srm/opt/redeti-appliance/bin"
+mkdir -p "$recipe/iso_add/sysrescue.d" "$recipe/build_into_srm/opt/redeti-appliance/bin" \
+  "$recipe/build_into_srm/usr/local/bin"
 cp "$root/appliance/boot/900-redeti-appliance.yaml" "$recipe/iso_add/sysrescue.d/"
 cp "$root/appliance/probe.py" "$recipe/build_into_srm/opt/redeti-appliance/probe.py"
 cp "$root/appliance/boot/launch.sh" "$recipe/build_into_srm/opt/redeti-appliance/launch.sh"
@@ -44,6 +45,7 @@ install -m 0644 "$root/appliance/remote/sshd_config" "$recipe/build_into_srm/opt
 install -m 0644 "$root/appliance/remote/ssh-banner.txt" "$recipe/build_into_srm/opt/redeti-appliance/remote/ssh-banner.txt"
 # Read-only diagnostic for the next physical boot; never changes firewall.
 install -m 0755 "$root/appliance/remote/ssh-diagnose.py" "$recipe/build_into_srm/opt/redeti-appliance/remote/ssh-diagnose.py"
+install -m 0755 "$root/appliance/remote/redeti-status" "$recipe/build_into_srm/usr/local/bin/redeti-status"
 # Mask the stock SSH daemon: LAN SSH uses the explicitly hardened daemon above.
 mkdir -p "$recipe/build_into_srm/etc/systemd/system/sysinit.target.wants"
 ln -s /dev/null "$recipe/build_into_srm/etc/systemd/system/sshd.service"
