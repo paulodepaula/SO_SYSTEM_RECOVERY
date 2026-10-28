@@ -1,0 +1,52 @@
+{
+  "schema": "redeti.recovery.wg-report.v1",
+  "generated_at_utc": "2026-10-28T21:33:00Z",
+  "stage": "WG-3",
+  "project": "SO_SYSTEM_RECOVERY",
+  "profile": "cidade-verde",
+  "overall_state": "BLOCKED_PENDING_ROUTEROS_READONLY_OUTPUTS",
+  "routeros_modified": false,
+  "mcp_modified": false,
+  "vpn_existing_modified": false,
+  "read_only_outputs_received": {
+    "ip_service_api_ssl": false,
+    "certificates": false,
+    "firewall_nat": false
+  },
+  "wg2_evidence": {
+    "tcp_8729": "PASS",
+    "tls12_default": "FAIL_REMOTE_ALERT_40",
+    "tls13_default": "FAIL_REMOTE_ALERT_40",
+    "tls12_relaxed_diagnostic": "ADH_AES256_SHA256_NO_PEER_CERTIFICATE",
+    "authentication_attempted": false
+  },
+  "connector_review": {
+    "credential_values_exposed": false,
+    "ssl_verify_current": false,
+    "ssl_verify_hostname_current": false,
+    "custom_ca_support_in_source": false,
+    "routeros_api_version_verified_in_shell_env": false,
+    "client_patch_prepared": false
+  },
+  "proposed_certificate": {
+    "preferred": "publicly trusted certificate with SAN for MCP hostname",
+    "alternative": "protected REDETI internal CA plus server certificate",
+    "private_ca_key_in_report": false,
+    "api_without_tls": false,
+    "anonymous_ciphers_accepted": false
+  },
+  "proposed_access_scope": {
+    "api_ssl_port": 8729,
+    "authorized_sources_only": true,
+    "existing_vpn_rules_untouched": true,
+    "client_lan_not_exposed": true
+  },
+  "deployment": {
+    "backup_required": true,
+    "sanitized_export_required": true,
+    "operator_authorization_required": true,
+    "rollback_planned": true
+  },
+  "next_step": "Provide sanitized read-only outputs for api-ssl service, certificates, and public NAT before selecting an exact correction.",
+  "report_secrets": false
+}
