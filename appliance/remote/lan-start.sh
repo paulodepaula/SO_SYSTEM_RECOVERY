@@ -61,7 +61,7 @@ iptables -C REDETI_LAN_SSH -j DROP >/dev/null 2>&1 ||
   iptables -A REDETI_LAN_SSH -j DROP
 iptables -C INPUT -p tcp --dport 22 -j REDETI_LAN_SSH >/dev/null 2>&1 ||
   iptables -I INPUT 1 -p tcp --dport 22 -j REDETI_LAN_SSH
-systemd-run --quiet --collect --unit=redeti-lan-sshd \
+systemd-run --quiet --no-block --collect --unit=redeti-lan-sshd \
   --property=Restart=on-failure --property=RestartSec=2 \
   /usr/bin/sshd -D -e -f "$CONFIG"
 

@@ -45,6 +45,14 @@ class LanSSHTests(unittest.TestCase):
         self.assertTrue(lan.valid_keys(example_key()).startswith(b"ssh-ed25519 "))
         self.assertNotIn(b"test-key", lan.valid_keys(example_key()))
 
+    def test_accept_two_distinct_ed25519_keys(self):
+        wire = b"\x00\x00\x00\x0bssh-ed25519" + b"\x00\x00\x00\x20" + bytes(range(31, -1, -1))
+        second = b"ssh-ed25519 " + base64.b64encode(wire) + b" second-key\n"
+        validated = lan.valid_keys(example_key() + second)
+        self.assertEqual(validated.count(b"\n"), 2)
+        self.assertNotIn(b"test-key", validated)
+        self.assertNotIn(b"second-key", validated)
+
     def test_reject_key_options_and_password_material(self):
         for bad in (b"command=\"id\" " + example_key(),
                     b"ssh-rsa AAAA\n", b"private-key\n",
@@ -74,6 +82,11 @@ class LanSSHTests(unittest.TestCase):
         self.assertNotIn("PermitRootLogin yes", script)
         self.assertEqual(subprocess.run(["bash", "-n", str(ROOT / "appliance/remote/lan-start.sh")],
                                         capture_output=True).returncode, 0)
+
+    def test_lan_sshd_start_does_not_block_usb_key_provisioning(self):
+        script = (ROOT / "appliance/remote/lan-start.sh").read_text()
+        self.assertIn("--no-block", script)
+        self.assertLess(script.index("--no-block"), script.index("key_loaded=false"))
 
     def test_ssh_usb_provisioning_reasons_are_safe_and_specific(self):
         script=(ROOT / "appliance/remote/lan-start.sh").read_text()
