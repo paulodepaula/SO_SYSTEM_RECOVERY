@@ -1,68 +1,102 @@
-# RedeTI Recovery OS — Relatório VPN-3F
+# RedeTI Recovery OS — Relatório SSH-4
 
-- Etapa: `VPN-3F — compilação da ISO com diagnóstico VPN seguro`
-- Gerado em UTC: `2026-10-28T17:02:05Z`
+- Etapa: `SSH-4 — investigação da rejeição da chave pública`
+- Gerado em UTC: `2026-10-28T21:05:30Z`
 - Projeto: `SO_SYSTEM_RECOVERY`
 - Branch: `main`
-- Commit-fonte: `dcaefc45bc2892d33d9e7f967b34e62144550526`
-- Estado: `READY_FOR_PHYSICAL_TEST`
+- Base publicada investigada: `a266b181db485045746849715c576c412ec49daf`
+- Estado: `LOCAL_FIX_PREPARED_PHYSICAL_EVIDENCE_REQUIRED`
 
-## Compilação
+## Sintoma confirmado
 
-- Resultado: `PASS`
-- Interface nativa: LVGL v9.6 direct DRM/KMS
-- Versão exibida: `v0.6.0`
-- Build tag: `b261028-165935`
-- ELF: `/home/paulo/RecoveryOS/native-build/out/redeti-ui`
-- ELF SHA-256: `a5e2fa3c4a79b6c16299c8643f94808b5bd38a74ab62ee37affa8de5fa4e810c`
-- Testes CTest nativos: `3/3 PASS`
+- TCP/22 do Recovery OS: alcançável.
+- Host key ED25519: validada em momentos distintos conforme fingerprint apresentada pelo equipamento.
+- Chave Hermes provisionada no Ventoy: válida e presente.
+- Login `paulo` pelo Hermes: rejeitado com `Permission denied (publickey)`.
+- Nenhum diagnóstico remoto foi executado porque a autenticação falhou.
 
-## ISO gerada
+## Causa encontrada no código
 
-- Caminho: `/home/paulo/RecoveryOS/out/RedeTI-Recovery-OS-appliance-dcaefc45-20261028T165954Z.iso`
-- ISO SHA-256: `3ee8e5e679caae1af1288277257628a37ffc8a89e88f9115f213bd6bab42c392`
-- Sidecar: `/home/paulo/RecoveryOS/out/RedeTI-Recovery-OS-appliance-dcaefc45-20261028T165954Z.iso.sha256`
-- Verificação do sidecar: `PASS`
-- Manifesto: `/home/paulo/RecoveryOS/out/RedeTI-Recovery-OS-appliance-dcaefc45-20261028T165954Z.iso.buildinfo`
-- Proveniência código/ELF/manifesto: `PASS`
+`appliance/remote/lan-start.sh` iniciava o SSH com `systemd-run` em modo bloqueante:
 
-## Conteúdo e boot
+```text
+systemd-run --quiet --collect --unit=redeti-lan-sshd ... sshd -D ...
+```
 
-- `/usr/local/bin/redeti-status` presente no `customize.srm`: `PASS`
-- Permissão empacotada: `0755`: `PASS`
-- `customize.srm` identificado como SquashFS válido: `PASS`
-- Entrada BIOS El Torito: `PASS`
-- Entrada UEFI El Torito: `PASS`
-- Estrutura SystemRescue e `/sysrescue.d`: `PASS`
-- ISO anterior preservada: `PASS`
+O processamento de `REDETI/authorized_keys` ocorria somente depois dessa chamada, no loop iniciado por `key_loaded=false`. Como `sshd -D` permanece ativo, o shell não alcançava a rotina de provisionamento. Isso explica a porta 22 aberta com autenticação pública recusada.
 
-## Segurança
+## Correção preparada localmente
 
-- `/run/redeti`: protegido com modo `0700`: `PASS`
-- Socket administrativo `tailscaled.sock`: não exposto pela saída pública: `PASS`
-- Status público separado em `/run/redeti-status`: `PASS`
-- Campos do `redeti-status` allowlisted e somente leitura: `PASS`
-- Credenciais, tokens e chaves privadas na ISO: `NÃO ENCONTRADOS`
-- Dados de clientes na ISO/relatório: `NÃO ENCONTRADOS`
-- Firewall, Tailscale e serviços de produção: não alterados
-- Discos de clientes: não acessados
+Alteração mínima local:
 
-## Validações não executadas
+```text
+systemd-run --quiet --no-block --collect --unit=redeti-lan-sshd ... sshd -D ...
+```
 
-- QEMU: `NOT_RUN` por restrição explícita
-- Inicialização da ISO no Hermes: `NOT_RUN`
-- Boot físico BIOS/Legacy: `NOT_RUN`
-- Boot físico UEFI: `NOT_RUN`
-- Validação visual DRM/KMS em hardware real: `NOT_RUN`
+Foi adicionada uma regressão em `appliance/tests/test_lan_ssh.py` que exige `--no-block` antes do loop de provisionamento.
 
-## Publicação
+A correção e o teste permanecem locais nesta etapa. Nenhum código foi publicado no GitHub, conforme a solicitação de publicar somente os relatórios sanitizados.
 
-- ISO não publicada automaticamente.
-- Este relatório, `reports/latest.json` e o histórico sanitizado serão publicados no GitHub conforme autorização.
-- Nenhum código-fonte adicional foi alterado nesta etapa.
+## Verificações locais
 
-## Resultado final
+- Teste RED antes da correção: PASS como reprodução — a regressão falhou porque `--no-block` não existia.
+- Teste GREEN da correção: PASS.
+- Simulação de duas chaves Ed25519 distintas em `lan.py valid_keys/install-key`: PASS.
+  - Duas entradas aceitas.
+  - Comentários removidos do arquivo instalado.
+  - Limite de quatro entradas preservado.
+- Suíte completa:
 
-`READY_FOR_PHYSICAL_TEST`
+```text
+python3 -m unittest discover -s appliance/tests -v
+```
 
-A ISO está compilada, identificada pelo commit correto, com SHA-256 e sidecar verificados. A próxima etapa é a homologação física autorizada; não foi executada no Hermes.
+Resultado: `166` testes aprovados, `0` falhas.
+
+- Sintaxe `lan-start.sh`: PASS.
+- `git diff --check`: PASS.
+- Nenhuma ISO gerada.
+- Nenhum QEMU executado.
+- Nenhum Recovery OS físico, Ventoy, firewall, serviço ou disco de cliente alterado.
+
+## Fluxo validado no código
+
+- Fonte autorizada: partição USB removível com label `Ventoy` ou `REDETI_CFG`.
+- Filesystems aceitos: `exfat` e `vfat`.
+- Mapeamentos Ventoy só são aceitos quando o sysfs confirma o mesmo dispositivo USB.
+- Arquivo lido: `REDETI/authorized_keys`.
+- Destino instalado: `/home/paulo/.ssh/authorized_keys`.
+- `AuthorizedKeysFile`: `/home/paulo/.ssh/authorized_keys`.
+- OpenSSH: usuário `paulo`, somente chave pública, sem root e sem senha.
+- Permissões aplicadas no destino: diretório `0700`, arquivo `0600`, proprietário `paulo:paulo`.
+- Validador: somente chaves `ssh-ed25519`, de uma a quatro entradas, sem opções de `authorized_keys`.
+
+## Evidência ainda necessária no equipamento físico
+
+Como a autenticação não foi possível, estes comandos read-only devem ser executados localmente no Recovery OS, em console físico ou após uma sessão autorizada:
+
+```bash
+findmnt -rn -S /dev/sda1 -o SOURCE,FSTYPE,OPTIONS,TARGET
+lsblk -o NAME,TYPE,SIZE,TRAN,FSTYPE,LABEL,MOUNTPOINTS
+stat -c '%A %a %U:%G %s %n' /home/paulo/.ssh /home/paulo/.ssh/authorized_keys
+sha256sum /home/paulo/.ssh/authorized_keys
+/usr/bin/sshd -T -f /opt/redeti-appliance/remote/sshd_config | grep -E 'authorizedkeysfile|allowusers|pubkeyauthentication|passwordauthentication|authenticationmethods|strictmodes'
+systemctl status redeti-lan-sshd --no-pager
+journalctl -b -u redeti-lan-sshd --no-pager -n 120
+ip -brief address
+redeti-status
+```
+
+Para conferir fingerprints sem publicar chaves:
+
+```bash
+while read -r type key _; do
+  printf '%s %s\n' "$type" "$key" | ssh-keygen -lf - -E sha256
+done < /home/paulo/.ssh/authorized_keys
+```
+
+## Próxima etapa
+
+A correção exige nova ISO para chegar ao Recovery OS físico. A geração da ISO e qualquer homologação física permanecem bloqueadas até autorização específica.
+
+`PHYSICAL_SSH_TEST: BLOCKED_PENDING_NEW_ISO_AND_PHYSICAL_EVIDENCE`

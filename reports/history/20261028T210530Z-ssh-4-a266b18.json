@@ -1,0 +1,17 @@
+{
+  "schema": "redeti.recovery.ssh-report.v1",
+  "generated_at_utc": "2026-10-28T21:05:30Z",
+  "stage": "SSH-4",
+  "base_published_commit": "a266b181db485045746849715c576c412ec49daf",
+  "root_cause": "blocking_systemd_run_before_usb_key_provisioning_loop",
+  "local_fix": "add_no_block_to_systemd_run",
+  "focused_regression": "PASS",
+  "two_key_simulation": "PASS",
+  "full_suite_passed": 166,
+  "full_suite_failed": 0,
+  "physical_evidence": "NOT_RUN_AUTHENTICATION_BLOCKED",
+  "iso_generated": false,
+  "physical_recovery_os_changed": false,
+  "ventoy_changed": false,
+  "publication_scope": "sanitized_report_only"
+}
