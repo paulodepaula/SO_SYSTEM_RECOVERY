@@ -1,94 +1,60 @@
-# RedeTI — Relatório WG-8: validação de backup e preparação final TLS
+# RedeTI — WG-8: validação dos backups recebidos
 
-- Etapa: `WG-8 — validar backup e preparar ativação TLS`
-- Gerado em UTC: `2026-10-29T00:08:00Z`
-- Projeto: `SO_SYSTEM_RECOVERY`
-- Alvo: MikroTik Cidade Verde — `RB3011UiAS`, RouterOS `7.20.8`
-- Endpoint: `164.163.166.19:8729`
-- Estado: `BLOCKED_BACKUPS_NOT_AVAILABLE`
-- `READY_FOR_TLS_CHANGE`: **não declarado**
+- Etapa: `WG-8 — validar backups recebidos`
+- Validado em UTC: `2026-10-29T02:49:48Z`
+- Alvo declarado: MikroTik Cidade Verde — `RB3011UiAS`, RouterOS `7.20.8`
+- Estado: `BACKUP_VALIDATED`
 
-## Resultado da verificação local
+## Resultado
 
-Diretório autorizado:
+Os dois arquivos esperados estão presentes no diretório protegido:
 
 `/home/paulo/.local/share/redeti/routeros-backups`
 
-Verificação realizada:
+- Diretório: modo `0700`.
+- Arquivos: regulares.
+- Links simbólicos: nenhum.
+- Permissões corrigidas/verificadas: `0600`.
+- Conteúdo: não exibido.
+- Publicação no GitHub: não realizada.
 
-- permissão: `0700`;
-- proprietário: usuário local Hermes;
-- arquivos encontrados: `0`;
-- backup binário: não disponível;
-- export `.rsc`: não disponível;
-- tamanhos: não calculados;
-- SHA-256: não calculado;
-- cópia no GitHub: não realizada.
+## Metadados e SHA-256
 
-Nenhum arquivo foi procurado fora desse diretório, nenhum backup foi inventado e nenhuma operação remota foi repetida por canal inseguro.
+| Arquivo | Tamanho | Modo | SHA-256 |
+|---|---:|---:|---|
+| `pre-wg8-apissl.backup` | `49544` bytes | `0600` | `e3d229e48e429047c90a83cb866257b68de263d138725d80cbc831de586809c1` |
+| `pre-wg8-apissl.rsc` | `6265` bytes | `0600` | `d4c74903c29681e9ed87c97ff9fa43deb588ce866b66ac22a8e08dd4a7768d98` |
 
-## Gate de validação quando os arquivos forem disponibilizados
+Os hashes foram calculados localmente sem imprimir o conteúdo. A alteração realizada nesta etapa foi somente a correção das permissões locais de `0664` para `0600`.
 
-Após o operador copiar os dois arquivos para o diretório protegido, executar somente localmente:
+## Identidade de origem
 
-```bash
-D=/home/paulo/.local/share/redeti/routeros-backups
-find "$D" -maxdepth 1 -type f -printf '%f\n'
-stat -c '%A %a %U:%G %s %n' "$D"/*
-sha256sum "$D"/*
-```
+A identidade foi corroborada por inspeção interna do export `.rsc`, sem emitir conteúdo:
 
-Critérios:
+- marcador de modelo `RB3011UiAS`: presente;
+- marcador de RouterOS `7.20.8`: presente;
+- método: varredura interna de marcadores do export, sem exposição de conteúdo.
 
-- exatamente um `.backup` binário e um export `.rsc` esperado;
+O arquivo `.backup` é binário/opaco; sua origem é vinculada ao export correspondente, nome do procedimento e cadeia de transferência fornecida pelo operador. A validação não abriu nem publicou o conteúdo binário.
+
+## Verificações realizadas
+
+- presença de exatamente um `.backup` e um `.rsc` esperado;
 - tamanho maior que zero;
-- modo recomendado `0600` nos arquivos;
-- proprietário local correto;
-- nenhum symlink inesperado;
-- SHA-256 registrado somente como metadado sanitizado;
-- arquivos fora do repositório Git e fora do GitHub.
+- tipo regular;
+- ausência de symlink;
+- modo `0600` em ambos;
+- hash SHA-256 calculado;
+- diretório protegido em modo `0700`;
+- arquivos fora do repositório e não publicados no GitHub.
 
-Não publicar conteúdo, hash de segredo, export integral ou backup binário no relatório. O hash SHA-256 do arquivo, isoladamente, pode ser registrado como metadado quando os arquivos existirem.
+## Próxima etapa TLS — preparada, não executada
 
-## Comandos de backup de origem — já preparados, não executados pelo Hermes
+### Backup preservado
 
-Na sessão WinBox autorizada do operador:
+Não mover, editar ou versionar os arquivos. Manter ambos no diretório protegido para rollback.
 
-```routeros
-/system identity print
-/system resource print
-/system routerboard print
-
-/system backup save name=pre-wg8-apissl-<YYYYMMDD-HHMMSS>
-/export terse hide-sensitive file=pre-wg8-apissl-<YYYYMMDD-HHMMSS>
-/file print detail where name~"pre-wg8-apissl-"
-```
-
-O operador deve transferir os arquivos por canal administrativo protegido para o diretório acima. Não usar:
-
-```routeros
-/export show-sensitive
-```
-
-Não transferir chaves privadas, senhas, tokens, PSKs ou certificados privados.
-
-## Sequência final de ativação TLS — preparada, não executar nesta etapa
-
-### 1. Pré-leitura
-
-```routeros
-/system identity print
-/system resource print
-/system routerboard print
-/ip service print detail where name=api-ssl
-/certificate print detail
-/ip firewall filter print detail stats where chain=input
-/ip firewall nat print detail
-```
-
-Confirmar novamente identidade, RouterOS 7.20.8, porta 8729, origem administrativa e ausência de alteração concorrente.
-
-### 2. Criar CA interna
+### Criação da CA interna
 
 ```routeros
 /certificate add name=redeti-ca-cidade-verde \
@@ -99,7 +65,7 @@ Confirmar novamente identidade, RouterOS 7.20.8, porta 8729, origem administrati
     name=redeti-ca-cidade-verde
 ```
 
-### 3. Criar e assinar certificado do servidor
+### Certificado do servidor
 
 ```routeros
 /certificate add name=redeti-api-cidade-verde \
@@ -112,53 +78,39 @@ Confirmar novamente identidade, RouterOS 7.20.8, porta 8729, origem administrati
     name=redeti-api-cidade-verde-signed
 ```
 
-A sintaxe deve ser confirmada no terminal RouterOS 7.20.8 com tab-completion antes de executar. Se a versão exigir formato diferente para `subject-alt-name`, interromper; não substituir por validação somente de `common-name`.
-
-### 4. Validar certificado antes de atribuir
+### Validação antes da atribuição
 
 ```routeros
 /certificate print detail where name~"redeti-(ca|api)-cidade-verde"
 ```
 
-Obrigatório:
+Confirmar CA válida, SAN IP correto, `tls-server`, validade e chave privada correspondente.
 
-- certificado de CA válido;
-- certificado de servidor assinado pela CA correta;
-- SAN `IP:164.163.166.19`;
-- `key-usage=tls-server`;
-- chave privada correspondente presente no RouterOS;
-- validade vigente.
-
-### 5. Exportar somente a CA pública
+### Exportar somente a CA pública
 
 ```routeros
 /certificate export-certificate redeti-ca-cidade-verde \
     type=pem file=redeti-ca-cidade-verde
 ```
 
-Transferir somente o PEM público. A chave privada da CA e a chave privada do servidor nunca devem ser publicadas ou transferidas ao GitHub/chat.
+Não transferir a chave privada da CA, a chave privada do servidor, o `.backup` ou o export completo ao Hermes/GitHub/chat.
 
-### 6. Atribuir ao API-SSL
+### Atribuir o certificado ao API-SSL
 
 ```routeros
 /ip service set [find name=api-ssl] \
-    disabled=no \
-    port=8729 \
+    disabled=no port=8729 \
     certificate=redeti-api-cidade-verde-signed
 ```
 
-A restrição de origem deve ser uma etapa separada, depois de confirmar a origem do MCP e manter uma sessão administrativa alternativa:
+A restrição de origem permanece uma etapa separada, após confirmar a origem real do MCP e manter uma sessão administrativa alternativa:
 
 ```routeros
 /ip service set [find name=api-ssl] \
     address=<CIDRS_ADMINISTRATIVOS_CONFIRMADOS>
 ```
 
-Não usar `0.0.0.0/0` como origem administrativa.
-
-## Teste externo TLS
-
-Após a atribuição autorizada:
+## Validação TLS externa
 
 ```bash
 openssl s_client \
@@ -169,21 +121,11 @@ openssl s_client \
   -tls1_2
 ```
 
-Critérios:
+Aprovar somente se a cadeia, SAN e hostname forem válidos e nenhuma cifra `ADH-*` for necessária. Testar TLS 1.3 separadamente quando suportado. Não usar `-k`.
 
-- certificado apresentado;
-- cadeia válida;
-- SAN IP validado;
-- hostname validado;
-- nenhuma cifra `ADH-*`;
-- falha com CA incorreta;
-- falha com hostname incorreto.
+## MCP estrito
 
-Testar TLS 1.3 separadamente se suportado pelo serviço. Não usar `-k`.
-
-## Configuração MCP preparada
-
-A configuração final deve ser equivalente a:
+Configuração alvo:
 
 ```text
 use_ssl=true
@@ -192,20 +134,17 @@ ssl_verify_hostname=true
 ca_file=<CAMINHO_DA_CA_PUBLICA_PROTEGIDA>
 ```
 
-Antes da alteração do MCP de produção:
+Antes de alterar o MCP de produção:
 
-1. confirmar suporte da biblioteca `routeros_api` a CA customizada;
-2. usar `cafile` ou `SSLContext` verificado;
-3. testar em ambiente controlado;
-4. confirmar rejeição de CA/hostname incorretos;
-5. alterar o perfil somente após o teste;
-6. repetir inventário RouterOS estritamente read-only.
-
-A configuração atual do MCP não foi alterada nesta etapa.
+1. confirmar suporte real da biblioteca a `cafile`/`SSLContext`;
+2. testar CA e hostname corretos;
+3. confirmar rejeição de CA/hostname incorretos;
+4. habilitar validação estrita;
+5. repetir inventário somente leitura.
 
 ## Rollback preparado
 
-Registrar os valores anteriores antes da atribuição. Se a validação falhar:
+Registrar o baseline do serviço antes da alteração. Se falhar:
 
 ```routeros
 /ip service set [find name=api-ssl] \
@@ -215,23 +154,20 @@ Registrar os valores anteriores antes da atribuição. Se a validação falhar:
     disabled=<ESTADO_ANTERIOR>
 ```
 
-Se necessário, restaurar o backup binário através de procedimento WinBox/console aprovado. Remover somente objetos criados com os nomes WG-6/WG-8 confirmados; não executar remoções amplas.
-
-Rollback deve preservar WireGuard existente, L2TP, rotas, NAT, firewall não relacionado e demais serviços.
+Se necessário, restaurar o `.backup` pela sessão WinBox/console autorizada. Não executar remoção ampla nem alterar WireGuard, L2TP, rotas, NAT ou firewall não relacionado.
 
 ## Não executado
 
-- certificados: não criados;
-- API-SSL: não alterada;
-- MCP: não alterado;
-- firewall/NAT: não alterados;
-- rotas/VPNs: não alteradas;
-- WireGuard: não executado;
-- Recovery OS: não modificado;
-- backup/export: não disponíveis localmente.
+- CA: não criada.
+- Certificado: não criado.
+- API-SSL: não alterada.
+- MCP: não alterado.
+- Firewall/NAT/rotas/VPNs: não alterados.
+- WireGuard: não iniciado.
+- Recovery OS: não modificado.
 
-## Resultado
+## Resultado final
 
-`BLOCKED_BACKUPS_NOT_AVAILABLE`
+`BACKUP_VALIDATED`
 
-O relatório final de ativação está preparado, mas o gate de backup não foi satisfeito: o diretório protegido está vazio. Após a disponibilização dos arquivos, será possível validar existência, tamanho, permissões e SHA-256 sem publicar os artefatos. Somente depois do backup validado, CA pública instalada e suporte de CA customizada confirmado no MCP poderá ser solicitada a autorização para ativação TLS.
+Os backups recebidos foram validados por presença, tamanho, permissões, tipo, ausência de links simbólicos, SHA-256 e marcadores de identidade no export. A próxima etapa está preparada, mas qualquer ativação TLS exige autorização separada e não foi executada nesta etapa.
