@@ -1,0 +1,53 @@
+{
+  "schema": "redeti.recovery.wg-report.v1",
+  "generated_at_utc": "2026-10-29T13:33:09Z",
+  "stage": "WG-11",
+  "project": "SO_SYSTEM_RECOVERY",
+  "target": {
+    "label": "Cidade Verde",
+    "model": "RB3011UiAS",
+    "routeros": "7.20.8",
+    "endpoint": "164.163.166.19",
+    "api_ssl_port": 8729
+  },
+  "overall_state": "BLOCKED_CA_MISSING_AND_TLS_HANDSHAKE",
+  "ca_public": {
+    "found": false,
+    "paths_checked": [
+      "/home/paulo/.local/share/redeti/pki/",
+      "/home/paulo/.config/redeti/pki/",
+      "/etc/hermes/pki/",
+      "/home/paulo/.local/share/redeti/routeros-backups/"
+    ],
+    "installed": false
+  },
+  "tls_test": {
+    "tcp_connected": true,
+    "handshake_success": false,
+    "bytes_read": 7,
+    "bytes_written": 188,
+    "server_certificate_presented": false,
+    "cipher": "NONE",
+    "san_validated": false,
+    "chain_validated": false,
+    "insecure_bypass_used": false
+  },
+  "mcp": {
+    "health": "BLOCKED",
+    "error": "SSLV3_ALERT_HANDSHAKE_FAILURE",
+    "strict_validation_changed": false,
+    "authenticated_read": false
+  },
+  "execution": {
+    "inventory_run": false,
+    "api_ssl_modified": false,
+    "firewall_modified": false,
+    "nat_modified": false,
+    "routes_modified": false,
+    "vpns_modified": false,
+    "wireguard_modified": false,
+    "recovery_os_modified": false,
+    "secrets_published": false
+  },
+  "next_gate": "Provide the public CA PEM and confirm live api-ssl certificate assignment; repeat strict TLS validation before changing MCP or running inventory."
+}
