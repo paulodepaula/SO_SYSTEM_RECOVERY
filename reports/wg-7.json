@@ -1,0 +1,63 @@
+{
+  "schema": "redeti.recovery.wg-report.v1",
+  "generated_at_utc": "2026-10-28T23:02:00Z",
+  "stage": "WG-7",
+  "project": "SO_SYSTEM_RECOVERY",
+  "target": {
+    "model": "RB3011UiAS",
+    "routeros": "7.20.8",
+    "endpoint": "164.163.166.19",
+    "api_ssl_port": 8729
+  },
+  "overall_state": "BLOCKED_SECURE_ROUTEROS_ACCESS",
+  "ready_for_tls_change": false,
+  "mcp_access": {
+    "result": "BLOCKED_TLS_HANDSHAKE",
+    "authenticated": false,
+    "api_without_tls_used": false,
+    "anonymous_cipher_used_as_solution": false
+  },
+  "hermes_storage": {
+    "free_space_reported": "106G",
+    "protected_directory": "/home/paulo/.local/share/redeti/routeros-backups",
+    "protected_directory_mode": "0700",
+    "backup_files_present": false
+  },
+  "routeros_backup": {
+    "binary_created": false,
+    "sanitized_export_created": false,
+    "transferred_to_hermes": false,
+    "sha256_verified": false,
+    "published_to_github": false
+  },
+  "certificate_plan": {
+    "ca_name": "redeti-ca-cidade-verde",
+    "server_certificate_name": "redeti-api-cidade-verde",
+    "san_ip": "164.163.166.19",
+    "key_usage": "tls-server",
+    "real_ca_created": false,
+    "real_server_certificate_created": false,
+    "private_key_published": false,
+    "public_ca_transfer_planned": true
+  },
+  "mcp_tls_plan": {
+    "current_ssl_verify": false,
+    "current_ssl_hostname_verify": false,
+    "target_ssl_verify": true,
+    "target_ssl_hostname_verify": true,
+    "custom_ca_runtime_support_verified": false,
+    "production_mcp_changed": false
+  },
+  "safety": {
+    "api_ssl_changed": false,
+    "firewall_changed": false,
+    "nat_changed": false,
+    "route_changed": false,
+    "vpn_changed": false,
+    "wireguard_executed": false,
+    "recovery_os_modified": false,
+    "secrets_published": false
+  },
+  "rollback_documented": true,
+  "next_step": "Restore secure RouterOS TLS access through an authorized administrative session, create and transfer the protected backups, then apply the separately authorized certificate and strict MCP validation."
+}
